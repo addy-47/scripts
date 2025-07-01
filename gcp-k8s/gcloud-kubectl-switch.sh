@@ -2,15 +2,8 @@
 
 # gcloud-kubectl-switch.sh
 # Purpose: Streamline switching between Google Cloud projects and Kubernetes clusters
-# Usage: source ~/scripts/gcloud-kubectl-switch.sh <config-name>
-# Example: After sourcing in your .bashrc/.zshrc, use aliases: switch-addy, switch-kb-uat
-# Features:
-# - Switches gcloud configurations and kubectl contexts in one command
-# - Auto-creates gcloud configurations for new entries
-# - Prompts gcloud auth login for unauthenticated accounts
-# - Optionally sets Application Default Credentials (ADC) for Terraform/client libraries
-# - Supports managing VMs, buckets, and other GCP resources
-# - Designed for DevOps engineers managing multiple projects
+#
+# See README.md for full documentation and setup instructions.
 
 # Check dependencies
 for cmd in gcloud kubectl kubectx kubens; do
@@ -144,69 +137,25 @@ switch_project() {
     return 1
   }
 
-  # # Optional: List VMs and buckets
-  # echo -e "\nVMs in $PROJECT_ID:"
-  # gcloud compute instances list --project "$PROJECT_ID" || echo "No VMs found or access denied."
-  # echo -e "\nBuckets in $PROJECT_ID:"
-  # gsutil ls -p "$PROJECT_ID" || echo "No buckets found or gsutil not configured."
+  run_post_switch_summary "$CONFIG_NAME" "$PROJECT_ID" "$KUBE_CONTEXT_ALIAS"
+}
 
-  # echo -e "\nSuccessfully switched to config: $CONFIG_NAME, project: $PROJECT_ID, cluster: $CLUSTER_NAME"
-  # echo -n "Current namespace is: "
-  # kubens
+# Function to display a summary after a successful switch
+run_post_switch_summary() {
+  local CONFIG_NAME=$1
+  local PROJECT_ID=$2
+  local KUBE_CONTEXT_ALIAS=$3
+
+  echo -e "\nSuccessfully switched to config: $CONFIG_NAME, project: $PROJECT_ID, context: $KUBE_CONTEXT_ALIAS"
+  echo -n "Current namespace is: "
+  kubens
+
+  # Optional: Uncomment the lines below to see a list of VMs and buckets after every switch.
+  # echo -e "\nVMs in $PROJECT_ID:"
+  # gcloud compute instances list --project "$PROJECT_ID" --format="table(name,zone,status)" || echo "No VMs found or access denied."
 }
 
 # Define aliases for each configuration
 for config in "${!CONFIGS[@]}"; do
   alias switch-$config="switch_project $config"
 done
-
-# Guide for Users
-# ==================
-# Purpose: Simplify switching between multiple GCP projects and Kubernetes clusters.
-# Setup Instructions:
-# 1. Save this script as '~/scripts/gcloud-kubectl-switch.sh'.
-# 2. Make executable: chmod +x ~/scripts/gcloud-kubectl-switch.sh
-# 3. Create a config file named 'gcloud-kubectl-switch.conf' in the same directory.
-# 4. Add your configurations to 'gcloud-kubectl-switch.conf' (see format below).
-# 5. IMPORTANT: Add 'gcloud-kubectl-switch.conf' to your .gitignore file to keep secrets safe.
-# 6. Add to shell: echo "source ~/scripts/gcloud-kubectl-switch.sh" >> ~/.bashrc
-# 7. Reload shell: source ~/.bashrc (or open a new terminal)
-# 8. Use the aliases generated from your config file (e.g., switch-my-proj).
-#
-# Adding a New Configuration:
-# - Edit your personal 'gcloud-kubectl-switch.conf' file.
-# - Format: ["config-name"]="project-id|account|real-cluster-name|gke-region|desired-kube-context-name"
-#   Example: ["new-config"]="my-project|user@domain.com|my-gke-cluster-1|us-central1|my-proj"
-# - Save and reload shell: source ~/.bashrc
-# - The script will:
-#   - Create a new gcloud configuration automatically.
-#   - Prompt for authentication if the account isn't logged in.
-#   - Fetch kubectl credentials for the cluster.
-# - New alias (e.g., switch-new-config) will be available.
-#
-# Optional: Application Default Credentials (ADC) for Terraform/Client Libraries:
-# - Create a service account: gcloud iam service-accounts create terraform-sa --project <project-id>
-# - Grant roles: gcloud projects add-iam-policy-binding <project-id> \
-#     --member=serviceAccount:terraform-sa@<project-id>.iam.gserviceaccount.com \
-#     --role=roles/editor
-# - Generate key: gcloud iam service-accounts keys create ~/.config/gcloud/<project-id>-key.json \
-#     --iam-account terraform-sa@<project-id>.iam.gserviceaccount.com
-# - The script auto-sets GOOGLE_APPLICATION_CREDENTIALS if the key exists.
-#
-# Managing Additional GCP Resources:
-# - VMs: The script lists VMs after switching (gcloud compute instances list).
-# - Buckets: The script lists buckets (gsutil ls).
-# - Extend the script in the switch_project function to manage other resources, e.g.:
-#   echo "Firestore databases in $PROJECT_ID:"
-#   gcloud firestore databases list --project "$PROJECT_ID"
-#
-# Troubleshooting:
-# - Permission errors: Grant roles/container.clusterAdmin:
-#   gcloud projects add-iam-policy-binding <project-id> \
-#     --member=user:<account> --role=roles/container.clusterAdmin
-# - Timeouts: Check cluster status: gcloud container clusters list --project <project-id>
-# - Private clusters: Ensure VPN/network access: curl -k https://<cluster-ip>:443
-# - Missing dependencies: Install gcloud, kubectl, kubectx (see links above).
-#
-# Share this script to simplify multi-project GCP and Kubernetes workflows!
-# Created by Adhbhut Gupta, optimized for DevOps efficiency.
