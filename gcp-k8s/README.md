@@ -11,7 +11,7 @@ This script is designed for DevOps engineers, SREs, and developers who frequentl
 -   **Automatic Setup:** Creates `gcloud` configurations on the fly for new projects.
 -   **Authentication Helper:** Prompts for `gcloud auth login` if the required account is not yet authenticated.
 -   **Kubernetes Integration:** Fetches GKE cluster credentials and intelligently renames `kubectl` contexts to your preferred short names using `kubectx`.
--   **Namespace Awareness:** Displays the current Kubernetes namespace after a successful switch using `kubens`.
+-   **Namespace Awareness:** Automatically switches to a predefined Kubernetes namespace using `kubens` after a successful context switch.
 -   **Extensible:** Easily add post-switch commands to list VMs, Cloud Storage buckets, or other GCP resources.
 
 ## Prerequisites
@@ -58,7 +58,7 @@ Your `gcloud-kubectl-switch.conf` file contains an associative array named `CONF
 ```shell
 # gcloud-kubectl-switch.conf
 CONFIGS=(
-  ["<alias-name>"]="<project-id>|<gcp-account>|<real-gke-cluster-name>|<gke-region>|<desired-kube-context-name>"
+  ["<alias-name>"]="<project-id>|<gcp-account>|<real-gke-cluster-name>|<gke-region>|<desired-kube-context-name>|<desired-namespace>"
 )
 ```
 

@@ -33,7 +33,7 @@ else
   echo "Warning: Configuration file not found at '$CONFIG_FILE'."
   echo "Please create it with your settings. Loading an example configuration."
   CONFIGS=(
-    ["example-config"]="your-gcp-project-id|user@example.com|your-real-cluster-name|us-central1|your-short-name"
+    ["example-config"]="your-gcp-project-id|user@example.com|your-real-cluster-name|us-central1|your-short-name|your-namespace"
   )
 fi
 
@@ -57,7 +57,7 @@ switch_project() {
   fi
 
   # Parse configuration
-  IFS='|' read -r PROJECT_ID ACCOUNT CLUSTER_NAME REGION KUBE_CONTEXT_ALIAS <<< "${CONFIGS[$CONFIG_NAME]}"
+  IFS='|' read -r PROJECT_ID ACCOUNT CLUSTER_NAME REGION KUBE_CONTEXT_ALIAS NAMESPACE <<< "${CONFIGS[$CONFIG_NAME]}"
 
   # Default the kube context alias to the config name if not provided, for backward compatibility
   if [[ -z "$KUBE_CONTEXT_ALIAS" ]]; then
@@ -137,7 +137,7 @@ switch_project() {
     return 1
   }
 
-  run_post_switch_summary "$CONFIG_NAME" "$PROJECT_ID" "$KUBE_CONTEXT_ALIAS"
+  run_post_switch_summary "$CONFIG_NAME" "$PROJECT_ID" "$KUBE_CONTEXT_ALIAS" "$NAMESPACE"
 }
 
 # Function to display a summary after a successful switch
@@ -145,8 +145,16 @@ run_post_switch_summary() {
   local CONFIG_NAME=$1
   local PROJECT_ID=$2
   local KUBE_CONTEXT_ALIAS=$3
+  local NAMESPACE=$4
 
   echo -e "\nSuccessfully switched to config: $CONFIG_NAME, project: $PROJECT_ID, context: $KUBE_CONTEXT_ALIAS"
+
+  # If a namespace is defined in the config, try to switch to it.
+  if [[ -n "$NAMESPACE" ]]; then
+    echo "Attempting to switch to namespace: $NAMESPACE"
+    kubens "$NAMESPACE" || echo "Warning: Failed to switch to namespace '$NAMESPACE'. It may not exist."
+  fi
+
   echo -n "Current namespace is: "
   kubens
 
