@@ -80,16 +80,6 @@ switch_project() {
     return 1
   }
 
-  # Set project and region
-  gcloud config set project "$PROJECT_ID" || {
-    echo "Failed to set project: $PROJECT_ID"
-    return 1
-  }
-  gcloud config set compute/region "$REGION" || {
-    echo "Failed to set region: $REGION"
-    return 1
-  }
-
   # Check if account is authenticated, prompt login if not
   if ! check_account_authenticated "$ACCOUNT"; then
     echo "Account $ACCOUNT not authenticated. Initiating gcloud auth login..."
@@ -100,6 +90,16 @@ switch_project() {
   fi
   gcloud config set account "$ACCOUNT" || {
     echo "Failed to set account: $ACCOUNT"
+    return 1
+  }
+
+  # Set project and region
+  gcloud config set project "$PROJECT_ID" || {
+    echo "Failed to set project: $PROJECT_ID"
+    return 1
+  }
+  gcloud config set compute/region "$REGION" || {
+    echo "Failed to set region: $REGION"
     return 1
   }
 
