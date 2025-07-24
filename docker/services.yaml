@@ -1,11 +1,13 @@
-services_dir: ./services
-project_id: my-project
-gar_name: my-artifact-registry
-region: us-central1
+services_dir: ./services # optional if mentioned all services in this dir will be built
+project_id: my-project  # Required if use_gar: true
+gar_name: my-artifact-registry  # Required if use_gar: true
+region: us-central1  # Required if use_gar: true
 global_tag: v1.0.0
 max_processes: 4
-services:
-  - name: services/service-a
-    tag: v1.0.1
+use_gar: true  # Set to false for simple naming (e.g., service-a:v1.0.0)
+push_to_gar: true  # Set to false to skip pushing to GAR
+services:  # required if services_dir is not specified
+  - name: services/service-a  # relative path of each service 
+    tag: v1.0.1   # Optional, if not specified, global_tag will be used
   - name: services/service-b
   - name: subdir/service-c

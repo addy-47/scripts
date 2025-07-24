@@ -2,6 +2,8 @@
 
 This Python script automates building multiple Docker images in parallel for services located in a project directory, including nested subdirectories. It saves time during namespace migrations or branch deployments by eliminating manual, sequential builds. The script supports configurable image names, global and service-specific tags, and defaults to the short Git commit ID if no tag is specified.
 
+> **Important Note**: Currently, this script needs to be run from the project root directory where you want to build Docker images. You can run it using the absolute path to the script. Cross-project usage improvements are in development.
+
 ## Features
 
 - **Parallel Builds**: Builds Docker images concurrently using Python's multiprocessing, with a configurable limit to prevent system overload
@@ -107,6 +109,8 @@ region: us-central1
 # Build Configuration
 global_tag: v1.0.0  # Optional global tag
 max_processes: 4    # Max parallel builds (optional, defaults to half CPU cores)
+use_gar: true      # Whether to use Google Artifact Registry naming (default: true)
+push_to_gar: true  # Whether to push to GAR after building (default: same as use_gar)
 
 # Optional: explicitly list services
 services:
@@ -127,6 +131,17 @@ services:
 | `global_tag` | Tag applied to all services unless overridden (optional) |
 | `max_processes` | Maximum number of parallel builds (optional) |
 | `services` | List of service directories (relative paths) and optional tags. If omitted, all subdirectories with Dockerfiles under services_dir are built |
+| `use_gar` | Whether to use Google Artifact Registry naming format (default: true) |
+| `push_to_gar` | Whether to push images to GAR after building (default: same as use_gar) |
+
+#### Environment Variables
+
+The script also supports environment variables to override configuration:
+
+| Variable | Description |
+|----------|-------------|
+| `USE_GAR` | Override `use_gar` setting from config (set to "true" or "false") |
+| `PUSH_TO_GAR` | Override `push_to_gar` setting from config (set to "true" or "false") |
 
 
 
@@ -140,14 +155,21 @@ pip install pyyaml
 
 ### Running the Script
 
-1. Place `build_services.py` in the project root
-2. Run from the project root:
+1. Create a `services.yaml` configuration file in your project root (see [Configuration File](#3-create-configuration-file) section below)
+
+2. Run the script from your project root using its absolute path:
    ```bash
-   python3 build_services.py
+   # Using absolute path to the script
+   python3 /path/to/scripts/docker/build_services.py
    ```
+   
    Optional: Specify max processes:
    ```bash
-   python3 build_services.py --max-processes 4
+   python3 /path/to/scripts/docker/build_services.py --max-processes 4
+   ```
+
+   > **Note**: The script must be run from the root directory of the project where you want to build Docker images, NOT from the script's location.
+
    ```
 
 The script will:
@@ -155,7 +177,10 @@ The script will:
 - Discover services (via `services_dir` or explicit services list)
 - Validate Dockerfiles in each service directory
 - Build images in parallel, respecting `max_processes`
-- Log progress and errors to `build.log` and console
+- Automatically convert image names to lowercase for Docker/GAR compatibility
+- Create detailed logs for each service in the `logs` directory
+- Log progress and errors to both `build.log` and console
+- Provide a build summary showing successful builds, failed builds, and failed pushes
 
 ### Example Output
 
@@ -165,13 +190,35 @@ us-central1-docker.pkg.dev/my-project/my-artifact-registry/service-a:v1.0.1
 ```
 Default tag: Short Git commit ID (e.g., `abc1234`) if no tag specified
 
-### Optional: Push to GAR
+### Google Artifact Registry (GAR) Integration
 
-1. Ensure GAR authentication:
+The script includes built-in support for Google Artifact Registry:
+
+1. Enable GAR integration in `services.yaml`:
+   ```yaml
+   use_gar: true      # Use GAR naming format
+   push_to_gar: true  # Push to GAR after building
+   ```
+
+2. Or use environment variables:
+   ```bash
+   # Disable GAR for a specific run
+   USE_GAR=false python3 /path/to/scripts/docker/build_services.py
+
+   # Build with GAR naming but don't push
+   PUSH_TO_GAR=false python3 /path/to/scripts/docker/build_services.py
+   ```
+
+3. Ensure GAR authentication:
    ```bash
    gcloud auth configure-docker {region}-docker.pkg.dev
    ```
-2. Modify the script to include `docker push` or run manually after builds
+
+When GAR is enabled:
+- Images will be named as: `{region}-docker.pkg.dev/{project_id}/{gar_name}/{service_name}:{tag}`
+- The script will automatically push images to GAR after successful builds if `push_to_gar` is true
+- Failed pushes will be logged separately in the build summary
+- Detailed build and push logs are saved in the `logs` directory
 
 
 
@@ -189,6 +236,9 @@ Default tag: Short Git commit ID (e.g., `abc1234`) if no tag specified
 
 | Issue | Solution |
 |-------|----------|
+| Script Not Found | Use absolute path to the script when running from your project directory (e.g., `python3 /path/to/scripts/docker/build_services.py`) |
+| Services.yaml Not Found | Create `services.yaml` in your project root directory, not in the script's directory |
+| Wrong Working Directory | Always run the script from the root of the project where you want to build Docker images |
 | Path Errors | Ensure relative paths in `services.yaml` are correct and run script from project root |
 | System Overload | Reduce `max_processes` in `services.yaml` or via `--max-processes` |
 | Docker Permission Errors | Run `sudo usermod -aG docker $USER` (Linux) and log out/in |
