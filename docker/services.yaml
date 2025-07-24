@@ -1,0 +1,11 @@
+services_dir: ./services
+project_id: my-project
+gar_name: my-artifact-registry
+region: us-central1
+global_tag: v1.0.0
+max_processes: 4
+services:
+  - name: services/service-a
+    tag: v1.0.1
+  - name: services/service-b
+  - name: subdir/service-c
