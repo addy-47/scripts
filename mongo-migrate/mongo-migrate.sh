@@ -242,7 +242,13 @@ log "=========================================="
 HELPER_LOG="helper_${MIGRATION_TYPE}_${START_TIME}.log"
 
 if ! bash "$HELPER_SCRIPT" "$CONFIG_FILE" 2>&1 | tee "$HELPER_LOG"; then
-    log_error "Migration '$MIGRATION_TYPE' failed. Check $HELPER_LOG for details"
+    log ""
+    log "----------------------------------------"
+    log_error "Migration '$MIGRATION_TYPE' failed."
+    log "Last 10 lines of the log:"
+    tail -n 10 "$HELPER_LOG" | while IFS= read -r line; do log "  $line"; done
+    log "Check the full log at $MIGRATION_LOG for more details."
+    exit 1
 fi
 
 # Append helper script log to main log

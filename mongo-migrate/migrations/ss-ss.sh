@@ -223,18 +223,18 @@ fi
 
 # Verify restore
 echo 'Verifying restore...'
-mongosh '${TARGET_MONGO_URI}' --eval \"
-use muxly; 
-print('Collections in muxly database:');
-show collections; 
-print('\\nDatabase stats:');
-printjson(db.stats()); 
-print('\\nCollection document counts:');
-try { print('h4attendance: ' + db.h4attendance.countDocuments()); } catch(e) { print('h4attendance: Collection not found'); }
-try { print('h4flowAppProcess: ' + db.h4flowAppProcess.countDocuments()); } catch(e) { print('h4flowAppProcess: Collection not found'); }
-try { print('cosine_similarity: ' + db.cosine_similarity.countDocuments()); } catch(e) { print('cosine_similarity: Collection not found'); }
-try { print('docai_embeddings: ' + db.docai_embeddings.countDocuments()); } catch(e) { print('docai_embeddings: Collection not found'); }
-\"
+mongosh '${TARGET_MONGO_URI}' --eval "
+db.getMongo().getDBNames().forEach(function(dbName) {
+    if (dbName !== 'admin' && dbName !== 'local' && dbName !== 'config') {
+        print('Verifying database: ' + dbName);
+        let db = db.getMongo().getDB(dbName);
+        db.getCollectionNames().forEach(function(collectionName) {
+            let count = db.getCollection(collectionName).countDocuments();
+            print(`  - ${collectionName}: ${count} documents`);
+        });
+    }
+});
+"
 
 # Cleanup files in pod
 echo 'Cleaning up files in pod...'

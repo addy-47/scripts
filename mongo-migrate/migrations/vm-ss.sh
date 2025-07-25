@@ -209,18 +209,18 @@ fi
 
 # Verify restore
 echo 'Verifying restore...'
-mongosh '${TARGET_MONGO_URI}' --eval \"
-use muxly; 
-print('Collections:');
-show collections; 
-print('Database stats:');
-printjson(db.stats()); 
-print('Collection counts:');
-print('h4attendance: ' + db.h4attendance.countDocuments());
-print('h4flowAppProcess: ' + db.h4flowAppProcess.countDocuments());
-print('cosine_similarity: ' + db.cosine_similarity.countDocuments());
-print('docai_embeddings: ' + db.docai_embeddings.countDocuments());
-\"
+mongosh '${TARGET_MONGO_URI}' --eval "
+db.getMongo().getDBNames().forEach(function(dbName) {
+    if (dbName !== 'admin' && dbName !== 'local' && dbName !== 'config') {
+        print('Verifying database: ' + dbName);
+        let db = db.getMongo().getDB(dbName);
+        db.getCollectionNames().forEach(function(collectionName) {
+            let count = db.getCollection(collectionName).countDocuments();
+            print(`  - ${collectionName}: ${count} documents`);
+        });
+    }
+});
+"
 
 # Cleanup
 echo 'Cleaning up...'
