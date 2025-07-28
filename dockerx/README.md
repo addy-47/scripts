@@ -73,6 +73,7 @@ push_to_gar: true           # Optional: Push to GAR after building (default: sam
 # Optional: Explicitly list services to build
 services:
   - name: services/service-a
+    image_name: service-a-image  # Optional: Custom image name
     tag: v1.0.1             # Optional: Service-specific tag
   - name: services/service-b
   - name: subdir/service-c
@@ -89,6 +90,9 @@ services:
 | `global_tag` | An optional tag applied to all services unless a service-specific tag is provided. |
 | `max_processes` | The maximum number of parallel builds. Defaults to half the available CPU cores. |
 | `services` | A list of service directories (relative paths) and optional tags. If this is omitted, the script will build all subdirectories containing a `Dockerfile` under `services_dir`. |
+| `name` | The relative path to the service directory containing the `Dockerfile`. |
+| `image_name` | Optional custom image name for the service. If not provided, the script will construct the image name based on the GAR format or use the service directory name. |
+| `tag` | Optional service-specific tag. If not provided, the script defaults to the short Git commit ID. |
 | `use_gar` | If `true`, images will be named using the GAR format. Defaults to `true`. |
 | `push_to_gar` | If `true`, images will be pushed to GAR after a successful build. Defaults to the value of `use_gar`. |
 
@@ -123,6 +127,7 @@ The script is designed to integrate seamlessly with Google Artifact Registry.
 
 When GAR integration is enabled, the script will:
 - Name images using the format: `{region}-docker.pkg.dev/{project_id}/{gar_name}/{service_name}:{tag}`.
+- Also supports custom image names if specified in `services.yaml`.
 - Automatically push images to GAR if `push_to_gar` is `true`.
 - Log failed pushes separately in the build summary.
 - Store detailed build and push logs in the `logs` directory.
