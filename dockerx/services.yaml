@@ -8,6 +8,7 @@ use_gar: true  # Set to false for simple naming (e.g., service-a:v1.0.0)
 push_to_gar: true  # Set to false to skip pushing to GAR
 services:  # required if services_dir is not specified
   - name: services/service-a  # relative path of each service 
+    image_name: service-a.1  # Optional, if not specified, name will be derived from the path
     tag: v1.0.1   # Optional, if not specified, global_tag will be used
   - name: services/service-b
   - name: subdir/service-c

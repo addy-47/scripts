@@ -1,11 +1,9 @@
-#!/usr/bin/env python3
-
 import os
 import subprocess
 import yaml
 import multiprocessing
 import logging
-import argparse
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -40,15 +38,35 @@ def validate_dockerfile(service_path):
         return False
     return True
 
+def validate_image_name(image_name):
+    """Validate that the image name is Docker-compatible."""
+    # Docker image names must be lowercase, alphanumeric, with hyphens, underscores, or periods
+    if not re.match(r'^[a-z0-9][a-z0-9._-]*$', image_name):
+        logger.error(f"Invalid image name '{image_name}': must be lowercase and contain only alphanumeric, hyphens, underscores, or periods.")
+        return False
+    return True
+
 def build_and_push_docker_image(args):
     """Build and optionally push a Docker image for a given service."""
     service_path, image_name, tag, project_id, gar_name, region, use_gar, push_to_gar = args
     service_name = Path(service_path).name
-    # Convert image name to lowercase to comply with Docker/GAR naming rules
+    
+    # Use provided image_name or fall back to service directory name
+    image_name = image_name or service_name
+    # Convert to lowercase to comply with Docker/GAR naming rules
     image_name_lower = image_name.lower()
     if image_name != image_name_lower:
         logger.info(f"Converted image name '{image_name}' to lowercase: '{image_name_lower}'")
     
+    # Validate image name
+    if not validate_image_name(image_name_lower):
+        return {
+            "service": service_path,
+            "image": image_name_lower,
+            "status": "failed",
+            "build_output": f"Invalid image name: {image_name_lower}"
+        }
+
     image_full_name = (
         f"{region}-docker.pkg.dev/{project_id}/{gar_name}/{image_name_lower}:{tag}"
         if use_gar
@@ -118,22 +136,17 @@ def build_and_push_docker_image(args):
 
     return build_result
 
-def main():
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Build and optionally push multiple Docker images in parallel.")
-    parser.add_argument("--config", default="services.yaml", help="Path to services.yaml")
-    parser.add_argument("--max-processes", type=int, help="Maximum number of parallel builds")
-    args = parser.parse_args()
-
+def build_and_push_images(config_path, max_processes):
+    """Main function to build and push Docker images."""
     # Load configuration from services.yaml
     try:
-        with open(args.config, "r") as f:
+        with open(config_path, "r") as f:
             config = yaml.safe_load(f)
     except FileNotFoundError:
-        logger.error(f"{args.config} not found.")
+        logger.error(f"{config_path} not found.")
         return
     except yaml.YAMLError as e:
-        logger.error(f"Error parsing {args.config}: {e}")
+        logger.error(f"Error parsing {config_path}: {e}")
         return
 
     # Extract configuration
@@ -142,14 +155,10 @@ def main():
     gar_name = config.get("gar_name")
     region = config.get("region")
     global_tag = config.get("global_tag")
-    max_processes = config.get("max_processes", multiprocessing.cpu_count() // 2)
+    max_processes = max_processes or config.get("max_processes", multiprocessing.cpu_count() // 2)
     services = config.get("services", [])
     use_gar = os.getenv("USE_GAR", str(config.get("use_gar", True))).lower() == "true"
     push_to_gar = os.getenv("PUSH_TO_GAR", str(config.get("push_to_gar", use_gar))).lower() == "true"
-
-    # Override max_processes from command-line if provided
-    if args.max_processes:
-        max_processes = args.max_processes
 
     # Validate GAR settings if use_gar is True
     if use_gar and not all([project_id, gar_name, region]):
@@ -169,6 +178,9 @@ def main():
             logger.error("GAR authentication not set up. Run 'gcloud auth configure-docker {region}-docker.pkg.dev'.")
             return
 
+    # Get default tag (short Git commit ID) if global_tag is not specified
+    default_tag = global_tag or get_git_commit_id()
+
     # Prepare list of services to build
     build_tasks = []
     if services:
@@ -180,8 +192,8 @@ def main():
                 continue
             if not validate_dockerfile(service_path):
                 continue
-            image_name = Path(service_path).name
-            tag = service.get("tag", global_tag or get_git_commit_id())
+            image_name = service.get("image_name")  # Get custom image name if provided
+            tag = service.get("tag", default_tag)
             build_tasks.append((service_path, image_name, tag, project_id, gar_name, region, use_gar, push_to_gar))
     elif services_dir:
         # Recursively discover services with Dockerfiles
@@ -191,8 +203,8 @@ def main():
             return
         for dockerfile_path in services_dir_path.rglob("Dockerfile"):
             service_path = str(dockerfile_path.parent)
-            image_name = Path(service_path).name
-            tag = global_tag or get_git_commit_id()
+            image_name = None  # No custom image name for auto-discovered services
+            tag = default_tag
             build_tasks.append((service_path, image_name, tag, project_id, gar_name, region, use_gar, push_to_gar))
     else:
         logger.error("Either services_dir or services must be specified in services.yaml.")
@@ -226,4 +238,20 @@ def main():
             logger.info(f"- {failure['service']}: {failure['image']}")
 
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Docker builder and pusher script")
+    parser.add_argument(
+        "--config",
+        default="services.yaml",
+        help="Path to services.yaml config file (default: services.yaml)",
+    )
+    parser.add_argument(
+        "--max-processes",
+        type=int,
+        default=None,
+        help="Maximum number of parallel builds",
+    )
+
+    args = parser.parse_args()
+    build_and_push_images(args.config, args.max_processes)
