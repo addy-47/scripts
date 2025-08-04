@@ -15,13 +15,18 @@ This script is designed for DevOps engineers, SREs, and developers who frequentl
 -   **Extensible:** Easily add post-switch commands to list VMs, Cloud Storage buckets, or other GCP resources.
 
 ## Prerequisites
-
-Ensure the following command-line tools are installed and available in your `PATH`:
-
--   `gcloud`: The Google Cloud SDK
--   `kubectl`: The Kubernetes command-line tool
+ 
+### Required
+-   `gcloud`: The Google Cloud SDK is always required for the script to function.
+ 
+### Optional (for Kubernetes features)
+The script can switch `gcloud` projects without the tools below. However, if you want to manage GKE clusters, you will also need:
+ 
+-   `kubectl`: The Kubernetes command-line tool.
 -   `kubectx` / `kubens`: For fast `kubectl` context and namespace switching.
-
+ 
+The script will alert you if these are missing when you try to switch to a cluster configuration.
+ 
 ## Setup
 
 1.  **Clone or Download:** Place `gcloud-kubectl-switch.sh` in a convenient directory, for example, `~/scripts/gcp-k8s/`.
@@ -76,14 +81,18 @@ CONFIGS=(
 
 ## Usage
 
-Once set up, simply use the aliases you defined in your configuration file.
+Once the script is sourced, a single `switch` command becomes available in your shell.
+
+### Switching Environments
+
+Use the `switch` command followed by the alias you defined in your configuration file.
 
 ```bash
 # Switch to the 'prod-main' environment
-switch-prod-main
+switch prod-main
 
 # Switch to the 'dev-test' environment
-switch-dev-test
+switch dev-test
 ```
 
 A new alias will be available immediately after you add a new entry and reload your shell.

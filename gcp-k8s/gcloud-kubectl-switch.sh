@@ -5,16 +5,13 @@
 #
 # See README.md for full documentation and setup instructions.
 
-# Check dependencies
-for cmd in gcloud kubectl kubectx kubens; do
-  if ! command -v $cmd &> /dev/null; then
-    echo "Error: $cmd is not installed. Install it to use this script."
-    echo "For gcloud: https://cloud.google.com/sdk/docs/install"
-    echo "For kubectl: https://kubernetes.io/docs/tasks/tools/"
-    echo "For kubectx: brew install kubectx (macOS) or equivalent"
-    exit 1
-  fi
-done
+# Check for gcloud, the core dependency. Other dependencies are checked as needed.
+if ! command -v gcloud &> /dev/null; then
+  echo "Error: gcloud is not installed. Please install the Google Cloud SDK to use this script."
+  echo "https://cloud.google.com/sdk/docs/install"
+  # Handle exit for both sourced and executed scripts
+  (return 2>/dev/null) && return 1 || exit 1
+fi
 
 # This script is designed to be committed to version control.
 # Your personal configurations should be stored in a separate file.
@@ -36,6 +33,44 @@ else
     ["example-config"]="your-gcp-project-id|user@example.com|your-real-cluster-name|us-central1|your-short-name|your-namespace"
   )
 fi
+
+# Function to display all available configurations in a clean format
+show_configurations() {
+  # Check if the CONFIGS array is empty
+  if [ ${#CONFIGS[@]} -eq 0 ] || [[ -z "${!CONFIGS[*]}" ]]; then
+    echo "No configurations found in '$CONFIG_FILE'."
+    echo "Please add configurations to use the script."
+    return
+  fi
+
+  echo "Available configurations from '$CONFIG_FILE':"
+  echo
+
+  # Find the longest alias name for formatting
+  local max_alias_len=0
+  for alias in "${!CONFIGS[@]}"; do
+    if (( ${#alias} > max_alias_len )); then
+      max_alias_len=${#alias}
+    fi
+  done
+  max_alias_len=$((max_alias_len + 2)) # Add padding
+
+  # Print header and sorted list of configurations
+  printf "%-${max_alias_len}s %s\n" "ALIAS" "PROJECT ID"
+  printf "%s\n" "-----------------------------------------------------------------"
+  for alias in $(echo "${!CONFIGS[@]}" | tr ' ' '\n' | sort); do
+    local project_id
+    IFS='|' read -r project_id _ <<< "${CONFIGS[$alias]}"
+    printf "%-${max_alias_len}s %s\n" "$alias" "$project_id"
+  done
+
+  echo
+  local first_alias
+  first_alias=$(echo "${!CONFIGS[@]}" | tr ' ' '\n' | sort | head -n 1)
+  if [[ -n "$first_alias" ]]; then
+    echo "To switch, use: switch $first_alias"
+  fi
+}
 
 # Function to check if an account is authenticated
 check_account_authenticated() {
@@ -117,6 +152,15 @@ switch_project() {
 
   # If a cluster name is provided, handle all Kubernetes-related actions.
   if [[ -n "$CLUSTER_NAME" ]]; then
+    # Check Kubernetes-related dependencies only when they are needed.
+    for cmd in kubectl kubectx kubens; do
+      if ! command -v $cmd &> /dev/null; then
+        echo "Error: Dependency '$cmd' is not installed, but is required for Kubernetes operations."
+        echo "Please install it to switch Kubernetes contexts and namespaces."
+        return 1
+      fi
+    done
+
     # Update kubectl credentials
     echo "Updating kubectl credentials for cluster: $CLUSTER_NAME"
     gcloud container clusters get-credentials "$CLUSTER_NAME" --region "$REGION" --project "$PROJECT_ID" || {
@@ -169,7 +213,42 @@ run_post_switch_summary() {
   # gcloud compute instances list --project "$PROJECT_ID" --format="table(name,zone,status)" || echo "No VMs found or access denied."
 }
 
-# Define aliases for each configuration
-for config in "${!CONFIGS[@]}"; do
-  alias switch-$config="switch_project $config"
-done
+
+# --- Main Logic ---
+# This script can be sourced to create aliases or executed with --show to list them.
+
+# Check if the script is being executed directly or sourced
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  # EXECUTED: Handle command-line arguments for direct execution.
+  if [[ "$1" == "--show" ]]; then
+    show_configurations
+  else
+    echo "Error: Invalid command. This script is meant to be sourced into your shell."
+    echo "Usage: source gcloud-kubectl-switch.sh"
+    echo
+    echo "To list available configurations, run:"
+    echo "  $0 --show"
+    exit 1
+  fi
+else
+  # SOURCED: Define a single 'switch' function for a more intuitive CLI.
+  switch() {
+    # Handle --show or --list flags to display configurations
+    if [[ "$1" == "--show" ]] || [[ "$1" == "--list" ]]; then
+      show_configurations
+      return
+    fi
+
+    # Provide usage instructions if no argument is given
+    if [[ -z "$1" ]]; then
+      echo "Usage: switch <alias-name>"
+      echo "To see available aliases, run: switch --show"
+      echo
+      show_configurations # Also show the list for convenience
+      return 1
+    fi
+
+    # Call the main switch_project function with the provided alias
+    switch_project "$1"
+  }
+fi
