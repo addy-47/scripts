@@ -57,6 +57,8 @@ Your `gcloud-kubectl-switch.conf` file contains an associative array named `CONF
 
 ```shell
 # gcloud-kubectl-switch.conf
+# Fields for Kubernetes (from real-gke-cluster-name onwards) are optional.
+# If real-gke-cluster-name is omitted, the script will only switch the gcloud project context.
 CONFIGS=(
   ["<alias-name>"]="<project-id>|<gcp-account>|<real-gke-cluster-name>|<gke-region>|<desired-kube-context-name>|<desired-namespace>"
 )

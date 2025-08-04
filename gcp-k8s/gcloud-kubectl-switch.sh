@@ -115,29 +115,35 @@ switch_project() {
     echo "If using Terraform, create a service account key (see guide below)."
   fi
 
-  # Update kubectl credentials
-  echo "Updating kubectl credentials for cluster: $CLUSTER_NAME"
-  gcloud container clusters get-credentials "$CLUSTER_NAME" --region "$REGION" --project "$PROJECT_ID" || {
-    echo "Failed to update kubectl credentials for $CLUSTER_NAME. Check cluster status:"
-    echo "gcloud container clusters list --project $PROJECT_ID"
-    return 1
-  }
+  # If a cluster name is provided, handle all Kubernetes-related actions.
+  if [[ -n "$CLUSTER_NAME" ]]; then
+    # Update kubectl credentials
+    echo "Updating kubectl credentials for cluster: $CLUSTER_NAME"
+    gcloud container clusters get-credentials "$CLUSTER_NAME" --region "$REGION" --project "$PROJECT_ID" || {
+      echo "Failed to update kubectl credentials for $CLUSTER_NAME. Check cluster status:"
+      echo "gcloud container clusters list --project $PROJECT_ID"
+      return 1
+    }
 
-  # Rename and switch kubectl context for simplicity.
-  # gcloud creates a long context name (gke_PROJECT_REGION_CLUSTER).
-  # This script renames it to the short config name (e.g., 'muxly-old') for easy use.
-  local GKE_CONTEXT_NAME="gke_${PROJECT_ID}_${REGION}_${CLUSTER_NAME}"
-  echo "Standardizing context name to '$KUBE_CONTEXT_ALIAS'..."
-  kubectx "$KUBE_CONTEXT_ALIAS=$GKE_CONTEXT_NAME" &>/dev/null # Suppress output, rename silently
+    # Rename and switch kubectl context for simplicity.
+    # gcloud creates a long context name (gke_PROJECT_REGION_CLUSTER).
+    # This script renames it to the short config name for easy use.
+    local GKE_CONTEXT_NAME="gke_${PROJECT_ID}_${REGION}_${CLUSTER_NAME}"
+    echo "Standardizing context name to '$KUBE_CONTEXT_ALIAS'..."
+    kubectx "$KUBE_CONTEXT_ALIAS=$GKE_CONTEXT_NAME" &>/dev/null # Suppress output, rename silently
 
-  echo "Switching kubectl context to: $KUBE_CONTEXT_ALIAS"
-  kubectx "$KUBE_CONTEXT_ALIAS" || {
-    echo "Failed to switch kubectl context to '$KUBE_CONTEXT_ALIAS'. Ensure kubectx is installed."
-    echo "You can list available contexts with 'kubectx'."
-    return 1
-  }
+    echo "Switching kubectl context to: $KUBE_CONTEXT_ALIAS"
+    kubectx "$KUBE_CONTEXT_ALIAS" || {
+      echo "Failed to switch kubectl context to '$KUBE_CONTEXT_ALIAS'. Ensure kubectx is installed."
+      echo "You can list available contexts with 'kubectx'."
+      return 1
+    }
 
-  run_post_switch_summary "$CONFIG_NAME" "$PROJECT_ID" "$KUBE_CONTEXT_ALIAS" "$NAMESPACE"
+    run_post_switch_summary "$CONFIG_NAME" "$PROJECT_ID" "$KUBE_CONTEXT_ALIAS" "$NAMESPACE"
+  else
+    echo "No cluster name provided in configuration. Skipping Kubernetes steps."
+    echo -e "\nSuccessfully switched gcloud config to: $CONFIG_NAME, project: $PROJECT_ID"
+  fi
 }
 
 # Function to display a summary after a successful switch
