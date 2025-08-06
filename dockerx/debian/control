@@ -1,7 +1,7 @@
 Source: dockerx
 Section: utils
 Priority: optional
-Maintainer: Adhbhut Gupta adhbutg@gmail.com
+Maintainer: Adhbhut Gupta <adhbutg@gmail.com>
 Build-Depends: debhelper (>= 13), dh-python, python3-all
 Standards-Version: 4.6.0
 Homepage: https://github.com/addy-47/scripts
