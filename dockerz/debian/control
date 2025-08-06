@@ -1,0 +1,14 @@
+Source: dockerx
+Section: utils
+Priority: optional
+Maintainer: Adhbhut Gupta <adhbutg@gmail.com>
+Build-Depends: debhelper (>= 13), dh-python, python3-all
+Standards-Version: 4.6.0
+Homepage: https://github.com/addy-47/scripts
+
+Package: dockerx
+Architecture: all
+Depends: python3 (>= 3.8), python3-yaml, python3-click, docker.io, git, ${misc:Depends}
+Description: CLI tool to build and push multiple Docker images in parallel
+ A Python-based CLI tool for building and optionally pushing Docker images
+ in parallel, configured via a services.yaml file. Supports Google Artifact Registry.
