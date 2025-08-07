@@ -43,3 +43,6 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+.pybuild/
+dockerz.egg-info/
