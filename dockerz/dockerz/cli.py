@@ -1,8 +1,6 @@
 import click
 import sys
 import os
-import shutil
-import pkg_resources
 from .builder import build_and_push_images
 
 def print_welcome_message():
@@ -80,9 +78,6 @@ def main():
     except Exception as e:
         click.echo(click.style(f"Error: {str(e)}", fg="red"), err=True)
         sys.exit(1)
-
-if __name__ == "__main__":
-    main()
 
 if __name__ == "__main__":
     main()

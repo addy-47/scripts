@@ -1,6 +1,6 @@
 [project]
 name = "dockerz"
-version = "1.0.3"
+version = "1.0.4"
 description = "A CLI tool to build and push multiple Docker images in parallel."
 readme = "README.md"
 requires-python = ">=3.8"
