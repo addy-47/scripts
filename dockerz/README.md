@@ -6,19 +6,22 @@ The tool is highly configurable, supporting custom image names, global and servi
 
 ## Installation
 
-You can install Dockerz directly from PyPI:
+You can install Dockerz using either pip or apt:
 
+### Using pip
 ```bash
 pip install dockerz
 ```
 
+### Using apt (Debian/Ubuntu)
+```bash
+curl -fsSL https://addy-47.github.io/scripts/apt/setup.sh | sudo bash
+sudo apt update && sudo apt install dockerz
+```
+
 ## Quick Start
 
-1. Install the package:
-
-   ```bash
-   pip install dockerz
-   ```
+1. Install the package using one of the installation methods above.
 
 2. Initialize a new project:
 
