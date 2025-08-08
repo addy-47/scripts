@@ -1,6 +1,0 @@
-dockerz (1.0.4-1) unstable; urgency=medium
-
-  * Fixed debian packaging to use pybuild and pyproject.toml.
-  * Consolidated packaging configuration into pyproject.toml.
-
- -- Adhbhut Gupta <adhbutg@gmail.com>  Thu, 07 Aug 2025 13:45:00 +0530 
