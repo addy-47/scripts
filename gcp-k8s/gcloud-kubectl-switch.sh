@@ -205,7 +205,7 @@ run_post_switch_summary() {
     kubens "$NAMESPACE" || echo "Warning: Failed to switch to namespace '$NAMESPACE'. It may not exist."
   fi
 
-  echo -n "Current namespace is: "
+  echo "Current namespace is:"
   kubens
 
   # Optional: Uncomment the lines below to see a list of VMs and buckets after every switch.
