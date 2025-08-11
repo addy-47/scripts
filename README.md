@@ -10,7 +10,6 @@ This repository contains a collection of utility scripts designed to automate an
 | `gcp-k8s-switch` | A script to easily switch between different `gcloud` and `kubectl` contexts for multi-project GCP/GKE environments. | [`gcp-k8s/README.md`](./gcp-k8s/README.md) |
 | `mongo-migrate` | A tool for automating MongoDB data migrations between VMs and Kubernetes StatefulSets. | [`mongo-migrate/README.md`](./mongo-migrate/README.md) |
 | `kubepat` | A Python script for patching Kubernetes resources. | [`kubepat/`](./kubepat/) |
-| `fetch_repos.sh`| A shell script to fetch repositories. | [`fetch_repos.sh`](./fetch_repos.sh) |
 
 ## Getting Started
 
