@@ -163,14 +163,14 @@ switch_project() {
 
     # Update kubectl credentials
     echo "Updating kubectl credentials for cluster: $CLUSTER_NAME"
-    gcloud container clusters get-credentials "$CLUSTER_NAME" --region "$REGION" --project "$PROJECT_ID" || {
+    gcloud container clusters get-credentials "$CLUSTER_NAME" --region "$REGION" --project "$PROJECT_ID" --dns-endpoint || {
       echo "Failed to update kubectl credentials for $CLUSTER_NAME. Check cluster status:"
       echo "gcloud container clusters list --project $PROJECT_ID"
       return 1
     }
 
     # Rename and switch kubectl context for simplicity.
-    # gcloud creates a long context name (gke_PROJECT_REGION_CLUSTER).
+    # gcloud creates a long context name (gke_PROJECT_REGION_CLUSTER).gcloud cont
     # This script renames it to the short config name for easy use.
     local GKE_CONTEXT_NAME="gke_${PROJECT_ID}_${REGION}_${CLUSTER_NAME}"
     echo "Standardizing context name to '$KUBE_CONTEXT_ALIAS'..."
