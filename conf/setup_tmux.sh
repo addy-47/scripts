@@ -59,4 +59,6 @@ else
     print_info "Installing Tmux Plugin Manager (tpm)..."
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
     print_success "tpm installed."
+    ~/.tmux/plugins/tpm/bin/install_plugins
+    print_success "tpm plugins installed."
 fi

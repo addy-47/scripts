@@ -18,6 +18,15 @@ else
     print_success "Oh My Zsh installed."
 fi
 
+if [ ! -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" ]; then
+  git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+fi
+
+if [ ! -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting" ]; then
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+fi
+
+
 # --- Zsh Configuration ---
 print_info "Writing .zshrc..."
 cat << 'EOF' > ~/.zshrc
@@ -178,3 +187,57 @@ export KUBECTX_IGNORE_FZF=true
 export PATH="$HOME/bin:$PATH"
 EOF
 print_success ".zshrc created."
+
+print_info "Writing custom aliases..."
+cat << 'EOF' > ~/.oh-my-zsh/custom/aliases.zsh
+alias mongo-migrate="$HOME/projects/scripts/mongo-migrate/mongo-migrate.sh"
+alias c='clear'
+# classic ls helpers (keep if you still want them)
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias x='exit'
+alias dcu='docker-compose up -d'
+alias d='docker ps -a'
+alias dcd='docker-compose down'
+alias dl='docker logs'
+
+#ansible aias
+alias apl='ansible-playbook -i inventory.ini'
+alias aping='ansible all -i inventory.ini -m ping'
+alias apinit='ansible-playbook -i inventory.ini provision-vm.yml'
+
+# Interactive ripgrep search with fzf (using batcat)
+search() {
+    rg --color=always --line-number --no-heading --smart-case "" |
+    fzf --ansi \
+        --exact \
+        --disabled \
+        --query "$1" \
+        --delimiter : \
+        --bind "change:reload:rg --color=always --line-number --no-heading --smart-case {q}" \
+        --preview "batcat --color=always --style=numbers --highlight-line {2} {1}" \
+        --preview-window=right:60%:wrap
+}
+
+# Search in specific directory
+searchin() {
+    local dir=${1:-.}
+    rg --color=always --line-number --no-heading --smart-case "" "$dir" |
+    fzf --ansi \
+        --exact \
+        --disabled \
+        --delimiter : \
+        --bind "change:reload:rg --color=always --line-number --no-heading --smart-case {q} $dir" \
+        --preview "batcat --color=always --style=numbers --highlight-line {2} {1}" \
+        --preview-window=right:60%:wrap
+}
+EOF
+print_success "Custom aliases created."
+
+print_info "Writing custom path..."
+cat << 'EOF' > ~/.oh-my-zsh/custom/path.zsh
+export PATH="$PATH:/usr/local/go/bin"
+export PATH="$PATH:/opt/nvim/bin"
+EOF
+print_success "Custom path created."
