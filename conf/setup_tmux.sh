@@ -47,6 +47,17 @@ set-option -g status-style "bg=black,fg=green"
 set -g @plugin 'tmux-plugins/tpm'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 
+# footer ui 
+set -g status-style bg=default,fg=#E67CA0
+set -g window-status-current-format "#[fg=white,bold]#I:#W#F"
+set -g window-status-format "#[fg=#E67CA0]#I:#W#F"
+set -g status-left "#[fg=#E67CA0] #S "
+set -g status-right "#[fg=#E67CA0] %H:%M %d-%b-%y "
+
+# Remove status line separators for cleaner look
+set -g status-left-length 100
+set -g status-right-length 100
+
 # Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
 run '~/.tmux/plugins/tpm/tpm'
 EOF

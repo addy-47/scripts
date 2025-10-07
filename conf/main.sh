@@ -1,50 +1,44 @@
 #!/bin/bash
+# ==================================================================
+# MAIN SETUP SCRIPT
+# This script orchestrates the entire machine setup by calling
+# all configuration scripts in the correct order.
+# ==================================================================
 
-# This is the main script to set up a new machine.
-# It runs all the scripts in the conf/ directory in order.
+set -e # Exit immediately if a command exits with a non-zero status.
 
 # --- Helper Functions ---
 print_info() {
-    echo -e "\033[34m[INFO]\033[0m $1"
+    echo -e "\n\033[1;35m======= $1 =======\033[0m"
 }
 
-print_success() {
-    echo -e "\033[32m[SUCCESS]\033[0m $1"
-}
+# Get the directory of the currently executing script
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-print_warning() {
-    echo -e "\033[33m[WARNING]\033[0m $1"
-}
+# --- Main Execution Flow ---
+print_info "Starting Full System Setup..."
 
+print_info "Step 1: Installing Packages"
+"$SCRIPT_DIR/install_packages.sh"
 
-print_info "Starting setup..."
+print_info "Step 2: Configuring Shells (Zsh, Bash)"
+"$SCRIPT_DIR/setup_zsh.sh"
+"$SCRIPT_DIR/setup_bash.sh"
 
-print_info "Running install_packages.sh..."
-"./install_packages.sh"
+print_info "Step 3: Configuring Tools (Tmux, Git)"
+"$SCRIPT_DIR/setup_tmux.sh"
+"$SCRIPT_DIR/setup_git.sh"
 
-print_info "Running setup_zsh.sh..."
-"./setup_zsh.sh"
+print_info "Step 4: Applying System-wide Desktop Theme"
+"$SCRIPT_DIR/system.sh"
 
-print_info "Running setup_bash.sh..."
-"./setup_bash.sh"
+print_info "Step 5: Applying Terminal Theme"
+"$SCRIPT_DIR/theme.sh"
 
-print_info "Running setup_tmux.sh..."
-"./setup_tmux.sh"
+print_info "Step 6: Applying Lock Screen Theme"
+"$SCRIPT_DIR/lockscreen.sh"
 
-print_info "Running setup_git.sh..."
-"./setup_git.sh"
-
-print_info "Running setup_warp.sh..."
-"./setup_warp.sh"
-
-print_info "Running theme.sh..."
-"./theme.sh"
-
-# --- Final Instructions ---
-echo ""
-print_success "Setup script finished!"
+echo -e "\n\033[1;32m✅ ✅ ✅ ALL SETUP SCRIPTS FINISHED! ✅ ✅ ✅\033[0m"
 print_info "To complete the setup, please do the following:"
-print_info "1. Restart your terminal or run 'source ~/.zshrc' or 'source ~/.bashrc'."
-print_info "2. Open tmux and press 'prefix + I' (Ctrl+a + I) to install the tmux plugins."
-print_warning "Some configurations, like custom scripts, might need to be manually copied to the new machine."
-print_warning "The script for 'gcloud-kubectl-switch.sh' and 'mongo-migrate.sh' will need to be copied to the appropriate paths."
+echo "1. RESTART your computer for all changes (especially lock screen) to take effect."
+echo "2. Open tmux and press 'prefix + I' (usually Ctrl+a + I) to install the tmux plugins."
