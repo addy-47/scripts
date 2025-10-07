@@ -15,6 +15,10 @@ print_info() {
 # Get the directory of the currently executing script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
+# --- Source Theme Libraries ---
+source "$SCRIPT_DIR/system.sh"
+source "$SCRIPT_DIR/terminal.sh"
+
 # --- Main Execution Flow ---
 print_info "Starting Full System Setup..."
 
@@ -29,13 +33,38 @@ print_info "Step 3: Configuring Tools (Tmux, Git)"
 "$SCRIPT_DIR/setup_tmux.sh"
 "$SCRIPT_DIR/setup_git.sh"
 
-print_info "Step 4: Applying System-wide Desktop Theme"
-"$SCRIPT_DIR/system.sh"
+# --- THEME SELECTION ---
+print_info "Step 4: Applying Theme"
+PS3='Please select your desired theme: '
+options=("addy-red" "addy-green" "Quit")
+select opt in "${options[@]}"
+do
+    case $opt in
+        "addy-red")
+            echo "You chose addy-red"
+            set_system_theme_red
+            set_terminal_theme_red
+            break
+            ;;
+        "addy-green")
+            echo "You chose addy-green"
+            set_system_theme_green
+            set_terminal_theme_green
+            break
+            ;;
+        "Quit")
+            break
+            ;;
+        *)
+           echo "invalid option $REPLY"
+           ;; 
+    esac
+done
+# --- END THEME SELECTION ---
 
-print_info "Step 5: Applying Terminal Theme"
-"$SCRIPT_DIR/theme.sh"
-
-print_info "Step 6: Applying Lock Screen Theme"
+print_info "Step 5: Applying Lock Screen Theme"
+# Note: lockscreen.sh may require sudo and has its own color variables.
+# You may want to parameterize it in the future.
 "$SCRIPT_DIR/lockscreen.sh"
 
 echo -e "\n\033[1;32m✅ ✅ ✅ ALL SETUP SCRIPTS FINISHED! ✅ ✅ ✅\033[0m"
