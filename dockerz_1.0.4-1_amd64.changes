@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Thu, 07 Aug 2025 13:45:00 +0530
+Source: dockerz
+Binary: dockerz
+Built-For-Profiles: noudeb
+Architecture: all
+Version: 1.0.4-1
+Distribution: jammy
+Urgency: medium
+Maintainer: Adhbhut Gupta <adhbutg@gmail.com>
+Changed-By: Adhbhut Gupta <adhbutg@gmail.com>
+Description:
+ dockerz    - CLI tool for parallel Docker image builds
+Changes:
+ dockerz (1.0.4-1) jammy; urgency=medium
+ .
+   * Fixed debian packaging to use pybuild and pyproject.toml.
+   * Consolidated packaging configuration into pyproject.toml.
+   * Added man page (debian/dockerz.1).
+Checksums-Sha1:
+ 15d2d0cb0dccdd712f7cb7bfddab492a8905e6c6 2217706 dockerz_1.0.4-1_all.deb
+ a8331308d707326cad3cf82992900368184de401 7395 dockerz_1.0.4-1_amd64.buildinfo
+Checksums-Sha256:
+ 032031353236daa240799bc9040839bb86dd50a9905169aa976d2deefc2cf18c 2217706 dockerz_1.0.4-1_all.deb
+ 725473737a967a113ec1e6697cdebc97e172418159848e90f2d315cb8923382b 7395 dockerz_1.0.4-1_amd64.buildinfo
+Files:
+ 85c09551baad8bf8f08bcbf0faa4043d 2217706 utils optional dockerz_1.0.4-1_all.deb
+ 29e465a498da5e98132d0b8f2221da83 7395 utils optional dockerz_1.0.4-1_amd64.buildinfo
