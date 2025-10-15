@@ -132,7 +132,7 @@ main() {
         print_status ""
         print_status "Example:"
         print_status "  sudo apt install dockerz"
-        print_status "  sudo apt install u"
+        print_status "  sudo apt install u-cli"
 }
 
 # Run main function
