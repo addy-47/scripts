@@ -34,7 +34,7 @@ install_package() {
     # Download the deb file to a temporary location
     local temp_deb="/tmp/${deb_file}"
 
-    if curl -fsSL "https://addy-47.github.io/scripts/apt/packages/${deb_file}" -o "$temp_deb"; then
+    if curl -fsSL "https://addy-47.github.io/scripts/apt/${package_name}/${deb_file}" -o "$temp_deb"; then
         # Install the package
         if dpkg -i "$temp_deb"; then
             print_status "$package_name installed successfully!"
