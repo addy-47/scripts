@@ -1,0 +1,20 @@
+Package: u-cli
+Version: 1.0.0-1
+Architecture: amd64
+Maintainer: Adhbhut Gupta <adhbutg@gmail.com>
+Installed-Size: 2745
+Depends: libc6 (>= 2.34)
+Filename: pool/main/u/u-cli/u-cli_1.0.0-1_amd64.deb
+Size: 1182064
+MD5sum: 6ee03914304e7428dac1471adc0dd496
+SHA1: e00d969ab85547ebb8d3d1e55b4910caf24c113b
+SHA256: ad85a1569a0be5f0d483a93db70e8c2bd0e32012f062a79d9f7bbc7f23145fe4
+Section: utils
+Priority: optional
+Homepage: https://github.com/adhbutg/u
+Description: Universal Linux undo command
+ u-cli is a command-line tool that provides undo functionality for Linux commands.
+ It tracks command execution through shell hooks and stores metadata to enable
+ reverting changes. Supports bash, zsh, and fish shells with automatic file
+ change detection using mtime diff or inotify fallback.
+
