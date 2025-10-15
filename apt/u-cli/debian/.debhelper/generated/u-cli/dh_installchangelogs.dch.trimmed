@@ -1,9 +1,0 @@
-u-cli (1.0.0-1) jammy; urgency=medium
-
-  * Initial release of u - Universal Linux undo command.
-  * Implements command tracking through shell hooks.
-  * Supports bash, zsh, and fish shells.
-  * File change detection using mtime diff and inotify fallback.
-  * Metadata storage using BoltDB.
-
- -- Adhbhut Gupta <adhbutg@gmail.com>  Wed, 15 Oct 2025 15:30:00 +0530
