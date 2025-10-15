@@ -1,0 +1,9 @@
+Origin: Addy Gupta's Scripts Repository
+Label: Addy Gupta's Scripts Repository
+Suite: noble
+Codename: noble
+Version: 1.0
+Architectures: amd64 all
+Components: main
+Description: Addy Gupta's Debian/Ubuntu Repository
+Date: Wed, 15 Oct 2025 22:29:11 +0530
