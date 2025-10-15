@@ -65,15 +65,15 @@ main() {
     # Parse command line arguments
     if [[ $# -eq 0 ]]; then
         print_status ""
-        print_status "Usage: $0 <package-name>"
+        print_status "Usage: bash <package-name>"
         print_status ""
         print_status "Available packages:"
         print_status "  - dockerz (Parallel Docker build tool)"
         print_status "  - u-cli (Universal Linux undo command)"
         print_status ""
         print_status "Examples:"
-        print_status "  sudo $0 dockerz"
-        print_status "  sudo $0 u-cli"
+        print_status "  sudo bash dockerz"
+        print_status "  sudo bash u-cli"
         exit 0
     fi
 
