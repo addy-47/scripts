@@ -1,6 +1,6 @@
 🧰 u – Universal Linux Undo Command
 Version: 1.0 (MVP)
-Language Target: Go (Python optional for prototype)
+Language Target: Go 
 Goal: A single command — u — that instantly undos the last terminal operation safely, across all shells.
 🪴 Product Vision
 
@@ -37,11 +37,14 @@ Think: Git, but only for your last 2 terminal commands.
 ⚙️ Functional Features
 1. Undo Commands
 Command	Description
+u init  Start tracking commands
+u help show all cmds and what u can do
 u	Undo last tracked command
-u 2	Undo second last command
+u 2	Undo second last command (will add upto 10 in future)
 u log	Show recent tracked commands
 u cleanup	Remove old backups (>1 day)
 u disable	Temporarily stop tracking
+u list	Show all undo mappings
 2. Supported Operations (MVP)
 Command	Undo Action
 mkdir dir	rmdir dir
@@ -185,16 +188,72 @@ Never auto-run a destructive undo (ask for confirmation on rm/mv restores).
 Support dry-run mode: u --dry-run.
 
 🚀 Installation
-curl -fsSL https://u.sh/install | bash
-
+curl -fsSL https://u.sh/install | sudo bash 
+sudo apt update && sudo apt install u
 
 This will:
+
+install Go binary. and prints a ASCII-art banner / welcome message 
+using " go get github.com/common-nighthawk/go-figure "
+and show user two points 
+1. run `u init` to start tracking
+2. run `u help` to see what u can do
 
 Place binary in /usr/local/bin/u
 
 Add shell hooks automatically.
 
 Create ~/.u directory with config + empty state.
+
+Use a JSON/YAML "Undo Map" File (Recommended)
+
+This is cleaner and extensible.
+You define all reversible commands and their undo logic as data, not code.
+
+Example: u-map.yaml
+
+rm: "restore_file"
+mv: "mv {args[1]} {args[0]}"
+touch: "rm {args[0]}"
+mkdir: "rmdir {args[0]}"
+cp: "rm {args[1]}"
+apt install: "apt remove {args[1]}"
+git clone: "rm -rf {args[1].split('/')[-1]}"
+
+How your Go code uses it:
+// Simplified example
+type UndoMap map[string]string
+
+func loadUndoMap() UndoMap {
+    data, _ := os.ReadFile("undo_map.yaml")
+    var mapping UndoMap
+    yaml.Unmarshal(data, &mapping)
+    return mapping
+}
+
+func findReverse(cmd string, args []string, mapping UndoMap) string {
+    for key, val := range mapping {
+        if strings.HasPrefix(cmd, key) {
+            // Replace placeholders {args[0]}, {args[1]}, etc.
+            result := val
+            for i, arg := range args {
+                result = strings.ReplaceAll(result, fmt.Sprintf("{args[%d]}", i), arg)
+            }
+            return result
+        }
+    }
+    return ""
+}
+
+✅ Pros
+
+Easy to extend (users can add their own reverses)
+
+No rebuild needed to add new reversals
+
+Cleaner architecture: logic ≠ data
+
+You can even crowdsource "undo recipes" later (like a plugin ecosystem)
 
 🧭 Future Enhancements
 Feature	Description
