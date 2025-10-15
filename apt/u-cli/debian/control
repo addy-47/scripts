@@ -1,0 +1,17 @@
+Source: u-cli
+Section: utils
+Priority: optional
+Maintainer: Adhbhut Gupta <adhbutg@gmail.com>
+Build-Depends: debhelper-compat (= 13), golang-go (>= 1.19)
+Standards-Version: 4.6.0
+Homepage: https://github.com/adhbutg/u
+Rules-Requires-Root: no
+
+Package: u-cli
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Universal Linux undo command
+ u-cli is a command-line tool that provides undo functionality for Linux commands.
+ It tracks command execution through shell hooks and stores metadata to enable
+ reverting changes. Supports bash, zsh, and fish shells with automatic file
+ change detection using mtime diff or inotify fallback.

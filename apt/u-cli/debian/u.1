@@ -1,0 +1,40 @@
+.TH U 1 "October 2025" "u 1.0.0" "User Commands"
+.SH NAME
+u \- Universal Linux undo command
+.SH SYNOPSIS
+.B u
+[\fIOPTIONS\fR] [\fICOMMAND\fR]
+.SH DESCRIPTION
+.B u
+is a command-line tool that provides undo functionality for Linux commands.
+It tracks command execution through shell hooks and stores metadata to enable
+reverting changes. Supports bash, zsh, and fish shells with automatic file
+change detection using mtime diff or inotify fallback.
+.SH OPTIONS
+.TP
+.B \-h, \-\-help
+Display help information
+.TP
+.B \-v, \-\-version
+Display version information
+.SH COMMANDS
+.TP
+.B undo
+Undo the last command
+.TP
+.B list
+List tracked commands
+.TP
+.B clean
+Clean old command metadata
+.SH EXAMPLES
+.TP
+Undo the last command:
+.B u undo
+.TP
+List recent commands:
+.B u list
+.SH AUTHOR
+Written by Adhbhut Gupta <adhbutg@gmail.com>
+.SH SEE ALSO
+The full documentation is available at https://github.com/addy-47/scripts
