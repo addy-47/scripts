@@ -1,0 +1,41 @@
+Package: u-cli
+Version: 1.0.0-1
+Architecture: amd64
+Maintainer: Adhbhut Gupta <adhbutg@gmail.com>
+Installed-Size: 2745
+Depends: libc6 (>= 2.34)
+Filename: /home/addy/projects/scripts/apt/u/pool/main/u/u-cli/u-cli_1.0.0-1_amd64.deb
+Size: 1182064
+MD5sum: 6ee03914304e7428dac1471adc0dd496
+SHA1: e00d969ab85547ebb8d3d1e55b4910caf24c113b
+SHA256: ad85a1569a0be5f0d483a93db70e8c2bd0e32012f062a79d9f7bbc7f23145fe4
+Section: utils
+Priority: optional
+Homepage: https://github.com/adhbutg/u
+Description: Universal Linux undo command
+ u-cli is a command-line tool that provides undo functionality for Linux commands.
+ It tracks command execution through shell hooks and stores metadata to enable
+ reverting changes. Supports bash, zsh, and fish shells with automatic file
+ change detection using mtime diff or inotify fallback.
+
+Package: dockerz
+Version: 1.0.4
+Architecture: all
+Maintainer: Adhbhut Gupta <adhbutg@gmail.com>
+Installed-Size: 48
+Depends: python3 (>= 3.8), python3-yaml, python3-click, docker.io, git, python3:any
+Recommends: google-cloud-sdk
+Filename: /home/addy/projects/scripts/apt/dockerz/pool/main/d/dockerz/dockerz_1.0.4_all.deb
+Size: 9826
+MD5sum: 3f54eacaeda11205f13c66e2361c5cac
+SHA1: d6fda068c04ab12367e229fa67c7da4fd8ef124c
+SHA256: bf40b0bacc8e5d4293ce267aeab3ca8e354888c60b53f509d4c2a7372f9b8e93
+Section: utils
+Priority: optional
+Homepage: https://pypi.org/project/dockerz/
+Description: CLI tool for parallel Docker image builds
+ Dockerz automates building multiple Docker images in parallel, supporting
+ nested service directories, Google Artifact Registry integration, and
+ flexible tagging. It is configured via a services.yaml file and provides
+ commands like `dockerz init` and `dockerz build`.
+

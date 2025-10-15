@@ -1,0 +1,26 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Origin: Addy Gupta's Scripts Repository
+Label: Addy Gupta's Scripts Repository
+Suite: stable
+Codename: stable
+Version: 1.0
+Architectures: amd64 all
+Components: main
+Description: Addy Gupta's Debian/Ubuntu Repository
+Date: Wed, 15 Oct 2025 22:23:50 +0530
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEqaKGUCLXo6E5N87LVf8+9hRLkAsFAmjv0bIACgkQVf8+9hRL
+kAuFEAv/eIM/JcwD5ezBr+JfnwLkQuUuE6pTzoTryAootgqnxhfc2qQKBG/GNcFS
+WeYa7v6iaV3gtReYKUjRP6OOHGM3W0P6s1awtbCkj2P2U4s75W4iNgZCIDlfO3po
+SB+TpHRZBICxVYjuHBmJssLL0WUcEsfDl0sH8GBPx1MIeQxZ0fqV1SlWaEKDk/fT
+39G/JHDb8wTmaltzYARElk1oyqBrN70IqovhfDawXDaV8kmfvx+YN1QN5j1dZW2P
+1kB36mD7Lc1v9981xRbiPJpOk0car6V4w+GFYxtQ9BwgXVqc2v3/jCk1owtDaazy
+zYE2FL4WmKlhgxgml2oM/G+s9DtWmdvPw4CTtFPOomo/eHSaANmAH05FMhBqZ/+w
+EoQR9NuzvcfisYIwSs/jQ6wPLVYAPvUscXVN2P8H5mbUUkWMDgqDn+fqD2ZU55uk
+ZWlNkwUYIhmjUcIGy8ZBQvOLGUE9p36WPAAagO0A2zT6z8jgaEnjMjohV0GDJqib
+LES4BIbs
+=yWzj
+-----END PGP SIGNATURE-----
