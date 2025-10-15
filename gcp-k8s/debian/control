@@ -1,0 +1,14 @@
+Source: sw
+Section: utils
+Priority: optional
+Maintainer: Adhbhut Gupta <adhbutg@gmail.com>
+Build-Depends: debhelper-compat (= 13), dh-python, python3-all, python3-hatchling, python3-setuptools, pybuild-plugin-pyproject
+Standards-Version: 4.6.0
+Homepage: https://pypi.org/project/sw/
+Rules-Requires-Root: no
+
+Package: sw
+Architecture: all
+Depends: python3 (>= 3.8),google-cloud-sdk, kubectl
+Recommends: kubens ,kubectx
+Description: CLI tool for switching between gcloud and cluster configs including ns ,ctx and region 
