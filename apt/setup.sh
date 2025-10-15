@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# scripts/apt/setup.sh - Addy Gupta's Debian/Ubuntu Repository Setup
-# This script adds the addy-47/scripts repository to apt sources
+# scripts/apt/setup.sh - Simple Debian/Ubuntu Package Installer
+# This script installs packages directly from .deb files
 set -e
 
 # Colors for output
@@ -24,115 +24,77 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if running as root or with sudo
-if [[ $EUID -eq 0 ]]; then
-    print_warning "Running as root. This is not recommended for security reasons."
-else
-    print_status "Running with sudo privileges."
-fi
+# Function to install a package
+install_package() {
+    local package_name=$1
+    local deb_file=$2
 
-# Detect OS and architecture
-detect_os() {
-    if [[ -f /etc/os-release ]]; then
-        . /etc/os-release
-        OS=$ID
-        VERSION=$VERSION_ID
+    print_status "Installing $package_name..."
+
+    # Download the deb file to a temporary location
+    local temp_deb="/tmp/${deb_file}"
+
+    if curl -fsSL "https://addy-47.github.io/scripts/apt/packages/${deb_file}" -o "$temp_deb"; then
+        # Install the package
+        if dpkg -i "$temp_deb"; then
+            print_status "$package_name installed successfully!"
+            # Clean up
+            rm -f "$temp_deb"
+        else
+            print_error "Failed to install $package_name"
+            rm -f "$temp_deb"
+            exit 1
+        fi
     else
-        print_error "Cannot detect OS. This script supports Debian and Ubuntu only."
+        print_error "Failed to download $package_name"
         exit 1
     fi
-
-    case $OS in
-        ubuntu)
-            print_status "Detected Ubuntu $VERSION"
-            ;;
-        debian)
-            print_status "Detected Debian $VERSION"
-            ;;
-        *)
-            print_error "Unsupported OS: $OS. This script supports Debian and Ubuntu only."
-            exit 1
-            ;;
-    esac
-}
-
-# Install required packages
-install_dependencies() {
-    print_status "Installing required packages..."
-
-    # Update package list
-    apt-get update -qq
-
-    # Install required packages
-    apt-get install -y -qq \
-        apt-transport-https \
-        ca-certificates \
-        curl \
-        gnupg \
-        lsb-release
-
-    print_status "Dependencies installed successfully."
-}
-
-# Add repository GPG key
-add_gpg_key() {
-    print_status "Adding repository GPG key..."
-
-    # Create keyring directory if it doesn't exist
-    mkdir -p /usr/share/keyrings
-
-    # Download and add GPG key
-    curl -fsSL https://addy-47.github.io/scripts/apt/gpg | gpg --dearmor -o /usr/share/keyrings/addy-47-scripts.gpg
-
-    print_status "GPG key added successfully."
-}
-
-# Add repository to sources.list.d
-add_repository() {
-    print_status "Adding repository to apt sources..."
-
-    # Detect codename
-    CODENAME=$(lsb_release -cs)
-
-    # Create sources.list.d entry
-    cat > /etc/apt/sources.list.d/addy-47-scripts.list << EOF
-deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/addy-47-scripts.gpg] https://addy-47.github.io/scripts/apt $CODENAME main
-EOF
-
-    print_status "Repository added successfully."
-}
-
-# Update package list
-update_package_list() {
-    print_status "Updating package list..."
-    apt-get update -qq
-    print_status "Package list updated successfully."
 }
 
 # Main function
 main() {
-    print_status "Addy Gupta's Debian/Ubuntu Repository Setup"
-    print_status "=========================================="
+    print_status "Addy Gupta's Simple Package Installer"
+    print_status "===================================="
 
-    detect_os
-    install_dependencies
-    add_gpg_key
-    add_repository
-    update_package_list
+    # Check if running as root
+    if [[ $EUID -ne 0 ]]; then
+        print_error "This script must be run as root (use sudo)"
+        exit 1
+    fi
 
-    print_status ""
-    print_status "🎉 Repository setup completed successfully!"
-    print_status ""
-    print_status "You can now install packages with:"
-    print_status "  sudo apt install <package-name>"
-    print_status ""
-    print_status "Available packages:"
-        print_status "  - dockerz (Parallel Docker build tool)"
-        print_status "  - u (Universal Linux undo command)"
+    # Parse command line arguments
+    if [[ $# -eq 0 ]]; then
         print_status ""
-        print_status "Example:"
-        print_status "  sudo apt install dockerz"
-        print_status "  sudo apt install u-cli"
+        print_status "Usage: $0 <package-name>"
+        print_status ""
+        print_status "Available packages:"
+        print_status "  - dockerz (Parallel Docker build tool)"
+        print_status "  - u-cli (Universal Linux undo command)"
+        print_status ""
+        print_status "Examples:"
+        print_status "  sudo $0 dockerz"
+        print_status "  sudo $0 u-cli"
+        exit 0
+    fi
+
+    local package=$1
+
+    case $package in
+        dockerz)
+            install_package "dockerz" "dockerz_1.0.4_all.deb"
+            ;;
+        u-cli)
+            install_package "u-cli" "u-cli_1.0.0-1_amd64.deb"
+            ;;
+        *)
+            print_error "Unknown package: $package"
+            print_status "Available packages: dockerz, u-cli"
+            exit 1
+            ;;
+    esac
+
+    print_status ""
+    print_status "🎉 Installation completed successfully!"
 }
 
 # Run main function
