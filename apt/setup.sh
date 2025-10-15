@@ -2,7 +2,6 @@
 
 # scripts/apt/setup.sh - Addy Gupta's Debian/Ubuntu Repository Setup
 # This script adds the addy-47/scripts repository to apt sources
-
 set -e
 
 # Colors for output
