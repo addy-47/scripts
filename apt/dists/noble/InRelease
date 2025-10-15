@@ -9,20 +9,44 @@ Version: 1.0
 Architectures: amd64 all
 Components: main
 Description: Addy Gupta's Debian/Ubuntu Repository
-Date: Wed, 15 Oct 2025 22:29:11 +0530
+Date: Wed, 15 Oct 2025 17:16:20 +0000
+MD5Sum:
+ df08b162ba4d98be7e67bce910f8466c              252 Release
+ 781a5b4d95cc3610a3bfa3276482413f             1712 main/binary-all/Packages
+ 81891046c233dddac9b5957d8a5ea70a              954 main/binary-all/Packages.gz
+ 781a5b4d95cc3610a3bfa3276482413f             1712 main/binary-amd64/Packages
+ 81891046c233dddac9b5957d8a5ea70a              954 main/binary-amd64/Packages.gz
+SHA1:
+ da789285bc8ef4422ac434ec3fbf9c54a6dcbf01              252 Release
+ 0b79d849e9ff3cae40ce2ac8dee82e2119915b5f             1712 main/binary-all/Packages
+ 6e71a51a6ec99694ac3e14491ddb1fda3fdf3bbd              954 main/binary-all/Packages.gz
+ 0b79d849e9ff3cae40ce2ac8dee82e2119915b5f             1712 main/binary-amd64/Packages
+ 6e71a51a6ec99694ac3e14491ddb1fda3fdf3bbd              954 main/binary-amd64/Packages.gz
+SHA256:
+ 709c89344dd783647cf194ab6d0f64d5e053dd3360c08f1eb86a9270cdcd8e51              252 Release
+ 065eb0b547d412e385e4096bc2e52eae131857f5a6ffb392791644ed45a76e77             1712 main/binary-all/Packages
+ 3dfe491288bd0e0d0c85339020ed87d36b8dba485e5b89c21b7c0614cece7a32              954 main/binary-all/Packages.gz
+ 065eb0b547d412e385e4096bc2e52eae131857f5a6ffb392791644ed45a76e77             1712 main/binary-amd64/Packages
+ 3dfe491288bd0e0d0c85339020ed87d36b8dba485e5b89c21b7c0614cece7a32              954 main/binary-amd64/Packages.gz
+SHA512:
+ 470c455a506a3f2274d1e37997ac9145e6548dda2fbf3ccac122726b28f8d13ae7d24c90a126660aef77768085bf2f98ee107de42271f517128cf1aa79c0adb1              252 Release
+ ca574016f3174f6c201b0132328d091dbea2de875fce68731855bf5bed17a0d90929d3e7eeb365bfb9ca68764fce198729df109498b439cecd45a535b956b7a3             1712 main/binary-all/Packages
+ 32727f75df44c7e8fafbb10af0f07c691ef6db94101048059ff7b71e47ca24a13e322bc508b9a87bb96473884edee6f260097b71fded6ff6746f543a961              954 main/binary-all/Packages.gz
+ ca574016f3174f6c201b0132328d091dbea2de875fce68731855bf5bed17a0d90929d3e7eeb365bfb9ca68764fce198729df109498b439cecd45a535b956b7a3             1712 main/binary-amd64/Packages
+ 32727f75df44c7e8fafbb10af0f07c691ef6db94101048059ff7b71e47ca24a13e322bc508b9a87bb96473884edee6f260097b71fded6ff6746f543a961              954 main/binary-amd64/Packages.gz
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE0iF0DvRx0RbFAdHKV7zmnCHmM5cFAmjv1ZQACgkQV7zmnCHm
-M5fnjhAAtA5KB+X+n4/XtIYOiSh/xu8hniOZ59u5HCDHH+qTLt5c2Vvo/iTsub2a
-a3s79KjSmWskpSKgB3FDt+Rlq4lC5IhHHsk1Ud0U37AZrx7peB5QLG4x/aOXbkRo
-TFDWMp/jOLA270M5PstqSpjJHhSrJOWOdIds2bPDmyBMwhauzQ9X5jv3HbJNNYAk
-Gt7kmLuB81WKaXvt2J8gZuq/eFJmWxfXk7CxgESud9/Phn8UOWxlXyAXRNDlO7hT
-63Gxw+3ipq4McpCujPFPMo8gJWiJu62UHhYMi7utwixq1fylULbp8oPcsnVvumMU
-kwmtgX4rwSnnDUJT1ZiMBbqeA+YTuo0e1rkM53sx9nSEInMIHF5Q6jb44NzZwxfS
-Eie4r8cx7B65UE+JiEQyP8b1v4Av1PMNPEpTeT6cisWSGVIQz37u3cYpCZA6gbUZ
-T9nYz4cytwiZHlfTE2fXB4H374j38SiTd88tHc5pg05fZ+YhdRa5gpVQuoxqwUDa
-qQMfBvr+uVQsAdEh8hjDmPUqIjP/W+cmkECuUuw8m6fCR0CEF+reaU6xDsjUSfGg
-WRFODTzJPusVXqA1asWPgUodBRmHMGeFTmhNl5sixznqCLJU5Ay9e2Mfnr1dj+Ad
-/TTYb98nUPHHd0/zF6nd96WeQhBWk18EXUdLA4QnH30eOzwKjKg=
-=zPG0
+iQIzBAEBCgAdFiEE0iF0DvRx0RbFAdHKV7zmnCHmM5cFAmjv1xEACgkQV7zmnCHm
+M5fTPQ//ZzX8Cvpt4acIzWDE0wx6mfVZ4K8rR58dvguVrzjyuiaA8aG+srxjr2Sc
+cnm/Tev9DboYcDCQ7TsS6+15w0gsDgYZV+wj49hxdcuxdAIZjUG3J1MnzPfkZyoh
+E9X+ep3LXmRpg8FqJjF4qBfXf+kOxrrKDgHCyBfp3Xz4xpCQ5ooWw8FDEpkYR+36
+c/oVDlX/mESwf6sfWe5b/CpQy9SjTd8p+8O+U/HJy4kfI8pO7lWTGkosWFyO/Ir7
+sgqA/g3X+JjmtayovL+wna/m4d847Z+cD0uhKfKK0SPNHN+g+8KlFgqpBusdUGyz
+2Nqwy0SzGe95Xv5oxxTRLrdsmmGTJPD13QfB00iL2CDg5ZI6KKX743CSGhzMAcdI
+IVfno/06EZmNfIdSGaGVaHC0kI10kUSeKFP6PlJ8lEai1sl54/upXQidQVRQV4ua
+I+Z9jli5lES7dhlXoA7LVu5WpeUxwUWjazlXcuwMkUDjELUEZI8P/MLQd0xa2sWh
+FTPnwrn0WinEl6Jlrz6V70cxCsnFTs+rFjqjm/syIp4u9T/PIvtC9YC4T2brXIuV
+Th6bMqGH1aZSDY29RCk0G1JGjzDoJqezre335+t7donZILASfbQsuRCjGmJREJ5f
+Y6/NUC8GUlFcKTVLUj2EaeA5j9RPI3QF1Cr+9VSeVjAnwOTkWxk=
+=Z852
 -----END PGP SIGNATURE-----
