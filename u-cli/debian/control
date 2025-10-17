@@ -1,0 +1,17 @@
+Source: u-cli
+Section: utils
+Priority: optional
+Maintainer: Adhbhut Gupta <adhbutg@gmail.com>
+Build-Depends: debhelper-compat (= 13), golang-go (>= 1.19)
+Standards-Version: 4.6.0
+Homepage: https://github.com/adhbutg/u
+Rules-Requires-Root: no
+
+Package: u-cli
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Universal Linux Undo Command
+ u-cli brings Ctrl+Z functionality to the Linux terminal, allowing users to
+ instantly undo recent, non-destructive terminal operations like mv, cp, or rm
+ across bash, zsh, and fish shells. It uses a lightweight daemon and shell hooks
+ to track and backup file changes for safe reversal.

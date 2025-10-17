@@ -1,0 +1,273 @@
+# =========================================================
+# Universal Undo Map for "u" CLI Tool
+# =========================================================
+# Notes:
+#  - Each mapping defines how to reverse a command
+#  - {args[N]} represents command arguments (0-indexed)
+#  - {cwd} is replaced with the working directory at execution
+#  - {timestamp} optional metadata
+# =========================================================
+
+version: 1.0
+
+# ---------------------------------------------------------
+# 📁 FILE & DIRECTORY OPERATIONS
+# ---------------------------------------------------------
+file_system:
+  mkdir:
+    undo: "rmdir {args[0]}"
+    safe: true
+    description: "Removes a directory created by mkdir"
+
+  touch:
+    undo: "rm -f {args[0]}"
+    safe: true
+    description: "Removes a file created by touch"
+
+  mv:
+    undo: "mv {args[1]} {args[0]}"
+    safe: true
+    description: "Moves file back to original name or path"
+
+  cp:
+    undo: "rm -f {args[1]}"
+    safe: true
+    description: "Removes a copied file"
+
+  ln:
+    undo: "rm -f {args[1]}"
+    safe: true
+    description: "Removes a created symlink"
+
+  ln-s:
+    undo: "rm -f {args[1]}"
+    safe: true
+    description: "Removes a created symbolic link"
+
+  rm:
+    undo: "restore {args[0]}"
+    safe: false
+    description: "Restores a removed file from backup (if available)"
+
+  chmod:
+    undo: "chmod {old_mode} {args[-1]}"
+    safe: true
+    description: "Restores previous permissions (requires tracking old_mode)"
+
+  chown:
+    undo: "chown {old_owner}:{old_group} {args[-1]}"
+    safe: true
+    description: "Restores previous ownership (requires tracking metadata)"
+
+  cd:
+    undo: "cd $OLDPWD"
+    safe: true
+    description: "Returns to the previous directory"
+
+# ---------------------------------------------------------
+# ⚙️ PACKAGE MANAGEMENT
+# ---------------------------------------------------------
+package_managers:
+  apt-install:
+    undo: "sudo apt remove -y {args[1]}"
+    safe: true
+    description: "Removes an apt package"
+
+  apt-remove:
+    undo: "sudo apt install -y {args[1]}"
+    safe: true
+    description: "Reinstalls a removed apt package"
+
+  pip-install:
+    undo: "pip uninstall -y {args[1]}"
+    safe: true
+    description: "Uninstalls a Python package"
+
+  pip-uninstall:
+    undo: "pip install {args[1]}"
+    safe: true
+    description: "Reinstalls an uninstalled Python package"
+
+  npm-install:
+    undo: "npm uninstall {args[1]}"
+    safe: true
+    description: "Uninstalls an npm package"
+
+  npm-uninstall:
+    undo: "npm install {args[1]}"
+    safe: true
+    description: "Reinstalls an npm package"
+
+  brew-install:
+    undo: "brew uninstall {args[1]}"
+    safe: true
+    description: "Uninstalls a brew package"
+
+  brew-uninstall:
+    undo: "brew install {args[1]}"
+    safe: true
+    description: "Reinstalls a brew package"
+
+# ---------------------------------------------------------
+# 🧠 GIT & VERSION CONTROL
+# ---------------------------------------------------------
+git:
+  git-clone:
+    undo: "rm -rf {args[1]}"
+    safe: true
+    description: "Deletes the cloned repository"
+
+  git-commit:
+    undo: "git reset --soft HEAD~1"
+    safe: true
+    description: "Reverts the last commit"
+
+  git-merge:
+    undo: "git merge --abort"
+    safe: true
+    description: "Aborts an ongoing merge"
+
+  git-pull:
+    undo: "git reset --hard ORIG_HEAD"
+    safe: true
+    description: "Restores repo to state before pull"
+
+  git-push:
+    undo: "git push --force-with-lease origin HEAD~1"
+    safe: false
+    description: "Attempts to revert the last push (use cautiously)"
+
+  git-checkout:
+    undo: "git checkout {old_branch}"
+    safe: true
+    description: "Switches back to the previous branch"
+
+# ---------------------------------------------------------
+# 🐳 DOCKER & CONTAINERS
+# ---------------------------------------------------------
+docker:
+  docker-run:
+    undo: "docker stop {args[-1]} && docker rm {args[-1]}"
+    safe: true
+    description: "Stops and removes a running container"
+
+  docker-build:
+    undo: "docker rmi {args[-1]}"
+    safe: true
+    description: "Removes a built image"
+
+  docker-pull:
+    undo: "docker rmi {args[-1]}"
+    safe: true
+    description: "Removes a pulled image"
+
+  docker-network-create:
+    undo: "docker network rm {args[-1]}"
+    safe: true
+    description: "Removes a created Docker network"
+
+  docker compose up -d: 
+    undo: "docker compose down"
+    safe: true
+    description: "Stops and removes containers defined in the compose file"
+
+  docker compose down:
+    undo: "docker compose up -d"
+    safe: true
+    description: "Recreates and starts containers defined in the compose file"  
+
+# ---------------------------------------------------------
+# 🌐 SYSTEM & NETWORK
+# ---------------------------------------------------------
+system:
+  service-start:
+    undo: "sudo systemctl stop {args[1]}"
+    safe: true
+    description: "Stops a system service"
+
+  service-stop:
+    undo: "sudo systemctl start {args[1]}"
+    safe: true
+    description: "Starts a stopped system service"
+
+  ufw-enable:
+    undo: "sudo ufw disable"
+    safe: true
+    description: "Disables the firewall"
+
+  ufw-disable:
+    undo: "sudo ufw enable"
+    safe: true
+    description: "Enables the firewall"
+
+# ---------------------------------------------------------
+# ☁️ CLOUD & DEVOPS
+# ---------------------------------------------------------
+cloud:
+  kubectl-apply:
+    undo: "kubectl delete -f {args[1]}"
+    safe: true
+    description: "Deletes the applied Kubernetes manifest"
+
+  kubectl-create:
+    undo: "kubectl delete {args[1]} {args[2]}"
+    safe: true
+    description: "Deletes a created resource"
+
+  terraform-apply:
+    undo: "terraform destroy -auto-approve"
+    safe: false
+    description: "Destroys the applied Terraform infrastructure"
+
+  terraform-destroy:
+    undo: "terraform apply -auto-approve"
+    safe: false
+    description: "Re-applies last known infrastructure state"
+
+# ---------------------------------------------------------
+# 💾 DATABASE & DATA
+# ---------------------------------------------------------
+database:
+  psql-createdb:
+    undo: "dropdb {args[1]}"
+    safe: true
+    description: "Drops a created PostgreSQL database"
+
+  psql-dropdb:
+    undo: "createdb {args[1]}"
+    safe: true
+    description: "Recreates a dropped PostgreSQL database"
+
+  mysql-create-db:
+    undo: "mysql -e 'DROP DATABASE {args[1]}'"
+    safe: true
+    description: "Drops created MySQL database"
+
+  mysql-drop-db:
+    undo: "mysql -e 'CREATE DATABASE {args[1]}'"
+    safe: true
+    description: "Recreates dropped MySQL database"
+
+# ---------------------------------------------------------
+# 🧰 MISCELLANEOUS
+# ---------------------------------------------------------
+misc:
+  tar-xf:
+    undo: "rm -rf extracted_folder"
+    safe: true
+    description: "Deletes extracted tar content"
+
+  unzip:
+    undo: "rm -rf extracted_folder"
+    safe: true
+    description: "Deletes extracted zip content"
+
+  wget:
+    undo: "rm -f {args[-1]}"
+    safe: true
+    description: "Removes downloaded file"
+
+  curl-o:
+    undo: "rm -f {args[-1]}"
+    safe: true
+    description: "Removes downloaded file"
