@@ -1,0 +1,65 @@
+name: Update Apt Repository
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  update-apt-repo:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: install
+
+    - name: Set up Git
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+    - name: Update Packages.gz
+      run: |
+        # Generate Packages file from .deb files
+        dpkg-scanpackages apt /dev/null | gzip -9c > apt/Packages.gz
+
+    - name: Update Release file
+      run: |
+        # Generate Release file
+        cat > apt/Release << 'EOF'
+        Origin: DevOps Toolkit
+        Label: DevOps Toolkit Repository
+        Suite: stable
+        Codename: stable
+        Version: 1.0
+        Architectures: amd64 arm64
+        Components: main
+        Description: DevOps Toolkit Debian Repository
+        Date: $(date -R)
+        EOF
+
+    - name: Sign Release file
+      run: |
+        # Sign the Release file with GPG
+        # This requires GPG key setup in repository secrets
+        gpg --detach-sign --armor --output apt/Release.gpg apt/Release
+
+    - name: Commit and push changes
+      run: |
+        git add apt/
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update apt repository metadata"
+          git push
+        fi
+
+    - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/install'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./apt
+        destination_dir: install/apt
