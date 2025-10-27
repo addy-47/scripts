@@ -1,11 +1,15 @@
-dockerz (1.0.5-1) jammy; urgency=medium
+dockerz (2.0.0-1) jammy; urgency=medium
 
+  * Major version bump to 2.0 with complete rewrite in Go.
   * Added smart build features: git change detection, multi-level caching, and smart orchestration.
-  * Added new CLI flags: --smart, --git-track, --cache, --force, --project-id, --region, --gar-name, --tag.
+  * Added automatic image name normalization to Docker-compatible kebab-case.
+  * Added CI/CD integration with --changed-services-file and --output-changed-services flags.
+  * Added new CLI flags: --smart, --git-track, --cache, --force, --project-id, --region, --gar-name, --tag, --changed-services-file, --output-changed-services.
   * Enhanced configuration with smart features support.
   * Improved build performance with intelligent service filtering.
+  * Migrated from Python to Go for better performance and maintainability.
 
- -- Adhbhut Gupta <adhbutg@gmail.com>  Sun, 27 Oct 2025 11:11:00 +0530
+ -- Adhbhut Gupta <adhbutg@gmail.com>  Sun, 27 Oct 2025 12:00:00 +0530
 
 dockerz (1.0.4-1) jammy; urgency=medium
 
