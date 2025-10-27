@@ -1,19 +1,19 @@
 .\" Manpage for dockerz
-.TH dockerz 1 "07 Aug 2025" "1.0.4" "Dockerz Manual"
+.TH dockerz 1 "27 Oct 2025" "2.0.0" "Dockerz Manual"
 .SH NAME
-dockerz \- CLI tool for parallel Docker image builds
+dockerz \- Smart multi-service Docker builder with change detection
 .SH SYNOPSIS
 .B dockerz
 [\fBinit\fR|\fBbuild\fR] [\fIoptions\fR]
 .SH DESCRIPTION
-Dockerz automates building multiple Docker images in parallel, supporting nested service directories, Google Artifact Registry integration, and flexible tagging. It is configured via a \fBservices.yaml\fR file in the project root.
+Dockerz v2.0 is a powerful CLI tool for building and pushing multiple Docker images in parallel with advanced smart features. It supports intelligent change detection, multi-level caching, and smart build orchestration to significantly improve CI/CD pipeline performance.
 .SH COMMANDS
 .TP
 .B init
 Creates a sample \fBservices.yaml\fR configuration file.
 .TP
 .B build
-Builds Docker images based on \fBservices.yaml\fR. Options:
+Builds Docker images based on \fBservices.yaml\fR with smart features. Options:
 .RS
 .TP
 .B \-\-config FILE
@@ -21,7 +21,35 @@ Path to \fBservices.yaml\fR (default: \fBservices.yaml\fR).
 .TP
 .B \-\-max\-processes NUM
 Maximum number of parallel builds.
+.TP
+.B \-\-smart
+Enable smart build orchestration.
+.TP
+.B \-\-git\-track
+Enable git change tracking for smart builds.
+.TP
+.B \-\-cache
+Enable build caching.
+.TP
+.B \-\-force
+Force rebuild all services.
+.TP
+.B \-\-changed\-services\-file FILE
+Path to file containing list of changed services to build.
+.TP
+.B \-\-output\-changed\-services FILE
+Path to output file for list of changed services.
 .RE
+.SH FEATURES
+.TP
+.B Smart Change Detection
+Analyzes git history to detect which services have changed and only rebuilds those.
+.TP
+.B Multi-Level Caching
+Implements layer, local hash, and registry caching for optimal performance.
+.TP
+.B CI/CD Integration
+Supports file-based interfaces for external change detection and downstream processing.
 .SH ENVIRONMENT
 .TP
 .B USE_GAR
@@ -32,10 +60,10 @@ Set to \fBtrue\fR or \fBfalse\fR to override GAR pushing.
 .SH FILES
 .TP
 .B services.yaml
-Configuration file specifying services, GAR details, and tags.
+Configuration file specifying services, GAR details, and smart features.
 .TP
-.B logs/build.log
-Log file for build and push operations.
+.B changed_services.txt
+File containing list of services to build (used with \fB\-\-changed\-services\-file\fR).
 .SH SEE ALSO
 .BR docker (1),
 .BR git (1),

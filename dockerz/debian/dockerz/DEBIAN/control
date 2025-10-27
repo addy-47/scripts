@@ -1,0 +1,23 @@
+Package: dockerz
+Version: 2.0.0-1
+Architecture: amd64
+Maintainer: Adhbhut Gupta <adhbutg@gmail.com>
+Installed-Size: 5033
+Depends: docker.io, git, libc6 (>= 2.34)
+Recommends: google-cloud-sdk
+Section: utils
+Priority: optional
+Homepage: https://github.com/addy-47/dockerz
+Description: Smart multi-service Docker builder with change detection
+ Dockerz v2.0 is a powerful CLI tool for building and pushing multiple Docker
+ images in parallel with advanced smart features. It supports intelligent
+ change detection, multi-level caching, and smart build orchestration to
+ significantly improve CI/CD pipeline performance.
+ .
+ Features include:
+  - Git change detection for selective builds
+  - Multi-level caching (layer, local hash, registry)
+  - Smart build orchestration
+  - Automatic image name normalization
+  - CI/CD integration with file-based interfaces
+  - Google Artifact Registry support

@@ -2,17 +2,25 @@ Source: dockerz
 Section: utils
 Priority: optional
 Maintainer: Adhbhut Gupta <adhbutg@gmail.com>
-Build-Depends: debhelper-compat (= 13), dh-python, python3-all, python3-hatchling, python3-setuptools, pybuild-plugin-pyproject
+Build-Depends: debhelper-compat (= 13), golang-go (>= 2:1.19~)
 Standards-Version: 4.6.0
-Homepage: https://pypi.org/project/dockerz/
+Homepage: https://github.com/addy-47/dockerz
 Rules-Requires-Root: no
 
 Package: dockerz
-Architecture: all
-Depends: python3 (>= 3.8), python3-yaml, python3-click, docker.io, git, ${misc:Depends}, ${python3:Depends}
+Architecture: any
+Depends: docker.io, git, ${misc:Depends}, ${shlibs:Depends}
 Recommends: google-cloud-sdk
-Description: CLI tool for parallel Docker image builds
- Dockerz automates building multiple Docker images in parallel, supporting
- nested service directories, Google Artifact Registry integration, and
- flexible tagging. It is configured via a services.yaml file and provides
- commands like `dockerz init` and `dockerz build`.  
+Description: Smart multi-service Docker builder with change detection
+ Dockerz v2.0 is a powerful CLI tool for building and pushing multiple Docker
+ images in parallel with advanced smart features. It supports intelligent
+ change detection, multi-level caching, and smart build orchestration to
+ significantly improve CI/CD pipeline performance.
+ .
+ Features include:
+  - Git change detection for selective builds
+  - Multi-level caching (layer, local hash, registry)
+  - Smart build orchestration
+  - Automatic image name normalization
+  - CI/CD integration with file-based interfaces
+  - Google Artifact Registry support
