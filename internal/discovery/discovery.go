@@ -10,6 +10,34 @@ import (
 	"github.com/addy-47/dockerz/internal/config"
 )
 
+// NormalizeImageName converts service names to Docker-compatible kebab-case
+func NormalizeImageName(serviceName string) string {
+	// Convert to lowercase
+	name := strings.ToLower(serviceName)
+
+	// Replace underscores and spaces with hyphens
+	name = strings.ReplaceAll(name, "_", "-")
+	name = strings.ReplaceAll(name, " ", "-")
+
+	// Remove any other invalid characters (keep only alphanumeric, hyphens, periods)
+	reg := regexp.MustCompile(`[^a-z0-9.-]`)
+	name = reg.ReplaceAllString(name, "-")
+
+	// Remove multiple consecutive hyphens
+	reg = regexp.MustCompile(`-+`)
+	name = reg.ReplaceAllString(name, "-")
+
+	// Remove leading/trailing hyphens
+	name = strings.Trim(name, "-")
+
+	// Ensure it starts with alphanumeric
+	if name == "" || !regexp.MustCompile(`^[a-z0-9]`).MatchString(name) {
+		name = "service-" + name
+	}
+
+	return name
+}
+
 // ValidateDockerfile checks if a Dockerfile exists in the service directory
 func ValidateDockerfile(servicePath string) error {
 	dockerfilePath := filepath.Join(servicePath, "Dockerfile")
@@ -56,13 +84,10 @@ func DiscoverServices(cfg *config.Config, defaultTag string) (*DiscoveryResult, 
 			if imageName == "" {
 				imageName = filepath.Base(service.Name)
 			}
-			// Convert to lowercase to comply with Docker/GAR naming rules
-			imageNameLower := strings.ToLower(imageName)
-			if imageName != imageNameLower {
-				// Note: In Python version, this logs a warning, but we can handle it here
-			}
+			// Normalize to kebab-case for Docker/GAR compatibility
+			imageName = NormalizeImageName(imageName)
 
-			if err := ValidateImageName(imageNameLower); err != nil {
+			if err := ValidateImageName(imageName); err != nil {
 				result.Errors = append(result.Errors, err)
 				continue
 			}
@@ -75,7 +100,7 @@ func DiscoverServices(cfg *config.Config, defaultTag string) (*DiscoveryResult, 
 			discovered := DiscoveredService{
 				Path:      service.Name,
 				Name:      filepath.Base(service.Name),
-				ImageName: imageNameLower,
+				ImageName: imageName,
 				Tag:       tag,
 			}
 			result.Services = append(result.Services, discovered)
@@ -101,7 +126,7 @@ func DiscoverServices(cfg *config.Config, defaultTag string) (*DiscoveryResult, 
 				servicePath := filepath.Dir(path)
 				serviceName := filepath.Base(servicePath)
 
-				imageName := strings.ToLower(serviceName)
+				imageName := NormalizeImageName(serviceName)
 				if err := ValidateImageName(imageName); err != nil {
 					result.Errors = append(result.Errors, fmt.Errorf("service %s: %w", servicePath, err))
 					return nil
@@ -131,4 +156,46 @@ func DiscoverServices(cfg *config.Config, defaultTag string) (*DiscoveryResult, 
 	}
 
 	return result, nil
+}
+
+// FilterServicesByChangedFile filters services based on a changed services file
+func FilterServicesByChangedFile(result *DiscoveryResult, changedFilePath string) (*DiscoveryResult, error) {
+	content, err := os.ReadFile(changedFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read changed services file %s: %w", changedFilePath, err)
+	}
+
+	// Parse changed services (one per line)
+	changedServices := make(map[string]bool)
+	lines := strings.Split(strings.TrimSpace(string(content)), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			changedServices[line] = true
+		}
+	}
+
+	// Filter services
+	var filteredServices []DiscoveredService
+	for _, service := range result.Services {
+		if changedServices[service.Path] {
+			filteredServices = append(filteredServices, service)
+		}
+	}
+
+	return &DiscoveryResult{
+		Services: filteredServices,
+		Errors:   result.Errors,
+	}, nil
+}
+
+// WriteChangedServicesFile writes the list of changed services to a file
+func WriteChangedServicesFile(services []DiscoveredService, outputFilePath string) error {
+	var lines []string
+	for _, service := range services {
+		lines = append(lines, service.Path)
+	}
+
+	content := strings.Join(lines, "\n")
+	return os.WriteFile(outputFilePath, []byte(content), 0644)
 }

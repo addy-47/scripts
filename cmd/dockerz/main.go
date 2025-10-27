@@ -15,12 +15,18 @@ import (
 )
 
 var (
-	configPath    string
-	maxProcesses  int
-	gitTrack      bool
-	cacheEnabled  bool
-	forceRebuild  bool
-	smartEnabled  bool
+	configPath             string
+	maxProcesses           int
+	gitTrack               bool
+	cacheEnabled           bool
+	forceRebuild           bool
+	smartEnabled           bool
+	projectID              string
+	region                 string
+	garName                string
+	globalTag              string
+	changedServicesFile    string
+	outputChangedServices  string
 )
 
 var rootCmd = &cobra.Command{
@@ -85,11 +91,31 @@ var buildCmd = &cobra.Command{
 		if smartEnabled {
 			cfg.SmartEnabled = smartEnabled
 		}
+		if projectID != "" {
+			cfg.ProjectID = projectID
+		}
+		if region != "" {
+			cfg.Region = region
+		}
+		if garName != "" {
+			cfg.GARName = garName
+		}
+		if globalTag != "" {
+			cfg.GlobalTag = globalTag
+		}
 
 		// Discover services
 		discoveryResult, err := discovery.DiscoverServices(cfg, defaultTag)
 		if err != nil {
 			log.Fatalf("Failed to discover services: %v", err)
+		}
+
+		// Filter services based on changed services file if provided
+		if changedServicesFile != "" {
+			discoveryResult, err = discovery.FilterServicesByChangedFile(discoveryResult, changedServicesFile)
+			if err != nil {
+				log.Fatalf("Failed to filter services by changed file: %v", err)
+			}
 		}
 
 		// Log any discovery errors
@@ -115,7 +141,7 @@ var buildCmd = &cobra.Command{
 				log.Fatalf("Failed to orchestrate builds: %v", err)
 			}
 
-			log.Printf(orchestrator.GetStats(result))
+			log.Printf("%s", orchestrator.GetStats(result))
 
 			// Filter services that need building
 			for i, service := range discoveryResult.Services {
@@ -128,6 +154,15 @@ var buildCmd = &cobra.Command{
 						servicesToBuild[len(servicesToBuild)-1].ChangedFiles = state.ChangedFiles
 						servicesToBuild[len(servicesToBuild)-1].NeedsBuild = true
 					}
+				}
+			}
+
+			// Output changed services to file if requested
+			if outputChangedServices != "" {
+				if err := discovery.WriteChangedServicesFile(servicesToBuild, outputChangedServices); err != nil {
+					log.Printf("Warning: Failed to write changed services file: %v", err)
+				} else {
+					log.Printf("Changed services written to: %s", outputChangedServices)
 				}
 			}
 		} else {
@@ -165,6 +200,12 @@ func init() {
 
 	buildCmd.Flags().StringVarP(&configPath, "config", "c", "services.yaml", "Path to services.yaml configuration file")
 	buildCmd.Flags().IntVarP(&maxProcesses, "max-processes", "m", 0, "Maximum number of parallel builds (overrides config file)")
+	buildCmd.Flags().StringVar(&projectID, "project-id", "", "GCP project ID (overrides config file)")
+	buildCmd.Flags().StringVar(&region, "region", "", "GCP region (overrides config file)")
+	buildCmd.Flags().StringVar(&garName, "gar-name", "", "Google Artifact Registry name (overrides config file)")
+	buildCmd.Flags().StringVar(&globalTag, "tag", "", "Global tag for all images (overrides config file)")
+	buildCmd.Flags().StringVar(&changedServicesFile, "changed-services-file", "", "Path to file containing list of changed services to build")
+	buildCmd.Flags().StringVar(&outputChangedServices, "output-changed-services", "", "Path to output file for list of changed services")
 	buildCmd.Flags().BoolVar(&gitTrack, "git-track", false, "Enable git change tracking for smart builds")
 	buildCmd.Flags().BoolVar(&cacheEnabled, "cache", false, "Enable build caching")
 	buildCmd.Flags().BoolVar(&forceRebuild, "force", false, "Force rebuild all services")

@@ -1,3 +1,12 @@
+dockerz (1.0.5-1) jammy; urgency=medium
+
+  * Added smart build features: git change detection, multi-level caching, and smart orchestration.
+  * Added new CLI flags: --smart, --git-track, --cache, --force, --project-id, --region, --gar-name, --tag.
+  * Enhanced configuration with smart features support.
+  * Improved build performance with intelligent service filtering.
+
+ -- Adhbhut Gupta <adhbutg@gmail.com>  Sun, 27 Oct 2025 11:11:00 +0530
+
 dockerz (1.0.4-1) jammy; urgency=medium
 
   * Fixed debian packaging to use pybuild and pyproject.toml.
