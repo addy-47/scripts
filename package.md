@@ -5,14 +5,13 @@ Create a professional multi-tool installation system for the DevOps toolkit cont
 
 ## Current Repository Structure
 - **Repository**: https://github.com/addy-47/scripts
-- **Current Branch**: dockerz (tool-specific development branch)
-- **Install Branch**: apt (needs to be renamed to 'install')
-- **Tools**: dockerz v2.0, u-cli (structure for future tools)
+- **Master Branch**: Source of truth for latest tool versions (dockerz v2.0, u-cli v1.0)
+- **Install Branch**: User-facing installation system with apt repository
+- **Tools**: dockerz (Go-based container builder), u-cli (universal undo tool)
 
 ## Branch Strategy
-- **dockerz branch**: Tool-specific development (current location)
-- **master branch**: Merge tested tool branches, each tool in separate directory
-- **install branch**: User-facing installation system only
+- **master branch**: Source of truth - contains all tool source code and CI/CD workflows
+- **install branch**: User-facing installation system with apt repository and installation scripts
 
 ## Installation System Architecture
 
