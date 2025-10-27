@@ -34,3 +34,7 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+release:
+  github:
+    owner: addy-47
+    name: scripts
