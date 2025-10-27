@@ -1,6 +1,4 @@
 #!/usr/bin/make -f
 
-export DH_GOPKG := github.com/addy-47/dockerz
-
 %:
-	dh $@ --buildsystem=golang
+	dh $@ --buildsystem=makefile
