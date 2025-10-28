@@ -11,29 +11,51 @@ import (
 	"github.com/addy-47/dockerz/internal/config"
 	"github.com/addy-47/dockerz/internal/discovery"
 	"github.com/addy-47/dockerz/internal/smart"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
 var (
-	configPath             string
-	maxProcesses           int
-	gitTrack               bool
-	cacheEnabled           bool
-	forceRebuild           bool
-	smartEnabled           bool
-	projectID              string
-	region                 string
-	garName                string
-	globalTag              string
-	changedServicesFile    string
-	outputChangedServices  string
+	configPath            string
+	maxProcesses          int
+	gitTrack              bool
+	cacheEnabled          bool
+	forceRebuild          bool
+	smartEnabled          bool
+	projectID             string
+	region                string
+	garName               string
+	globalTag             string
+	changedServicesFile   string
+	outputChangedServices string
 )
+
+// PrintDockerzBanner prints the ASCII art banner with colors
+func PrintDockerzBanner() {
+	// Define colors
+	lightBlue := color.New(color.FgHiCyan).Add(color.Bold)
+	darkBlue := color.New(color.FgBlue).Add(color.Bold)
+	LightGrey := color.New(color.FgHiWhite)
+
+	// ASCII art for "dockerz"
+	fmt.Println()
+	lightBlue.Println(`     _            _                    `)
+	lightBlue.Println(`  __| | ___   ___| | _____ _ __ ____  `)
+	lightBlue.Println(` / _' |/ _ \ / __| |/ / _ \ '__|_  /  `)
+	darkBlue.Println(`| (_| | (_) | (__|   <  __/ |   / /   `)
+	darkBlue.Println(` \__,_|\___/ \___|_|\_\___|_|  /___|  `)
+	fmt.Println()
+
+	LightGrey.Println("\nThe ultimate Docker companion tool making container management effortless")
+	fmt.Println()
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "dockerz",
 	Short: "Dockerz - Build and push multiple Docker images in parallel",
 	Long:  `Dockerz is a tool for building and pushing multiple Docker images in parallel based on a services.yaml configuration file.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		PrintDockerzBanner()
 		fmt.Println("Welcome to Dockerz!")
 		fmt.Println("Use 'dockerz --help' to see available commands.")
 	},
@@ -127,11 +149,11 @@ var buildCmd = &cobra.Command{
 		var servicesToBuild []discovery.DiscoveredService
 		if cfg.SmartEnabled {
 			smartConfig := &smart.SmartConfig{
-				Enabled:     cfg.SmartEnabled,
-				GitTracking: cfg.GitTracking,
+				Enabled:      cfg.SmartEnabled,
+				GitTracking:  cfg.GitTracking,
 				CacheEnabled: cfg.CacheEnabled,
-				CacheLevel:  cache.RegistryCacheLevel, // Default to registry cache
-				CacheTTL:    24 * time.Hour, // 24 hours TTL
+				CacheLevel:   cache.RegistryCacheLevel, // Default to registry cache
+				CacheTTL:     24 * time.Hour,           // 24 hours TTL
 				ForceRebuild: cfg.ForceRebuild,
 			}
 
@@ -195,6 +217,13 @@ var buildCmd = &cobra.Command{
 }
 
 func init() {
+	// Set custom help function for root command
+	rootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		PrintDockerzBanner()
+		// Get the default help template and execute it
+		cmd.Println(cmd.UsageString())
+	})
+
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(buildCmd)
 
