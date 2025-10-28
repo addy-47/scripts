@@ -1,0 +1,59 @@
+# This is the main orchestrator pipeline for the UAT environment.
+# It is triggered on a push to the 'uat' branch.
+# Its job is to determine what has changed and then call the appropriate
+# reusable workflows for testing, security scanning, and deployment.
+
+name: UAT CI/CD Orchestrator
+
+on:
+  push:
+    branches:
+      - uat
+
+jobs:
+  # This job's only purpose is to calculate which service directories have
+  # changed and pass that information as an output to other jobs.
+  find-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changed_dirs: ${{ steps.find_changes.outputs.changed_dirs }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necessary to compare commits
+
+      - name: Find changed service directories
+        id: find_changes
+        run: |
+          CHANGED_DIRS=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | xargs -I {} dirname {} | sort -u)
+          echo "The following directories have changed: $CHANGED_DIRS"
+          echo "changed_dirs<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_DIRS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  # This job calls the reusable workflow for filesystem security scanning.
+  security:
+    needs: find-changes
+    if: needs.find-changes.outputs.changed_dirs != ''
+    uses: ./.github/workflows/security.yaml
+    secrets: inherit # Passes all secrets from the caller
+
+  # This job calls the reusable workflow for tests.
+  tests:
+    needs: find-changes
+    if: needs.find-changes.outputs.changed_dirs != ''
+    uses: ./.github/workflows/tests.yaml
+    with:
+      changed_dirs: ${{ needs.find-changes.outputs.changed_dirs }}
+    secrets: inherit
+
+  # This job calls the reusable workflow to build, scan, and deploy the images.
+  # It runs only after the security scan and tests have passed.
+  build-deploy:
+    needs: [find-changes, security, tests]
+    uses: ./.github/workflows/build-deploy.yaml
+    with:
+      changed_dirs: ${{ needs.find-changes.outputs.changed_dirs }}
+      image_tag: ${{ github.sha }}
+    secrets: inherit
