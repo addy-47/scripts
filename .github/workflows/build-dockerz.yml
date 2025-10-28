@@ -1,0 +1,60 @@
+name: Build Dockerz
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'dockerz/**'
+      - '.github/workflows/build-dockerz.yml'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'dockerz/**'
+      - '.github/workflows/build-dockerz.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Build Dockerz binary (Linux)
+      run: |
+        cd dockerz
+        go build -o dockerz-linux-amd64 ./cmd/dockerz
+        tar -czf ../dockerz-linux-amd64.tar.gz dockerz-linux-amd64 README.md
+
+    - name: Build Dockerz binary (macOS)
+      run: |
+        cd dockerz
+        GOOS=darwin GOARCH=amd64 go build -o dockerz-darwin-amd64 ./cmd/dockerz
+        tar -czf ../dockerz-darwin-amd64.tar.gz dockerz-darwin-amd64 README.md
+
+    - name: Build Dockerz binary (Windows)
+      run: |
+        cd dockerz
+        GOOS=windows GOARCH=amd64 go build -o dockerz-windows-amd64.exe ./cmd/dockerz
+        zip ../dockerz-windows-amd64.zip dockerz-windows-amd64.exe README.md
+
+    - name: Build Debian package
+      run: |
+        cd dockerz
+        dpkg-buildpackage -us -uc
+        mv ../dockerz_*.deb ../dockerz_amd64.deb
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dockerz-artifacts
+        path: |
+          dockerz-linux-amd64.tar.gz
+          dockerz-darwin-amd64.tar.gz
+          dockerz-windows-amd64.zip
+          dockerz_amd64.deb
