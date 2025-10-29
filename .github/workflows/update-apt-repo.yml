@@ -5,6 +5,8 @@ on:
     workflows: ["Build Dockerz", "Build U-CLI"]
     types:
       - completed
+    branches:
+      - master
 
 jobs:
   update-repo:
@@ -44,6 +46,14 @@ jobs:
         # Create directories if they don't exist
         mkdir -p apt/dockerz apt/u-cli releases/dockerz releases/u-cli
 
+        # Create override file for dpkg-scanpackages
+        cat > apt/override << 'EOF'
+        dockerz Priority optional
+        dockerz Section utils
+        u-cli Priority optional
+        u-cli Section utils
+        EOF
+
         # Clean old packages to avoid duplicates
         rm -f apt/dockerz/*.deb apt/u-cli/*.deb
 
@@ -69,7 +79,8 @@ jobs:
 
         # Generate Packages.gz
         cd apt
-        dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
+        dpkg-scanpackages . override > Packages
+        gzip -9c Packages > Packages.gz
 
         # Generate Release file with current date
         cat > Release << EOF
@@ -86,9 +97,9 @@ jobs:
 
         # Sign Release file if GPG key is available (optional)
         if [ -n "$GPG_PRIVATE_KEY" ]; then
-          echo "$GPG_PRIVATE_KEY" | gpg --import --batch --yes --pinentry-mode loopback --passphrase-file /dev/stdin <<< ""
-          gpg --detach-sign --armor --output Release.gpg Release --pinentry-mode loopback --passphrase-file /dev/stdin <<< ""
-          gpg --clearsign --output InRelease Release --pinentry-mode loopback --passphrase-file /dev/stdin <<< ""
+          echo "$GPG_PRIVATE_KEY" | gpg --import --batch --yes
+          gpg --detach-sign --armor --output Release.gpg Release
+          gpg --clearsign --output InRelease Release
         fi
       env:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}

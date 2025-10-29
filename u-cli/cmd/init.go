@@ -1,6 +1,6 @@
 package cmd
 
-// cmd/init.go .
+// cmd/init.go
 
 import (
 	"fmt"
