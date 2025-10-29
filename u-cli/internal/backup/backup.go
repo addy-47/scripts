@@ -7,11 +7,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 	"unicode/utf8"
 
 	"github.com/klauspost/compress/zstd"
+	"golang.org/x/sys/unix"
 	"u/internal/config"
 )
 
@@ -331,9 +331,9 @@ func (bm *BackupManager) checkAvailableSpace(files []string) error {
 		}
 	}
 
-	var stat syscall.Statfs_t
+	var stat unix.Statfs_t
 	home := os.Getenv("HOME")
-	if err := syscall.Statfs(home, &stat); err != nil {
+	if err := unix.Statfs(home, &stat); err != nil {
 		return fmt.Errorf("failed to get disk space: %w", err)
 	}
 

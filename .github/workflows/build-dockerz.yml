@@ -49,7 +49,7 @@ jobs:
     - name: Clean previous build artifacts
       run: |
         cd dockerz
-        rm -rf debian/.debhelper/
+        sudo rm -rf debian/.debhelper/
         chmod -R 755 debian/
 
     - name: Build Debian package
