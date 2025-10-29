@@ -1,9 +1,26 @@
 #!/usr/bin/make -f
 
-export DH_VERBOSE=1
-
-override_dh_dwz:
-	# Skip dwz compression to avoid issues with Go binaries
+export GOMODCACHE=/tmp/go-mod-cache
+export GOCACHE=/tmp/go-build-cache
+export GO111MODULE=on
 
 %:
 	dh $@ --buildsystem=makefile --no-parallel
+
+override_dh_auto_build:
+	go test -v ./...
+	go build -o dockerz -v ./cmd/dockerz
+
+override_dh_auto_test:
+	# Tests already run in build step
+
+override_dh_auto_install:
+	install -D -m 0755 dockerz $(CURDIR)/debian/dockerz/usr/bin/dockerz
+
+override_dh_auto_clean:
+	go clean
+	rm -f dockerz
+	rm -f dockerz_unix
+
+override_dh_dwz:
+	# skip dwz compression step

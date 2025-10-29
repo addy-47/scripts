@@ -53,6 +53,8 @@ jobs:
         sudo rm -rf debian/.debhelper/
         sudo rm -rf debian/dockerz/
         chmod -R 755 debian/ 2>/dev/null || true
+        # Remove executable bit from debian/install if it exists
+        chmod -x debian/install 2>/dev/null || true
 
     - name: Build Debian package
       env:
