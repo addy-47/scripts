@@ -28,25 +28,25 @@ jobs:
     - name: Build Dockerz binary (Linux)
       run: |
         cd dockerz
-        go build -o dockerz-linux-amd64 ./cmd/dockerz
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o dockerz-linux-amd64 ./cmd/dockerz
         tar -czf ../dockerz-linux-amd64.tar.gz dockerz-linux-amd64 README.md
 
     - name: Build Dockerz binary (macOS)
       run: |
         cd dockerz
-        GOOS=darwin GOARCH=amd64 go build -o dockerz-darwin-amd64 ./cmd/dockerz
+        CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o dockerz-darwin-amd64 ./cmd/dockerz
         tar -czf ../dockerz-darwin-amd64.tar.gz dockerz-darwin-amd64 README.md
 
     - name: Build Dockerz binary (Windows)
       run: |
         cd dockerz
-        GOOS=windows GOARCH=amd64 go build -o dockerz-windows-amd64.exe ./cmd/dockerz
+        CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o dockerz-windows-amd64.exe ./cmd/dockerz
         zip ../dockerz-windows-amd64.zip dockerz-windows-amd64.exe README.md
 
     - name: Build Debian package
       run: |
         cd dockerz
-        dpkg-buildpackage -us -uc
+        dpkg-buildpackage -us -uc -b
         mv ../dockerz_*.deb ../dockerz_amd64.deb
 
     - name: Upload artifacts

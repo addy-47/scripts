@@ -1,5 +1,7 @@
 package main
 
+// Small change to trigger CI/CD pipeline test
+
 import (
 	"fmt"
 	"log"
