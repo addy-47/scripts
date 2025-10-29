@@ -44,6 +44,9 @@ jobs:
         # Create directories if they don't exist
         mkdir -p apt/dockerz apt/u-cli releases/dockerz releases/u-cli
 
+        # Clean old packages to avoid duplicates
+        rm -f apt/dockerz/*.deb apt/u-cli/*.deb
+
         # Copy .deb packages to apt directory
         if [ -f ../artifacts/dockerz/dockerz_amd64.deb ]; then
           cp ../artifacts/dockerz/dockerz_amd64.deb apt/dockerz/
@@ -83,9 +86,9 @@ jobs:
 
         # Sign Release file if GPG key is available (optional)
         if [ -n "$GPG_PRIVATE_KEY" ]; then
-          echo "$GPG_PRIVATE_KEY" | gpg --import --batch --yes
-          gpg --detach-sign --armor --output Release.gpg Release
-          gpg --clearsign --output InRelease Release
+          echo "$GPG_PRIVATE_KEY" | gpg --import --batch --yes --pinentry-mode loopback --passphrase-file /dev/stdin <<< ""
+          gpg --detach-sign --armor --output Release.gpg Release --pinentry-mode loopback --passphrase-file /dev/stdin <<< ""
+          gpg --clearsign --output InRelease Release --pinentry-mode loopback --passphrase-file /dev/stdin <<< ""
         fi
       env:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}

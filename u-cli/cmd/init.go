@@ -1,16 +1,17 @@
 package cmd
 
-// cmd/init.go
+// cmd/init.go .
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/gofrs/flock"
-	"github.com/spf13/cobra"
 	"u/internal/shell"
 	"u/internal/store"
+
+	"github.com/gofrs/flock"
+	"github.com/spf13/cobra"
 )
 
 func runInit(cmd *cobra.Command, args []string) error {
