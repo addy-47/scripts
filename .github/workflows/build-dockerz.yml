@@ -26,7 +26,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.21'
+        go-version: '1.23'
 
     - name: Build Dockerz binary (Linux)
       run: |
@@ -49,10 +49,15 @@ jobs:
     - name: Clean previous build artifacts
       run: |
         cd dockerz
+        sudo chmod -R 777 debian/.debhelper/ 2>/dev/null || true
         sudo rm -rf debian/.debhelper/
-        chmod -R 755 debian/
+        sudo rm -rf debian/dockerz/
+        chmod -R 755 debian/ 2>/dev/null || true
 
     - name: Build Debian package
+      env:
+        GOMODCACHE: /tmp/go-mod-cache
+        GOCACHE: /tmp/go-build-cache
       run: |
         cd dockerz
         dpkg-buildpackage -us -uc -b

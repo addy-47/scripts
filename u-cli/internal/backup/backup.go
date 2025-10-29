@@ -11,7 +11,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/klauspost/compress/zstd"
-	"golang.org/x/sys/unix"
 	"u/internal/config"
 )
 
@@ -331,13 +330,12 @@ func (bm *BackupManager) checkAvailableSpace(files []string) error {
 		}
 	}
 
-	var stat unix.Statfs_t
-	home := os.Getenv("HOME")
-	if err := unix.Statfs(home, &stat); err != nil {
+	// Get disk space using platform-specific implementation
+	available, err := getAvailableDiskSpace()
+	if err != nil {
 		return fmt.Errorf("failed to get disk space: %w", err)
 	}
 
-	available := stat.Bavail * uint64(stat.Bsize)
 	required := uint64(totalSize * 2) // 2x safety margin
 
 	if available < required {
@@ -346,3 +344,4 @@ func (bm *BackupManager) checkAvailableSpace(files []string) error {
 
 	return nil
 }
+
