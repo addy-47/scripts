@@ -46,6 +46,11 @@ jobs:
         CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o dockerz-windows-amd64.exe ./cmd/dockerz
         zip ../dockerz-windows-amd64.zip dockerz-windows-amd64.exe README.md
 
+    - name: Clean previous build artifacts
+      run: |
+        cd dockerz
+        rm -rf debian/.debhelper/
+
     - name: Build Debian package
       run: |
         cd dockerz
