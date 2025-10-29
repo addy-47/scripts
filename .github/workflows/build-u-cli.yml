@@ -28,10 +28,6 @@ jobs:
       with:
         go-version: '1.21'
 
-    - name: Initialize Go module for u-cli
-      run: |
-        cd u-cli
-        go mod init u
 
     - name: Build U-CLI binary (Linux)
       run: |
