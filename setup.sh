@@ -141,26 +141,67 @@ verify_installation() {
 
 # Main installation function
 main() {
+    # Show help if requested
+    if [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
+        echo "DevOps Toolkit Universal Setup Script"
+        echo "====================================="
+        echo ""
+        echo "This script installs dockerz and u-cli tools via binaries."
+        echo "It detects your OS and architecture automatically."
+        echo ""
+        echo "Usage: $0 [options]"
+        echo ""
+        echo "Options:"
+        echo "  --help, -h    Show this help message"
+        echo "  --dry-run     Show what would be installed without actually installing"
+        echo ""
+        echo "Examples:"
+        echo "  $0              # Install both tools"
+        echo "  $0 --dry-run    # Show installation plan"
+        echo "  $0 --help       # Show this help"
+        return 0
+    fi
+
+    # Dry run mode
+    if [[ "${1:-}" == "--dry-run" ]]; then
+        log_info "DRY RUN MODE - No actual installation will be performed"
+        log_info "=================================================="
+    fi
+
     log_info "Starting DevOps Toolkit installation..."
 
     # Detect OS and architecture
     detect_os
 
     # Install Go if needed
-    install_go_if_needed
+    if [[ "${1:-}" != "--dry-run" ]]; then
+        install_go_if_needed
+    else
+        log_info "[DRY RUN] Would install Go if needed"
+    fi
 
     # Install tools
-    install_tool "dockerz" "2.0"
-    install_tool "u-cli" "1.0"
+    if [[ "${1:-}" != "--dry-run" ]]; then
+        install_tool "dockerz" "2.0"
+        install_tool "u-cli" "1.0"
+    else
+        log_info "[DRY RUN] Would install dockerz v2.0"
+        log_info "[DRY RUN] Would install u-cli v1.0"
+    fi
 
     # Verify installations
-    log_info "Verifying installations..."
-    verify_installation "dockerz"
-    verify_installation "u-cli"
+    if [[ "${1:-}" != "--dry-run" ]]; then
+        log_info "Verifying installations..."
+        verify_installation "dockerz"
+        verify_installation "u-cli"
 
-    log_success "DevOps Toolkit installation completed!"
-    log_info "You can now use 'dockerz' and 'u-cli' commands."
-    log_info "Run 'dockerz --help' or 'u-cli --help' to get started."
+        log_success "DevOps Toolkit installation completed!"
+        log_info "You can now use 'dockerz' and 'u-cli' commands."
+        log_info "Run 'dockerz --help' or 'u-cli --help' to get started."
+    else
+        log_info "[DRY RUN] Would verify dockerz and u-cli installations"
+        log_info "[DRY RUN] Installation simulation completed"
+    fi
 }
 
 # Run main function

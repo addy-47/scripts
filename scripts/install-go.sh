@@ -82,6 +82,25 @@ verify_go() {
 main() {
     local version=${1:-$DEFAULT_GO_VERSION}
 
+    # Show help if requested
+    if [[ "$version" == "--help" ]] || [[ "$version" == "-h" ]]; then
+        echo "Go Installation Script for DevOps Toolkit"
+        echo "========================================="
+        echo ""
+        echo "This script installs or upgrades Go programming language."
+        echo ""
+        echo "Usage: $0 [version]"
+        echo ""
+        echo "Arguments:"
+        echo "  version    Go version to install (default: $DEFAULT_GO_VERSION)"
+        echo ""
+        echo "Examples:"
+        echo "  $0                    # Install default version ($DEFAULT_GO_VERSION)"
+        echo "  $0 1.22.0            # Install specific version"
+        echo "  $0 --help             # Show this help"
+        return 0
+    fi
+
     # Check if Go is already installed
     if command_exists go; then
         local current_version=$(go version | awk '{print $3}' | sed 's/go//')
