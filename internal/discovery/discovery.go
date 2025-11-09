@@ -60,6 +60,47 @@ func ValidateImageName(imageName string) error {
 	return nil
 }
 
+// isExcludedDirectory checks if a directory should be excluded from service discovery
+func isExcludedDirectory(dirName string) bool {
+	excludedDirs := map[string]bool{
+		// Build and packaging directories
+		"debian":     true,
+		".debhelper": true,
+		"build":      true,
+		"dist":       true,
+		"target":     true,
+
+		// Dependency directories
+		"node_modules": true,
+		"vendor":       true,
+		"__pycache__":  true,
+
+		// Version control
+		".git": true,
+		".svn": true,
+		".hg":  true,
+
+		// IDE and editor directories
+		".vscode": true,
+		".idea":   true,
+		".vs":     true,
+
+		// OS generated files
+		".DS_Store": true,
+		"Thumbs.db": true,
+
+		// Internal project directories
+		"internal": true,
+	}
+
+	// Exclude any directory starting with a dot (hidden directories)
+	if strings.HasPrefix(dirName, ".") {
+		return true
+	}
+
+	return excludedDirs[dirName]
+}
+
 // DiscoverServices scans directories for services based on configuration
 func DiscoverServices(cfg *config.Config, defaultTag string) (*DiscoveryResult, error) {
 	result := &DiscoveryResult{
@@ -106,7 +147,7 @@ func DiscoverServices(cfg *config.Config, defaultTag string) (*DiscoveryResult, 
 			result.Services = append(result.Services, discovered)
 		}
 	} else if len(cfg.ServicesDir) > 0 {
-		// Recursively discover services with Dockerfiles in multiple directories
+		// Recursively discover services in configured services_dir
 		for _, servicesDirPath := range cfg.ServicesDir {
 			if _, err := os.Stat(servicesDirPath); os.IsNotExist(err) {
 				result.Errors = append(result.Errors, fmt.Errorf("services directory %s does not exist", servicesDirPath))
@@ -119,11 +160,20 @@ func DiscoverServices(cfg *config.Config, defaultTag string) (*DiscoveryResult, 
 					return nil
 				}
 
-				if info.IsDir() && filepath.Base(path) == "Dockerfile" {
-					return nil // Skip the Dockerfile itself
+				if info.IsDir() {
+					isExcluded := isExcludedDirectory(info.Name())
+					// Never exclude the root directory being walked
+					if path == servicesDirPath {
+						isExcluded = false
+					}
+					// Skip excluded directories
+					if isExcluded {
+						return filepath.SkipDir
+					}
 				}
 
-				if info.Name() == "Dockerfile" {
+				// Find Dockerfile (must be a file)
+				if !info.IsDir() && info.Name() == "Dockerfile" {
 					servicePath := filepath.Dir(path)
 					serviceName := filepath.Base(servicePath)
 
@@ -150,7 +200,7 @@ func DiscoverServices(cfg *config.Config, defaultTag string) (*DiscoveryResult, 
 			}
 		}
 	} else {
-		// Auto-discovery: scan all subdirectories in project root for Dockerfiles
+		// Auto-discovery: scan project root (.) for Dockerfiles
 		projectRoot := "."
 		err := filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -158,19 +208,20 @@ func DiscoverServices(cfg *config.Config, defaultTag string) (*DiscoveryResult, 
 				return nil
 			}
 
-			// Skip hidden directories and files
-			if strings.HasPrefix(info.Name(), ".") {
-				if info.IsDir() {
+			if info.IsDir() {
+				isExcluded := isExcludedDirectory(info.Name())
+				// Never exclude the root directory being walked
+				if path == projectRoot {
+					isExcluded = false
+				}
+				// Skip excluded directories
+				if isExcluded {
 					return filepath.SkipDir
 				}
-				return nil
 			}
 
-			if info.IsDir() && filepath.Base(path) == "Dockerfile" {
-				return nil // Skip the Dockerfile itself
-			}
-
-			if info.Name() == "Dockerfile" {
+			// Find Dockerfile (must be a file)
+			if !info.IsDir() && info.Name() == "Dockerfile" {
 				servicePath := filepath.Dir(path)
 				serviceName := filepath.Base(servicePath)
 

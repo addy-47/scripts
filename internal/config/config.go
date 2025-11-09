@@ -105,6 +105,7 @@ func SaveSampleConfig(filename string) error {
 # Directory to scan for services (leave empty for auto-discovery of all subdirectories)
 # Can be overridden with --services-dir flag (supports comma-separated paths)
 # Example: --services-dir=backend,frontend/src,api/services
+# Note: Auto-discovery excludes common build/dependency directories like debian/, node_modules/, .git/, etc.
 services_dir:
 
 # ===== GOOGLE CLOUD CONFIGURATION =====
@@ -186,6 +187,7 @@ output_changed_services:
 #   (if no changes detected, logs clear message to user)
 # - If services is defined: Only builds the explicitly listed services
 #
+# Auto-discovery excludes common directories: debian/, node_modules/, .git/, internal/, vendor/, etc.
 # This prevents conflicts in CI/CD where you can't modify this config file
 #
 # Each service can have:

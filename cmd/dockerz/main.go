@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -19,8 +20,7 @@ import (
 var (
 	configPath            string
 	maxProcesses          int
-	gitTrack              bool
-	gitTrackDepth         int
+	gitTrack              string
 	cacheEnabled          bool
 	forceRebuild          bool
 	smartEnabled          bool
@@ -126,10 +126,19 @@ All flags can override corresponding settings in the configuration file.`,
 
 		// Override config with CLI flags if provided
 		if cmd.Flags().Changed("git-track") {
-			cfg.GitTrack = gitTrack
-		}
-		if cmd.Flags().Changed("git-track-depth") {
-			cfg.GitTrackDepth = gitTrackDepth
+			// Parse git track depth from optional value
+			cfg.GitTrack = true
+			if gitTrack != "" {
+				// Parse depth value if provided
+				if depth, err := strconv.Atoi(gitTrack); err == nil && depth > 0 {
+					cfg.GitTrackDepth = depth
+				} else {
+					log.Printf("Warning: Invalid git-track depth '%s', using default depth 2", gitTrack)
+					cfg.GitTrackDepth = 2
+				}
+			} else {
+				cfg.GitTrackDepth = 2 // Default depth when no value provided
+			}
 		}
 		if cmd.Flags().Changed("cache") {
 			cfg.Cache = cacheEnabled
@@ -291,8 +300,7 @@ func init() {
 	buildCmd.Flags().StringVar(&servicesDir, "services-dir", "", "Comma-separated list of directories to scan for service definitions (overrides config file)")
 	buildCmd.Flags().StringVar(&inputChangedServices, "input-changed-services", "", "Path to a file containing a newline-separated list of service names to build selectively")
 	buildCmd.Flags().StringVar(&outputChangedServices, "output-changed-services", "", "Path to output file where the list of changed services will be written for CI/CD integration")
-	buildCmd.Flags().BoolVar(&gitTrack, "git-track", false, "Enable git change tracking to detect modified services for incremental builds")
-	buildCmd.Flags().IntVar(&gitTrackDepth, "git-track-depth", 2, "Number of commits to check for changes (default: 2, meaning last commit vs parent)")
+	buildCmd.Flags().StringVar(&gitTrack, "git-track", "", "Enable git change tracking with optional depth (e.g. --git-track or --git-track 3)")
 	buildCmd.Flags().BoolVar(&cacheEnabled, "cache", false, "Enable multi-level build caching (layer, local hash, and registry cache)")
 	buildCmd.Flags().BoolVar(&forceRebuild, "force", false, "Force rebuild of all services, ignoring cache and change detection")
 	buildCmd.Flags().BoolVar(&smartEnabled, "smart", false, "Enable smart build orchestration with automatic dependency analysis and optimization")
