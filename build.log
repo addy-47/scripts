@@ -59,3 +59,13 @@ Services to build: 9
 Max processes: 4
 
 Starting parallel builds for 9 services with max_processes=4
+=== Dockerz Build Log ===
+Started at: 2025-11-09 14:40:44
+Services to build: 9
+Max processes: 4
+
+Starting parallel builds for 9 services with max_processes=4
+[14:40:56] Service: test-project/api, Image: api:8c6bbc8, Status: success
+[14:40:56] Service: test-project/frontend, Image: frontend:8c6bbc8, Status: success
+[14:40:56] Service: debian/.debhelper/generated/_source/home/go/pkg/mod/github.com/pelletier/go-toml/v2@v2.2.4, Image: v2-v2.2.4:8c6bbc8, Status: failed, Build Output: exit status 1
+[14:40:57] Service: test-project/backend, Image: backend:8c6bbc8, Status: failed, Build Output: exit status 1

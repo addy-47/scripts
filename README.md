@@ -466,3 +466,16 @@ dpkg-buildpackage -us -uc
 | **Git Errors**                | Make sure the project is a Git repository. If not, run `git init`.                                              |
 | **GAR Authentication**        | Authenticate with GAR by running `gcloud auth configure-docker {region}-docker.pkg.dev`.                        |
 | **Smart Features Not Working**| Ensure you're in a git repository and have committed changes. Use `--force` to bypass smart features.           |
+
+
+<!-- TODO: Implement unified CLI for services and directories -->
+- [ ] Add support for `dockerz build [path...] [--image-name NAME] [--tag TAG] ... [global-flags]` where:
+  - `path` can be:
+    - A **service directory** (e.g. `backend/`) → auto-detects `Dockerfile` and builds it
+    - A **parent directory** (e.g. `services/`) → recursively scans for all `Dockerfile`s
+    - Omitted → uses `services_dir` from `services.yaml`
+  - Per-service overrides (`--image-name`, `--tag`) apply to the **last service/directory before them**
+  - Repeated flags allowed for multiple overrides
+  - Deduplicate services to prevent double builds
+  - Preserve existing auto-discovery logic
+  - Update help text and examples

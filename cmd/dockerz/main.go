@@ -149,7 +149,7 @@ All flags can override corresponding settings in the configuration file.`,
 		if cmd.Flags().Changed("gar") {
 			cfg.GAR = gar
 		}
-		if cmd.Flags().Changed("tag") {
+		if cmd.Flags().Changed("global-tag") {
 			cfg.GlobalTag = globalTag
 		}
 		if cmd.Flags().Changed("use-gar") {
@@ -287,7 +287,7 @@ func init() {
 	buildCmd.Flags().StringVar(&project, "project", "", "Google Cloud Platform project ID for GAR integration (overrides config file)")
 	buildCmd.Flags().StringVar(&region, "region", "", "GCP region for GAR (e.g., us-central1, europe-west1; overrides config file)")
 	buildCmd.Flags().StringVar(&gar, "gar", "", "Name of the Google Artifact Registry repository (overrides config file)")
-	buildCmd.Flags().StringVar(&globalTag, "tag", "", "Global Docker tag to apply to all built images (overrides config file and git commit ID)")
+	buildCmd.Flags().StringVar(&globalTag, "global-tag", "", "Global Docker tag to apply to all built images (overrides config file and git commit ID)")
 	buildCmd.Flags().StringVar(&servicesDir, "services-dir", "", "Comma-separated list of directories to scan for service definitions (overrides config file)")
 	buildCmd.Flags().StringVar(&inputChangedServices, "input-changed-services", "", "Path to a file containing a newline-separated list of service names to build selectively")
 	buildCmd.Flags().StringVar(&outputChangedServices, "output-changed-services", "", "Path to output file where the list of changed services will be written for CI/CD integration")
