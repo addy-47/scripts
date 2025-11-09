@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/addy-47/dockerz/internal/builder"
@@ -11,29 +12,60 @@ import (
 	"github.com/addy-47/dockerz/internal/config"
 	"github.com/addy-47/dockerz/internal/discovery"
 	"github.com/addy-47/dockerz/internal/smart"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
 var (
-	configPath             string
-	maxProcesses           int
-	gitTrack               bool
-	cacheEnabled           bool
-	forceRebuild           bool
-	smartEnabled           bool
-	projectID              string
-	region                 string
-	garName                string
-	globalTag              string
-	changedServicesFile    string
-	outputChangedServices  string
+	configPath            string
+	maxProcesses          int
+	gitTrack              bool
+	gitTrackDepth         int
+	cacheEnabled          bool
+	forceRebuild          bool
+	smartEnabled          bool
+	project               string
+	region                string
+	gar                   string
+	globalTag             string
+	inputChangedServices  string
+	outputChangedServices string
+	useGAR                bool
+	pushToGAR             bool
+	servicesDir           string
+	version               bool
 )
+
+// PrintDockerzBanner prints the ASCII art banner with colors
+func PrintDockerzBanner() {
+	// Define colors
+	lightBlue := color.New(color.FgHiCyan).Add(color.Bold)
+	darkBlue := color.New(color.FgBlue).Add(color.Bold)
+	LightGrey := color.New(color.FgHiWhite)
+
+	// ASCII art for "dockerz"
+	fmt.Println()
+	lightBlue.Println(`     _            _                    `)
+	lightBlue.Println(`  __| | ___   ___| | _____ _ __ ____  `)
+	lightBlue.Println(` / _' |/ _ \ / __| |/ / _ \ '__|_  /  `)
+	darkBlue.Println(`| (_| | (_) | (__|   <  __/ |   / /   `)
+	darkBlue.Println(` \__,_|\___/ \___|_|\_\___|_|  /___|  `)
+	fmt.Println()
+
+	LightGrey.Println("\nThe ultimate Docker companion tool making container management effortless")
+	fmt.Println()
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "dockerz",
 	Short: "Dockerz - Build and push multiple Docker images in parallel",
 	Long:  `Dockerz is a tool for building and pushing multiple Docker images in parallel based on a services.yaml configuration file.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if version {
+			fmt.Println("dockerz version 2.0.0")
+			return
+		}
+		PrintDockerzBanner()
 		fmt.Println("Welcome to Dockerz!")
 		fmt.Println("Use 'dockerz --help' to see available commands.")
 	},
@@ -57,7 +89,21 @@ var initCmd = &cobra.Command{
 var buildCmd = &cobra.Command{
 	Use:   "build",
 	Short: "Build Docker images based on services.yaml configuration",
-	Long:  `Build Docker images for all services defined in services.yaml, with support for parallel processing and Google Artifact Registry.`,
+	Long: `Build Docker images for all services defined in services.yaml.
+
+This command supports parallel processing, smart change detection using git tracking,
+multi-level caching (layer, local hash, and registry), and Google Artifact Registry (GAR)
+integration for secure image storage and distribution.
+
+Key features:
+- Parallel builds with configurable process limits
+- Smart orchestration to skip unchanged services
+- Git-based change detection for incremental builds
+- Multi-level caching for faster rebuilds
+- GAR integration for GCP environments
+- File-based interfaces for CI/CD integration
+
+All flags can override corresponding settings in the configuration file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Load configuration
 		cfg, err := config.LoadConfig(configPath)
@@ -79,29 +125,46 @@ var buildCmd = &cobra.Command{
 		}
 
 		// Override config with CLI flags if provided
-		if gitTrack {
-			cfg.GitTracking = gitTrack
+		if cmd.Flags().Changed("git-track") {
+			cfg.GitTrack = gitTrack
 		}
-		if cacheEnabled {
-			cfg.CacheEnabled = cacheEnabled
+		if cmd.Flags().Changed("git-track-depth") {
+			cfg.GitTrackDepth = gitTrackDepth
 		}
-		if forceRebuild {
-			cfg.ForceRebuild = forceRebuild
+		if cmd.Flags().Changed("cache") {
+			cfg.Cache = cacheEnabled
 		}
-		if smartEnabled {
-			cfg.SmartEnabled = smartEnabled
+		if cmd.Flags().Changed("force") {
+			cfg.Force = forceRebuild
 		}
-		if projectID != "" {
-			cfg.ProjectID = projectID
+		if cmd.Flags().Changed("smart") {
+			cfg.Smart = smartEnabled
 		}
-		if region != "" {
+		if cmd.Flags().Changed("project") {
+			cfg.Project = project
+		}
+		if cmd.Flags().Changed("region") {
 			cfg.Region = region
 		}
-		if garName != "" {
-			cfg.GARName = garName
+		if cmd.Flags().Changed("gar") {
+			cfg.GAR = gar
 		}
-		if globalTag != "" {
+		if cmd.Flags().Changed("tag") {
 			cfg.GlobalTag = globalTag
+		}
+		if cmd.Flags().Changed("use-gar") {
+			cfg.UseGAR = useGAR
+		}
+		if cmd.Flags().Changed("push-to-gar") {
+			cfg.PushToGAR = pushToGAR
+		}
+		if servicesDir != "" {
+			// Parse comma-separated services directories
+			dirs := strings.Split(servicesDir, ",")
+			for i, dir := range dirs {
+				dirs[i] = strings.TrimSpace(dir)
+			}
+			cfg.ServicesDir = dirs
 		}
 
 		// Discover services
@@ -111,10 +174,21 @@ var buildCmd = &cobra.Command{
 		}
 
 		// Filter services based on changed services file if provided
-		if changedServicesFile != "" {
-			discoveryResult, err = discovery.FilterServicesByChangedFile(discoveryResult, changedServicesFile)
+		if inputChangedServices != "" {
+			// Validate input file extension
+			if err := config.ValidateTxtFile(inputChangedServices); err != nil {
+				log.Fatalf("Invalid input changed services file: %v", err)
+			}
+			discoveryResult, err = discovery.FilterServicesByChangedFile(discoveryResult, inputChangedServices)
 			if err != nil {
 				log.Fatalf("Failed to filter services by changed file: %v", err)
+			}
+		}
+
+		// Validate output file extension if provided
+		if outputChangedServices != "" {
+			if err := config.ValidateTxtFile(outputChangedServices); err != nil {
+				log.Fatalf("Invalid output changed services file: %v", err)
 			}
 		}
 
@@ -123,16 +197,17 @@ var buildCmd = &cobra.Command{
 			log.Printf("Discovery error: %v", discoveryErr)
 		}
 
-		// Smart orchestration if enabled
+		// Smart orchestration if enabled (disabled by default for basic builds)
 		var servicesToBuild []discovery.DiscoveredService
-		if cfg.SmartEnabled {
+		if cfg.Smart {
 			smartConfig := &smart.SmartConfig{
-				Enabled:     cfg.SmartEnabled,
-				GitTracking: cfg.GitTracking,
-				CacheEnabled: cfg.CacheEnabled,
-				CacheLevel:  cache.RegistryCacheLevel, // Default to registry cache
-				CacheTTL:    24 * time.Hour, // 24 hours TTL
-				ForceRebuild: cfg.ForceRebuild,
+				Enabled:       cfg.Smart,
+				GitTracking:   cfg.GitTrack,
+				GitTrackDepth: cfg.GitTrackDepth,
+				CacheEnabled:  cfg.Cache,
+				CacheLevel:    cache.RegistryCacheLevel, // Default to registry cache
+				CacheTTL:      24 * time.Hour,           // 24 hours TTL
+				ForceRebuild:  cfg.Force,
 			}
 
 			orchestrator := smart.NewOrchestrator(smartConfig)
@@ -195,21 +270,34 @@ var buildCmd = &cobra.Command{
 }
 
 func init() {
+	// Set custom help function for root command
+	rootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		PrintDockerzBanner()
+		// Get the default help template and execute it
+		cmd.Println(cmd.UsageString())
+	})
+
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(buildCmd)
 
-	buildCmd.Flags().StringVarP(&configPath, "config", "c", "services.yaml", "Path to services.yaml configuration file")
-	buildCmd.Flags().IntVarP(&maxProcesses, "max-processes", "m", 0, "Maximum number of parallel builds (overrides config file)")
-	buildCmd.Flags().StringVar(&projectID, "project-id", "", "GCP project ID (overrides config file)")
-	buildCmd.Flags().StringVar(&region, "region", "", "GCP region (overrides config file)")
-	buildCmd.Flags().StringVar(&garName, "gar-name", "", "Google Artifact Registry name (overrides config file)")
-	buildCmd.Flags().StringVar(&globalTag, "tag", "", "Global tag for all images (overrides config file)")
-	buildCmd.Flags().StringVar(&changedServicesFile, "changed-services-file", "", "Path to file containing list of changed services to build")
-	buildCmd.Flags().StringVar(&outputChangedServices, "output-changed-services", "", "Path to output file for list of changed services")
-	buildCmd.Flags().BoolVar(&gitTrack, "git-track", false, "Enable git change tracking for smart builds")
-	buildCmd.Flags().BoolVar(&cacheEnabled, "cache", false, "Enable build caching")
-	buildCmd.Flags().BoolVar(&forceRebuild, "force", false, "Force rebuild all services")
-	buildCmd.Flags().BoolVar(&smartEnabled, "smart", false, "Enable smart build orchestration")
+	rootCmd.Flags().BoolVarP(&version, "version", "v", false, "Print version information")
+
+	buildCmd.Flags().StringVarP(&configPath, "config", "c", "services.yaml", "Path to the services.yaml configuration file (default: services.yaml)")
+	buildCmd.Flags().IntVarP(&maxProcesses, "max-processes", "m", 0, "Maximum number of parallel build processes (0 = use system default; overrides config file)")
+	buildCmd.Flags().StringVar(&project, "project", "", "Google Cloud Platform project ID for GAR integration (overrides config file)")
+	buildCmd.Flags().StringVar(&region, "region", "", "GCP region for GAR (e.g., us-central1, europe-west1; overrides config file)")
+	buildCmd.Flags().StringVar(&gar, "gar", "", "Name of the Google Artifact Registry repository (overrides config file)")
+	buildCmd.Flags().StringVar(&globalTag, "tag", "", "Global Docker tag to apply to all built images (overrides config file and git commit ID)")
+	buildCmd.Flags().StringVar(&servicesDir, "services-dir", "", "Comma-separated list of directories to scan for service definitions (overrides config file)")
+	buildCmd.Flags().StringVar(&inputChangedServices, "input-changed-services", "", "Path to a file containing a newline-separated list of service names to build selectively")
+	buildCmd.Flags().StringVar(&outputChangedServices, "output-changed-services", "", "Path to output file where the list of changed services will be written for CI/CD integration")
+	buildCmd.Flags().BoolVar(&gitTrack, "git-track", false, "Enable git change tracking to detect modified services for incremental builds")
+	buildCmd.Flags().IntVar(&gitTrackDepth, "git-track-depth", 2, "Number of commits to check for changes (default: 2, meaning last commit vs parent)")
+	buildCmd.Flags().BoolVar(&cacheEnabled, "cache", false, "Enable multi-level build caching (layer, local hash, and registry cache)")
+	buildCmd.Flags().BoolVar(&forceRebuild, "force", false, "Force rebuild of all services, ignoring cache and change detection")
+	buildCmd.Flags().BoolVar(&smartEnabled, "smart", false, "Enable smart build orchestration with automatic dependency analysis and optimization")
+	buildCmd.Flags().BoolVar(&useGAR, "use-gar", false, "Use Google Artifact Registry naming convention for image tags (requires GAR authentication)")
+	buildCmd.Flags().BoolVar(&pushToGAR, "push-to-gar", false, "Automatically push built images to Google Artifact Registry after successful builds")
 }
 
 func main() {

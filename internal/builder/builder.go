@@ -45,7 +45,7 @@ func BuildDockerImage(task BuildTask) BuildResult {
 	var imageFullName string
 	if task.Config.UseGAR {
 		imageFullName = fmt.Sprintf("%s-docker.pkg.dev/%s/%s/%s:%s",
-			task.Config.Region, task.Config.ProjectID, task.Config.GARName, task.ImageName, task.Tag)
+			task.Config.Region, task.Config.Project, task.Config.GAR, task.ImageName, task.Tag)
 	} else {
 		imageFullName = fmt.Sprintf("%s:%s", task.ImageName, task.Tag)
 	}

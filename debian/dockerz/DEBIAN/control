@@ -2,7 +2,7 @@ Package: dockerz
 Version: 2.0.0-1
 Architecture: amd64
 Maintainer: Adhbhut Gupta <adhbutg@gmail.com>
-Installed-Size: 5033
+Installed-Size: 4916
 Depends: docker.io, git, libc6 (>= 2.34)
 Recommends: google-cloud-sdk
 Section: utils

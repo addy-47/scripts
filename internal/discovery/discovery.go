@@ -105,16 +105,64 @@ func DiscoverServices(cfg *config.Config, defaultTag string) (*DiscoveryResult, 
 			}
 			result.Services = append(result.Services, discovered)
 		}
-	} else if cfg.ServicesDir != "" {
-		// Recursively discover services with Dockerfiles
-		servicesDirPath := cfg.ServicesDir
-		if _, err := os.Stat(servicesDirPath); os.IsNotExist(err) {
-			return nil, fmt.Errorf("services directory %s does not exist", servicesDirPath)
-		}
+	} else if len(cfg.ServicesDir) > 0 {
+		// Recursively discover services with Dockerfiles in multiple directories
+		for _, servicesDirPath := range cfg.ServicesDir {
+			if _, err := os.Stat(servicesDirPath); os.IsNotExist(err) {
+				result.Errors = append(result.Errors, fmt.Errorf("services directory %s does not exist", servicesDirPath))
+				continue
+			}
 
-		err := filepath.Walk(servicesDirPath, func(path string, info os.FileInfo, err error) error {
+			err := filepath.Walk(servicesDirPath, func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					result.Errors = append(result.Errors, err)
+					return nil
+				}
+
+				if info.IsDir() && filepath.Base(path) == "Dockerfile" {
+					return nil // Skip the Dockerfile itself
+				}
+
+				if info.Name() == "Dockerfile" {
+					servicePath := filepath.Dir(path)
+					serviceName := filepath.Base(servicePath)
+
+					imageName := NormalizeImageName(serviceName)
+					if err := ValidateImageName(imageName); err != nil {
+						result.Errors = append(result.Errors, fmt.Errorf("service %s: %w", servicePath, err))
+						return nil
+					}
+
+					discovered := DiscoveredService{
+						Path:      servicePath,
+						Name:      serviceName,
+						ImageName: imageName,
+						Tag:       defaultTag,
+					}
+					result.Services = append(result.Services, discovered)
+				}
+
+				return nil
+			})
+
+			if err != nil {
+				result.Errors = append(result.Errors, fmt.Errorf("error walking services directory %s: %w", servicesDirPath, err))
+			}
+		}
+	} else {
+		// Auto-discovery: scan all subdirectories in project root for Dockerfiles
+		projectRoot := "."
+		err := filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				result.Errors = append(result.Errors, err)
+				return nil
+			}
+
+			// Skip hidden directories and files
+			if strings.HasPrefix(info.Name(), ".") {
+				if info.IsDir() {
+					return filepath.SkipDir
+				}
 				return nil
 			}
 
@@ -145,10 +193,8 @@ func DiscoverServices(cfg *config.Config, defaultTag string) (*DiscoveryResult, 
 		})
 
 		if err != nil {
-			return nil, fmt.Errorf("error walking services directory: %w", err)
+			return nil, fmt.Errorf("error during auto-discovery in project root: %w", err)
 		}
-	} else {
-		return nil, fmt.Errorf("either services_dir or services must be specified in configuration")
 	}
 
 	if len(result.Services) == 0 {
@@ -162,6 +208,11 @@ func DiscoverServices(cfg *config.Config, defaultTag string) (*DiscoveryResult, 
 func FilterServicesByChangedFile(result *DiscoveryResult, changedFilePath string) (*DiscoveryResult, error) {
 	content, err := os.ReadFile(changedFilePath)
 	if err != nil {
+		if os.IsNotExist(err) {
+			// Log warning and return original result unchanged
+			fmt.Printf("Warning: Changed services file '%s' not found, proceeding with all discovered services\n", changedFilePath)
+			return result, nil
+		}
 		return nil, fmt.Errorf("failed to read changed services file %s: %w", changedFilePath, err)
 	}
 

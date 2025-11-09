@@ -1,0 +1,61 @@
+=== Dockerz Build Log ===
+Started at: 2025-11-09 10:36:56
+Services to build: 9
+Max processes: 4
+
+Starting parallel builds for 9 services with max_processes=4
+=== Dockerz Build Log ===
+Started at: 2025-11-09 13:39:16
+Services to build: 9
+Max processes: 4
+
+Starting parallel builds for 9 services with max_processes=4
+=== Dockerz Build Log ===
+Started at: 2025-11-09 14:13:48
+Services to build: 9
+Max processes: 4
+
+Starting parallel builds for 9 services with max_processes=4
+=== Dockerz Build Log ===
+Started at: 2025-11-09 14:21:01
+Services to build: 9
+Max processes: 4
+
+Starting parallel builds for 9 services with max_processes=4
+[14:21:12] Service: debian/.debhelper/generated/_source/home/go/pkg/mod/github.com/pelletier/go-toml/v2@v2.2.4, Image: v2-v2.2.4:1e9c7bc, Status: failed, Build Output: exit status 1
+[14:21:13] Service: test-project/api, Image: api:1e9c7bc, Status: success
+[14:21:13] Service: test-project/backend/sub-service, Image: sub-service:1e9c7bc, Status: failed, Build Output: exit status 1
+[14:21:14] Service: debian/.debhelper/generated/_source/home/go/pkg/mod/golang.org/x/sys@v0.29.0/unix/linux, Image: linux:1e9c7bc, Status: failed, Build Output: exit status 100
+[14:21:26] Service: test-project/frontend, Image: frontend:1e9c7bc, Status: success
+[14:21:26] Service: test-project/shared, Image: shared:1e9c7bc, Status: failed, Build Output: exit status 1
+[14:21:28] Service: test-project/shared/utils, Image: utils:1e9c7bc, Status: failed, Build Output: exit status 2
+[14:21:29] Service: test-project/api/microservice, Image: microservice:1e9c7bc, Status: failed, Build Output: exit status 1
+[14:21:37] Service: test-project/backend, Image: backend:1e9c7bc, Status: failed, Build Output: exit status 1
+
+=== Build Summary ===
+Total services: 9
+Successful builds: 2
+Failed builds: 7
+Duration: 36.299061538s
+Completed at: 2025-11-09 14:21:37
+
+Failed builds:
+- debian/.debhelper/generated/_source/home/go/pkg/mod/github.com/pelletier/go-toml/v2@v2.2.4: v2-v2.2.4:1e9c7bc
+- test-project/backend/sub-service: sub-service:1e9c7bc
+- debian/.debhelper/generated/_source/home/go/pkg/mod/golang.org/x/sys@v0.29.0/unix/linux: linux:1e9c7bc
+- test-project/shared: shared:1e9c7bc
+- test-project/shared/utils: utils:1e9c7bc
+- test-project/api/microservice: microservice:1e9c7bc
+- test-project/backend: backend:1e9c7bc
+=== Dockerz Build Log ===
+Started at: 2025-11-09 14:21:59
+Services to build: 9
+Max processes: 4
+
+Starting parallel builds for 9 services with max_processes=4
+=== Dockerz Build Log ===
+Started at: 2025-11-09 14:22:23
+Services to build: 9
+Max processes: 4
+
+Starting parallel builds for 9 services with max_processes=4

@@ -1,6 +1,9 @@
-# Dockerz v2.0 - Smart Multi-Service Docker Builder
+# Dockerz v2.0.0 - Smart Multi-Service Docker Builder
 
 Dockerz is a powerful CLI tool for building and pushing multiple Docker images in parallel, with advanced smart features for optimized CI/CD workflows. It supports intelligent change detection, multi-level caching, and smart build orchestration to significantly improve build performance.
+
+there is no need i have alredy told  dockerz is installed in usr/bin/ run which dockerz to verify
+
 
 ## 🚀 Key Features
 
@@ -164,13 +167,13 @@ dockerz build --force
 
 #### Override Configuration Values
 ```bash
-dockerz build --project-id my-project --region us-west1 --gar-name my-registry --tag v2.0.0
+dockerz build --project my-project --region us-west1 --gar my-registry --tag v2.0.0
 ```
 
 #### CI/CD Integration with Changed Services
 ```bash
 # Use external change detection
-dockerz build --changed-services-file changed_services.txt
+dockerz build --input-changed-services changed_services.txt
 
 # Generate change detection for downstream steps
 dockerz build --git-track --smart --output-changed-services changed_services.txt
@@ -179,6 +182,18 @@ dockerz build --git-track --smart --output-changed-services changed_services.txt
 #### Combined Smart Build
 ```bash
 dockerz build --smart --git-track --cache --max-processes 6
+```
+
+#### Build with Custom Services Directory
+```bash
+# Scan specific directories for services
+dockerz build --services-dir ./backend,./frontend,./api
+```
+
+#### Git Track Depth Configuration
+```bash
+# Check last 3 commits for changes (default is 2)
+dockerz build --smart --git-track --git-track-depth 3
 ```
 
 ## Configuration
@@ -207,10 +222,10 @@ use_gar: true # Optional: Use Google Artifact Registry naming (default: true)
 push_to_gar: true # Optional: Push to GAR after building (default: same as use_gar)
 
 # Smart Features Configuration (v2.0)
-smart_enabled: true # Enable smart build orchestration
-git_tracking: true # Enable git change detection
-cache_enabled: true # Enable build caching
-force_rebuild: false # Force rebuild all services
+smart: true # Enable smart build orchestration
+git_track: true # Enable git change detection
+cache: true # Enable build caching
+force: false # Force rebuild all services
 
 # Optional: Explicitly list services to build
 services:
@@ -237,21 +252,22 @@ services:
 | `tag`           | Optional service-specific tag. If not provided, the script defaults to the short Git commit ID.                                                                                |
 | `use_gar`       | If `true`, images will be named using the GAR format. Defaults to `true`.                                                                                                      |
 | `push_to_gar`   | If `true`, images will be pushed to GAR after a successful build. Defaults to the value of `use_gar`.                                                                          |
-| `smart_enabled` | Enable smart build orchestration (v2.0). Defaults to `false`.                                                                                                                  |
-| `git_tracking`  | Enable git change detection for smart builds (v2.0). Defaults to `false`.                                                                                                       |
-| `cache_enabled` | Enable build caching (v2.0). Defaults to `false`.                                                                                                                               |
-| `force_rebuild` | Force rebuild all services, bypassing smart optimizations (v2.0). Defaults to `false`.                                                                                          |
+| `smart` | Enable smart build orchestration (v2.0). Defaults to `false`.                                                                                                                  |
+| `git_track`  | Enable git change detection for smart builds (v2.0). Defaults to `false`.                                                                                                       |
+| `cache` | Enable build caching (v2.0). Defaults to `false`.                                                                                                                               |
+| `force` | Force rebuild all services, bypassing smart optimizations (v2.0). Defaults to `false`.                                                                                          |
 
 ### CLI Flags for Configuration Override
 
 | Flag | Description |
 |------|-------------|
-| `--project-id` | Override GCP project ID |
+| `--project` | Override GCP project ID |
 | `--region` | Override GCP region |
-| `--gar-name` | Override Google Artifact Registry name |
+| `--gar` | Override Google Artifact Registry name |
 | `--tag` | Override global tag for all images |
-| `--changed-services-file` | Input file with list of services to build |
+| `--input-changed-services` | Input file with list of services to build |
 | `--output-changed-services` | Output file for detected changed services |
+| `--git-track-depth` | Number of commits to check for changes (default: 2) |
 
 ### Environment Variables
 
@@ -267,7 +283,7 @@ You can override configuration settings using environment variables:
 All configuration values can be overridden using command-line flags:
 
 ```bash
-dockerz build --project-id my-project --region us-west1 --gar-name my-registry --tag v2.0.0 --smart --git-track --cache
+dockerz build --project my-project --region us-west1 --gar my-registry --tag v2.0.0 --smart --git-track --cache
 ```
 
 See `dockerz build --help` for a complete list of available flags.
@@ -321,7 +337,7 @@ Dockerz integrates seamlessly with Google Artifact Registry for enterprise-grade
 
 Use CLI flags to override GAR configuration:
 ```bash
-dockerz build --project-id new-project --region us-west2 --gar-name new-registry
+dockerz build --project new-project --region us-west2 --gar new-registry
 ```
 
 ## Smart Features Deep Dive
@@ -385,7 +401,7 @@ echo "services/api-gateway" > changed_services.txt
 echo "services/user-service" >> changed_services.txt
 
 # Dockerz builds only the changed services
-dockerz build --changed-services-file changed_services.txt
+dockerz build --input-changed-services changed_services.txt
 ```
 
 #### Generating Change Detection for Downstream Steps
