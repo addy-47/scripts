@@ -157,6 +157,11 @@ smart: false
 # Use --git-track flag to enable
 git_track: false
 
+# Git tracking depth: how many recent commits to analyze for changes
+# Default: 2 (checks last 2 commits: HEAD and HEAD~1)
+# Can be set with --git-track <number> or --git-track-depth <number>
+git_track_depth: 2
+
 # Enable build caching to speed up rebuilds of unchanged services
 # Use --cache flag to enable
 cache: false

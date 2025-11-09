@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/addy-47/dockerz/internal/cache"
 	"github.com/addy-47/dockerz/internal/config"
 	"github.com/addy-47/dockerz/internal/discovery"
+	"github.com/addy-47/dockerz/internal/git"
 	"github.com/addy-47/dockerz/internal/smart"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -20,7 +20,8 @@ import (
 var (
 	configPath            string
 	maxProcesses          int
-	gitTrack              string
+	gitTrack              bool
+	depth                 int
 	cacheEnabled          bool
 	forceRebuild          bool
 	smartEnabled          bool
@@ -105,6 +106,7 @@ Key features:
 
 All flags can override corresponding settings in the configuration file.`,
 	Run: func(cmd *cobra.Command, args []string) {
+
 		// Load configuration
 		cfg, err := config.LoadConfig(configPath)
 		if err != nil {
@@ -126,19 +128,8 @@ All flags can override corresponding settings in the configuration file.`,
 
 		// Override config with CLI flags if provided
 		if cmd.Flags().Changed("git-track") {
-			// Parse git track depth from optional value
-			cfg.GitTrack = true
-			if gitTrack != "" {
-				// Parse depth value if provided
-				if depth, err := strconv.Atoi(gitTrack); err == nil && depth > 0 {
-					cfg.GitTrackDepth = depth
-				} else {
-					log.Printf("Warning: Invalid git-track depth '%s', using default depth 2", gitTrack)
-					cfg.GitTrackDepth = 2
-				}
-			} else {
-				cfg.GitTrackDepth = 2 // Default depth when no value provided
-			}
+			cfg.GitTrack = gitTrack
+			cfg.GitTrackDepth = depth
 		}
 		if cmd.Flags().Changed("cache") {
 			cfg.Cache = cacheEnabled
@@ -208,6 +199,8 @@ All flags can override corresponding settings in the configuration file.`,
 
 		// Smart orchestration if enabled (disabled by default for basic builds)
 		var servicesToBuild []discovery.DiscoveredService
+		var changedFiles map[string][]string // Track changed files for output
+
 		if cfg.Smart {
 			smartConfig := &smart.SmartConfig{
 				Enabled:       cfg.Smart,
@@ -240,20 +233,54 @@ All flags can override corresponding settings in the configuration file.`,
 					}
 				}
 			}
+		} else {
+			// For non-smart builds, build all services but check for git changes if requested
+			servicesToBuild = discoveryResult.Services
 
-			// Output changed services to file if requested
-			if outputChangedServices != "" {
-				if err := discovery.WriteChangedServicesFile(servicesToBuild, outputChangedServices); err != nil {
-					log.Printf("Warning: Failed to write changed services file: %v", err)
-				} else {
-					log.Printf("Changed services written to: %s", outputChangedServices)
+			// If git tracking is enabled but smart is disabled, check for changes
+			if cfg.GitTrack {
+				changedFiles = make(map[string][]string)
+				gitTracker := git.NewTracker()
+				for _, service := range servicesToBuild {
+					depth := cfg.GitTrackDepth
+					if depth == 0 {
+						depth = 2
+					}
+					if files, err := gitTracker.GetChangedFiles(service.Path, depth); err == nil && len(files) > 0 {
+						changedFiles[service.Path] = files
+					}
 				}
 			}
-		} else {
-			servicesToBuild = discoveryResult.Services
+
 			// Mark all as needing build when smart features disabled
 			for i := range servicesToBuild {
 				servicesToBuild[i].NeedsBuild = true
+			}
+		}
+
+		// Root feature: Write changed services to file if requested (works with any command)
+		if outputChangedServices != "" {
+			var servicesForOutput []discovery.DiscoveredService
+
+			if cfg.Smart && len(servicesToBuild) < len(discoveryResult.Services) {
+				// Smart mode: write only the services that will be built
+				servicesForOutput = servicesToBuild
+			} else if cfg.GitTrack && len(changedFiles) > 0 {
+				// Git track mode: write only services with changes
+				for _, service := range servicesToBuild {
+					if _, hasChanges := changedFiles[service.Path]; hasChanges {
+						servicesForOutput = append(servicesForOutput, service)
+					}
+				}
+			} else {
+				// Default: write all services being built
+				servicesForOutput = servicesToBuild
+			}
+
+			if err := discovery.WriteChangedServicesFile(servicesForOutput, outputChangedServices); err != nil {
+				log.Printf("Warning: Failed to write changed services file: %v", err)
+			} else {
+				log.Printf("Changed services written to: %s", outputChangedServices)
 			}
 		}
 
@@ -300,7 +327,10 @@ func init() {
 	buildCmd.Flags().StringVar(&servicesDir, "services-dir", "", "Comma-separated list of directories to scan for service definitions (overrides config file)")
 	buildCmd.Flags().StringVar(&inputChangedServices, "input-changed-services", "", "Path to a file containing a newline-separated list of service names to build selectively")
 	buildCmd.Flags().StringVar(&outputChangedServices, "output-changed-services", "", "Path to output file where the list of changed services will be written for CI/CD integration")
-	buildCmd.Flags().StringVar(&gitTrack, "git-track", "", "Enable git change tracking with optional depth (e.g. --git-track or --git-track 3)")
+
+	buildCmd.Flags().BoolVar(&gitTrack, "git-track", false, "Enable git change tracking")
+	buildCmd.Flags().IntVar(&depth, "depth", 2, "Git tracking depth (0 for full history, default 2)")
+
 	buildCmd.Flags().BoolVar(&cacheEnabled, "cache", false, "Enable multi-level build caching (layer, local hash, and registry cache)")
 	buildCmd.Flags().BoolVar(&forceRebuild, "force", false, "Force rebuild of all services, ignoring cache and change detection")
 	buildCmd.Flags().BoolVar(&smartEnabled, "smart", false, "Enable smart build orchestration with automatic dependency analysis and optimization")

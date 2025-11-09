@@ -103,7 +103,14 @@ dockerz build --force
 
 #### Combined Smart Build (Recommended for CI/CD)
 ```bash
+# Basic smart build with git tracking (default depth 2)
 dockerz build --smart --git-track --cache --max-processes 6
+
+# Smart build with custom git tracking depth
+dockerz build --smart --git-track --depth 3 --cache --max-processes 6
+
+# Smart build with full history tracking
+dockerz build --smart --git-track --depth 0 --cache --max-processes 6
 ```
 
 ### Advanced Usage
@@ -123,10 +130,16 @@ dockerz build --git-track --smart --output-changed-services changed_services.txt
 dockerz build --services-dir ./backend,./frontend,./api
 ```
 
-#### Git Track Depth Configuration
+#### Git Track Configuration
 ```bash
-# Check last 3 commits for changes (default is 2)
-dockerz build --smart --git-track --git-track-depth 3
+# Enable git tracking with default depth (2)
+dockerz build --smart --git-track
+
+# Enable git tracking with custom depth
+dockerz build --smart --git-track --depth 3
+
+# Full history tracking
+dockerz build --smart --git-track --depth 0
 ```
 
 #### Build Specific Services

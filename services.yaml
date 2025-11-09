@@ -6,7 +6,7 @@
 # Can be overridden with --services-dir flag (supports comma-separated paths)
 # Example: --services-dir=backend,frontend/src,api/services
 # Note: Auto-discovery excludes common build/dependency directories like debian/, node_modules/, .git/, etc.
-services_dir: 
+services_dir:
 
 # ===== GOOGLE CLOUD CONFIGURATION =====
 # Configure your Google Cloud Platform settings for Artifact Registry
