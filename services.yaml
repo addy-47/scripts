@@ -5,21 +5,22 @@
 # Directory to scan for services (leave empty for auto-discovery of all subdirectories)
 # Can be overridden with --services-dir flag (supports comma-separated paths)
 # Example: --services-dir=backend,frontend/src,api/services
-services_dir:
+# Note: Auto-discovery excludes common build/dependency directories like debian/, node_modules/, .git/, etc.
+services_dir: 
 
 # ===== GOOGLE CLOUD CONFIGURATION =====
 # Configure your Google Cloud Platform settings for Artifact Registry
 
 # Your GCP project ID (required when using Google Artifact Registry)
-# Override with --project flag or DOCKERZ_PROJECT environment variable
+# Override with --project flag
 project: my-gcp-project
 
 # Name of your Google Artifact Registry repository
-# Override with --gar flag or DOCKERZ_GAR environment variable
+# Override with --gar flag
 gar: my-artifact-registry
 
 # GCP region where your Artifact Registry is located
-# Override with --region flag or DOCKERZ_REGION environment variable
+# Override with --region flag
 region: us-central1
 
 # ===== BUILD CONFIGURATION =====
@@ -42,7 +43,7 @@ use_gar: true
 # Whether to push built images to Google Artifact Registry after building
 # Only effective when use_gar is true
 # Override with --push-to-gar flag
-push_to_gar: true 
+push_to_gar: true
 
 # ===== SMART BUILD FEATURES (v2.0) =====
 # Advanced features for optimizing CI/CD pipelines - disabled by default
@@ -70,11 +71,11 @@ force: false
 
 # Input file containing list of services that have changed (for CI/CD input)
 # Used when you want to specify changed services externally
-input_changed_services: changed_services.txt
+input_changed_services:
 
 # Output file where Dockerz will write the list of detected changed services
 # Useful for subsequent CI/CD steps or debugging
-output_changed_services: changed_services.txt
+output_changed_services:
 
 # ===== SERVICE DEFINITIONS =====
 # Explicitly define services to build (leave empty for auto-discovery)
@@ -86,6 +87,7 @@ output_changed_services: changed_services.txt
 #   (if no changes detected, logs clear message to user)
 # - If services is defined: Only builds the explicitly listed services
 #
+# Auto-discovery excludes common directories: debian/, node_modules/, .git/, internal/, vendor/, etc.
 # This prevents conflicts in CI/CD where you can't modify this config file
 #
 # Each service can have:
