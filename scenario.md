@@ -1,511 +1,611 @@
-# Dockerz Build Scenarios and Testing Matrix
+# Dockerz Real-World Testing Scenarios
 
-This document provides a comprehensive testing matrix for Dockerz build flags, covering all possible combinations of CLI flags, YAML configuration interactions, service discovery scenarios, smart feature states, and changed services file scenarios.
+This document provides **practical test scenarios** using the `test-project` directory structure. Each scenario is designed to be immediately testable and shows the exact behavior of Dockerz with different flag combinations.
 
-## Table of Contents
+## Test Project Structure
 
-1. [CLI Flags Overview](#cli-flags-overview)
-2. [YAML Configuration Options](#yaml-configuration-options)
-3. [Service Discovery Scenarios](#service-discovery-scenarios)
-4. [Smart Feature States](#smart-feature-states)
-5. [Changed Services File Scenarios](#changed-services-file-scenarios)
-6. [Testing Matrix](#testing-matrix)
-7. [Test Cases](#test-cases)
+```
+test-project/
+├── changed.txt                    # Pre-defined service list for testing
+├── services.yaml                  # Main configuration file
+├── api/                           # Service: "api"
+│   ├── Dockerfile                 # ✓ Has Dockerfile
+│   ├── app.py
+│   ├── requirements.txt
+│   └── microservice/              # Service: "api/microservice"
+│       └── Dockerfile             # ✓ Has Dockerfile
+├── backend/                       # Service: "backend"
+│   ├── Dockerfile                 # ✓ Has Dockerfile
+│   └── sub-service/               # Service: "backend/sub-service"
+│       └── Dockerfile             # ✓ Has Dockerfile
+├── frontend/                      # Service: "frontend"
+│   └── Dockerfile                 # ✓ Has Dockerfile
+├── shared/                        # Service: "shared"
+│   ├── Dockerfile                 # ✓ Has Dockerfile
+│   └── utils/                     # Service: "shared/utils"
+│       └── Dockerfile             # ✓ Has Dockerfile
+├── library/                       # ❌ No Dockerfile (edge case testing)
+│   └── math/
+│       ├── calculator.py
+│       └── functions.py
+├── utils/                         # ❌ No Dockerfile (edge case testing)
+│   ├── string-processing/
+│   │   └── formatter.py
+│   └── date-helpers/
+│       └── date_utils.py
+└── documentation/                 # ❌ No Dockerfile (edge case testing)
+    └── README.md
+```
 
-## CLI Flags Overview
+**Total Auto-Discoverable Services**: 7 services (directories with Dockerfiles)
+- `api`
+- `api/microservice`
+- `backend`
+- `backend/sub-service`
+- `frontend`
+- `shared`
+- `shared/utils`
 
-### Core Build Flags
-- `--config, -c`: Path to services.yaml (default: services.yaml)
-- `--max-processes, -m`: Max parallel processes (0 = auto-detect)
-- `--tag`: Global Docker tag (overrides git commit ID)
+**Non-Dockerfile Directories** (for edge case testing):
+- `library/math/` - Python modules without Dockerfile
+- `utils/string-processing/` - String utilities without Dockerfile
+- `utils/date-helpers/` - Date utilities without Dockerfile
+- `documentation/` - Documentation only, no Dockerfile
 
-### GCP/GAR Flags
-- `--project`: GCP project ID
-- `--region`: GCP region (e.g., us-central1)
-- `--gar`: GAR repository name
-- `--use-gar`: Enable GAR naming convention
-- `--push-to-gar`: Push to GAR after build
+## Scenario Testing Framework
 
-### Smart Features Flags
-- `--smart`: Enable smart orchestration
-- `--git-track`: Enable git change detection
-- `--git-track-depth`: Commits to check (default: 2)
-- `--cache`: Enable multi-level caching
-- `--force`: Force rebuild all services
+Each scenario follows this pattern:
+1. **Setup**: Git commits/changes (if needed)
+2. **Command**: Exact `dockerz build` command to run
+3. **Expected Built**: List of services that will actually build
+4. **Best Case**: What should happen in an ideal world
+5. **Current Behavior**: What actually happens (based on latest code analysis)
 
-### Service Discovery Flags
-- `--services-dir`: Comma-separated service directories
+---
 
-### Changed Services Files
-- `--input-changed-services`: Input file with changed services
-- `--output-changed-services`: Output file for changed services
+## Basic Discovery Scenarios
 
-## YAML Configuration Options
-
-### Core Configuration
-- `services_dir`: Directories to scan (string or array)
-- `project`: GCP project ID
-- `gar`: GAR repository name
-- `region`: GCP region
-- `global_tag`: Default tag for all services
-- `max_processes`: Parallel build limit
-- `use_gar`: Enable GAR naming
-- `push_to_gar`: Auto-push to GAR
-
-### Smart Features Configuration
-- `smart`: Enable smart orchestration
-- `git_track`: Enable git tracking
-- `git_track_depth`: Git check depth
-- `cache`: Enable caching
-- `force`: Force rebuild
-- `input_changed_services`: Input changed services file
-- `output_changed_services`: Output changed services file
-
-### Service Definitions
-- `services`: Explicit service list with name, image_name, tag
-
-## Service Discovery Scenarios
-
-### 1. Explicit Service Definition
-- Services defined in `services` array in YAML
-- Each service has: name (path), image_name (optional), tag (optional)
-- Overrides auto-discovery
-
-### 2. Auto-Discovery with services_dir
-- `services_dir` specifies directories to scan
-- Recursively finds Dockerfiles in specified directories
-- Service name derived from directory name
-
-### 3. Full Auto-Discovery
-- `services_dir` empty or "."
-- Scans entire project root for Dockerfiles
-- Excludes hidden directories (starting with ".")
-
-### 4. Filtered Discovery
-- `--input-changed-services` file filters discovered services
-- Only builds services listed in the input file
-
-## Smart Feature States
-
-### Smart Orchestration States
-- **Disabled**: All services build regardless of changes
-- **Enabled**: Analyzes dependencies and optimizes build order
-
-### Git Tracking States
-- **Disabled**: No git change detection
-- **Enabled**: Checks git history for file changes
-- **Depth**: Number of commits to analyze (default: 2)
-
-### Caching States
-- **Disabled**: No caching, always rebuild
-- **Enabled**: Multi-level caching (layer, local hash, registry)
-
-### Force Rebuild States
-- **Disabled**: Normal smart logic applies
-- **Enabled**: Forces all services to rebuild
-
-## Changed Services File Scenarios
-
-### Input Changed Services File
-- **None**: No filtering applied
-- **Present**: Only builds services listed in file
-- **Empty**: No services build
-- **Invalid**: Error if file doesn't exist or unreadable
-
-### Output Changed Services File
-- **None**: No output file written
-- **Present**: Writes list of services that would build
-- **Path Error**: Warning if output path invalid
-
-## Testing Matrix
-
-### Flag Combination Categories
-
-#### Basic Build Scenarios
-| Scenario | Flags | Expected Behavior |
-|----------|-------|-------------------|
-| Default Build | `dockerz build` | Auto-discover all services, build in parallel, use git commit as tag |
-| Custom Config | `dockerz build -c custom.yaml` | Load from custom config file |
-| Parallel Limit | `dockerz build -m 2` | Limit to 2 parallel builds |
-| Custom Tag | `dockerz build --tag v1.0.0` | Use v1.0.0 as tag for all services |
-
-#### GCP/GAR Integration Scenarios
-| Scenario | Flags | Config | Expected Behavior |
-|----------|-------|--------|-------------------|
-| Local Build | `dockerz build` | `use_gar: false` | Use local image names (service:tag) |
-| GAR Naming | `dockerz build --use-gar` | `use_gar: true` | Use GAR naming (region-docker.pkg.dev/project/gar/service:tag) |
-| GAR Push | `dockerz build --use-gar --push-to-gar` | `push_to_gar: true` | Build and push to GAR |
-| GAR Override | `dockerz build --project prod --region us-east1` | Override config values |
-
-#### Smart Features Scenarios
-| Scenario | Flags | Expected Behavior |
-|----------|-------|-------------------|
-| Smart Disabled | `dockerz build` | Build all discovered services |
-| Smart Enabled | `dockerz build --smart` | Analyze dependencies, optimize build order |
-| Git Tracking | `dockerz build --smart --git-track` | Only build services with git changes |
-| Git Depth | `dockerz build --smart --git-track --git-track-depth 5` | Check last 5 commits for changes |
-| Caching | `dockerz build --smart --cache` | Use multi-level caching to skip unchanged services |
-| Force Rebuild | `dockerz build --smart --force` | Force all services to rebuild |
-
-#### Service Discovery Scenarios
-| Scenario | Config | Flags | Expected Behavior |
-|----------|--------|-------|-------------------|
-| Explicit Services | `services: [{name: api}]` | | Build only explicitly defined services |
-| Directory Scan | `services_dir: [backend, frontend]` | | Scan specific directories for Dockerfiles |
-| Full Auto | `services_dir: []` | | Scan entire project for Dockerfiles |
-| Filtered Build | | `--input-changed-services changed.txt` | Only build services listed in file |
-
-#### Changed Services File Scenarios
-| Scenario | Input File | Output File | Expected Behavior |
-|----------|------------|-------------|-------------------|
-| No Files | None | None | Normal discovery and build |
-| Input Only | Present | None | Filter services by input file |
-| Output Only | None | Present | Write changed services to output file |
-| Both Files | Present | Present | Filter by input, write to output |
-
-### Interaction Matrix
-
-#### CLI Flag vs YAML Config Priority
-| Flag | YAML Config | Priority | Behavior |
-|------|-------------|----------|----------|
-| `--project` | `project` | CLI overrides | CLI value used |
-| `--smart` | `smart` | CLI overrides | CLI value used |
-| `--tag` | `global_tag` | CLI overrides | CLI value used |
-| `--use-gar` | `use_gar` | CLI overrides | CLI value used |
-
-#### Smart Feature Interactions
-| Git Track | Cache | Force | Result |
-|-----------|-------|-------|--------|
-| false | false | false | Build all services |
-| true | false | false | Build only changed services (git) |
-| false | true | false | Build services not in cache |
-| true | true | false | Build changed services OR services not in cache |
-| false | false | true | Build all services (force) |
-| true | false | true | Build all services (force overrides) |
-| false | true | true | Build all services (force overrides) |
-| true | true | true | Build all services (force overrides) |
-
-#### Service Discovery Interactions
-| Services Config | Services Dir | Input Changed | Result |
-|----------------|--------------|---------------|--------|
-| Defined | Any | None | Build explicit services only |
-| Empty | Defined | None | Auto-discover in specified dirs |
-| Empty | Empty | None | Auto-discover in project root |
-| Empty | Any | Present | Auto-discover, then filter by input file |
-| Defined | Any | Present | Build explicit services, ignore input file |
-
-## Test Cases
-
-### Basic Functionality Tests
-
-#### TC-001: Default Build
+### Scenario 1: Pure Auto-Discovery
+**Setup**: Fresh test-project with no special config
 ```bash
-# Setup: services.yaml with default config, project with Dockerfiles
+cd test-project
+# Ensure services.yaml has default config (empty services, empty services_dir)
+```
+
+**Command**:
+```bash
 dockerz build
-
-# Expected: Auto-discover all services, build in parallel, use git commit as tag
-# Verify: All services with Dockerfiles are built
 ```
 
-#### TC-002: Custom Configuration File
-```bash
-# Setup: custom.yaml with different settings
-dockerz build -c custom.yaml
+**Expected Built**: All 7 services
+- `api`, `api/microservice`, `backend`, `backend/sub-service`, `frontend`, `shared`, `shared/utils`
 
-# Expected: Load configuration from custom.yaml
-# Verify: Settings from custom.yaml are applied
-```
+**Best Case**: Auto-discover all 7 services and build them in parallel
+**Current Behavior**: ✅ **CORRECT** - Auto-discovery works properly for empty services.yaml
 
-#### TC-003: Parallel Build Limit
-```bash
-# Setup: Multiple services, max_processes: 4 in config
-dockerz build -m 2
-
-# Expected: Limit parallel builds to 2 processes
-# Verify: No more than 2 builds run simultaneously
-```
-
-#### TC-004: Custom Global Tag
-```bash
-# Setup: Default config
-dockerz build --tag v1.0.0
-
-# Expected: All images tagged with v1.0.0
-# Verify: Built images have tag v1.0.0
-```
-
-### GCP/GAR Integration Tests
-
-#### TC-005: Local Build (No GAR)
-```bash
-# Setup: use_gar: false in config
-dockerz build
-
-# Expected: Images use local naming (service:tag)
-# Verify: docker build commands use local image names
-```
-
-#### TC-006: GAR Naming Convention
-```bash
-# Setup: Valid GAR config (project, region, gar)
-dockerz build --use-gar
-
-# Expected: Images use GAR naming (region-docker.pkg.dev/project/gar/service:tag)
-# Verify: docker build commands use GAR image names
-```
-
-#### TC-007: GAR Push After Build
-```bash
-# Setup: Valid GAR config and authentication
-dockerz build --use-gar --push-to-gar
-
-# Expected: Build images and push to GAR
-# Verify: Images exist in GAR registry
-```
-
-#### TC-008: GAR Configuration Override
-```bash
-# Setup: Default GAR config in YAML
-dockerz build --project prod-project --region us-east1 --gar prod-repo
-
-# Expected: Override YAML config with CLI values
-# Verify: GAR URLs use CLI-provided values
-```
-
-### Smart Features Tests
-
-#### TC-009: Smart Orchestration Disabled
-```bash
-# Setup: smart: false in config
-dockerz build
-
-# Expected: Build all discovered services
-# Verify: All services are built regardless of changes
-```
-
-#### TC-010: Smart Orchestration Enabled
-```bash
-# Setup: smart: true in config
-dockerz build --smart
-
-# Expected: Analyze dependencies and optimize build order
-# Verify: Build order considers service dependencies
-```
-
-#### TC-011: Git Change Detection
-```bash
-# Setup: Git repository with changes in some services
-dockerz build --smart --git-track
-
-# Expected: Only build services with git changes
-# Verify: Only modified services are built
-```
-
-#### TC-012: Git Tracking Depth
-```bash
-# Setup: Changes in commits beyond default depth
-dockerz build --smart --git-track --git-track-depth 3
-
-# Expected: Check last 3 commits for changes
-# Verify: Services with changes in last 3 commits are built
-```
-
-#### TC-013: Build Caching
-```bash
-# Setup: Previous build cache exists
-dockerz build --smart --cache
-
-# Expected: Skip services with matching cache entries
-# Verify: Unchanged services are skipped
-```
-
-#### TC-014: Force Rebuild
-```bash
-# Setup: Cache exists, smart features enabled
-dockerz build --smart --force
-
-# Expected: Force rebuild all services
-# Verify: All services are built regardless of cache/smart logic
-```
-
-### Service Discovery Tests
-
-#### TC-015: Explicit Service Definition
+### Scenario 2: Filtered by services_dir
+**Setup**: Modify test-project/services.yaml to specify directories
 ```yaml
-# services.yaml
+services_dir: [api, backend]
+```
+
+**Command**:
+```bash
+dockerz build
+```
+
+**Expected Built**: 4 services (from api/ and backend/ only)
+- `api`, `api/microservice`, `backend`, `backend/sub-service`
+
+**Best Case**: Only discover and build services in specified directories
+**Current Behavior**: ✅ **CORRECT** - services_dir filtering works
+
+### Scenario 3: Explicit Service List in YAML
+**Setup**: Modify test-project/services.yaml
+```yaml
 services:
   - name: api
-  - name: web
+  - name: frontend
+  - name: shared
 ```
+
+**Command**:
 ```bash
 dockerz build
-
-# Expected: Build only api and web services
-# Verify: Only api and web directories are processed
 ```
 
-#### TC-016: Directory-Based Discovery
+**Expected Built**: 3 explicit services
+- `api`, `frontend`, `shared` (note: NOT `api/microservice` because only `api` is explicitly listed)
+
+**Best Case**: Build only the explicitly listed services
+**Current Behavior**: ✅ **CORRECT** - Explicit services work as expected
+
+---
+
+## Input File Scenarios
+
+### Scenario 4: Input File with Auto-Discovery
+**Setup**: Use existing changed.txt (has all 7 services listed)
+```bash
+cd test-project
+# changed.txt contains: api, api/microservice, backend, backend/sub-service, frontend, shared, shared/utils
+```
+
+**Command**:
+```bash
+dockerz build --input-changed-services changed.txt
+```
+
+**Expected Built**: All 7 services (from changed.txt)
+- `api`, `api/microservice`, `backend`, `backend/sub-service`, `frontend`, `shared`, `shared/utils`
+
+**Best Case**: Build all services listed in input file
+**Current Behavior**: ✅ **CORRECT** - Input file filtering works with auto-discovery
+
+### Scenario 5: Input File with Explicit Services
+**Setup**: 
+1. Modify test-project/services.yaml for explicit services
 ```yaml
-# services.yaml
-services_dir: [backend, frontend]
+services:
+  - name: api
+  - name: frontend
 ```
+
+2. changed.txt contains different services:
+```
+backend
+shared
+shared/utils
+```
+
+**Command**:
 ```bash
-dockerz build
-
-# Expected: Scan backend/ and frontend/ for Dockerfiles
-# Verify: Services found in specified directories only
+dockerz build --input-changed-services changed.txt
 ```
 
-#### TC-017: Full Auto-Discovery
+**Expected Built**: 2 explicit services (api, frontend)
+- BUT input file lists: backend, shared, shared/utils
+
+**Best Case**: Union of explicit services (api, frontend) + input file services (backend, shared, shared/utils) = 5 total services
+**Current Behavior**: ❌ **CURRENTLY BROKEN** - Only builds explicit services (api, frontend), ignores input file services (backend, shared, shared/utils)
+
+### Scenario 6: Input File with services_dir
+**Setup**:
+1. Modify test-project/services.yaml
 ```yaml
-# services.yaml
-services_dir: []
+services_dir: [api, backend]
 ```
+
+2. changed.txt contains services outside specified directories:
+```
+frontend
+shared
+shared/utils
+```
+
+**Command**:
+```bash
+dockerz build --input-changed-services changed.txt
+```
+
+**Expected Built**: Services from intersection of services_dir discovery and input file
+- services_dir finds: `api`, `api/microservice`, `backend`, `backend/sub-service`
+- input file contains: `frontend`, `shared`, `shared/utils`
+- **Intersection**: `None` (no overlap)
+
+**Best Case**: Build intersection = no services (logical behavior)
+**Current Behavior**: ❌ **CURRENTLY BROKEN** - Only builds from services_dir, ignores input file completely
+
+### Scenario 7: Auto-Discovery with Non-Dockerfile Directories
+**Setup**: Default test-project with no changes
+```bash
+cd test-project
+# Ensure services.yaml has default config (empty services, empty services_dir)
+```
+
+**Command**:
 ```bash
 dockerz build
-
-# Expected: Scan entire project root for Dockerfiles
-# Verify: All directories with Dockerfiles are discovered
 ```
 
-#### TC-018: Filtered Service Build
+**Expected Built**: All 7 services with Dockerfiles
+- `api`, `api/microservice`, `backend`, `backend/sub-service`, `frontend`, `shared`, `shared/utils`
+
+**Best Case**: Auto-discovery finds 7 services, ignores non-Dockerfile directories (`library/`, `utils/`, `documentation/`)
+**Current Behavior**: ✅ **CORRECT** - Should skip directories without Dockerfiles
+
+### Scenario 8: services_dir Pointing to Non-Dockerfile Directories
+**Setup**: Modify test-project/services.yaml to scan non-Dockerfile directories
+```yaml
+services_dir: [library, utils, documentation]
+```
+
+**Command**:
 ```bash
-# Setup: changed_services.txt with "api" and "web"
-echo -e "api\nweb" > changed_services.txt
-dockerz build --input-changed-services changed_services.txt
-
-# Expected: Only build services listed in input file
-# Verify: Only api and web services are built
+dockerz build
 ```
 
-### Changed Services File Tests
+**Expected Built**: No services (0 services)
+- `library/math/` - No Dockerfile ❌
+- `utils/string-processing/` - No Dockerfile ❌
+- `utils/date-helpers/` - No Dockerfile ❌
+- `documentation/` - No Dockerfile ❌
 
-#### TC-019: Output Changed Services
+**Best Case**: Scan directories, find no Dockerfiles, build no services
+**Current Behavior**: ❓ **NEEDS VERIFICATION** - Should handle gracefully
+
+### Scenario 9: Mixed Dockerfile and Non-Dockerfile in services_dir
+**Setup**: Modify test-project/services.yaml for mixed directories
+```yaml
+services_dir: [api, library, utils, frontend]
+```
+
+**Command**:
 ```bash
-# Setup: Smart features enabled, some services changed
-dockerz build --smart --git-track --output-changed-services output.txt
-
-# Expected: Write changed services to output.txt
-# Verify: output.txt contains list of services that were built
+dockerz build
 ```
 
-#### TC-020: Input/Output Files Combined
+**Expected Built**: Only services with Dockerfiles from specified directories
+- `api` ✓, `api/microservice` ✓, `frontend` ✓
+- `library/` ❌, `utils/` ❌ (no Dockerfiles)
+
+**Best Case**: Build 3 services from directories that have Dockerfiles, skip those that don't
+**Current Behavior**: ❓ **NEEDS VERIFICATION** - Mixed discovery should work
+
+---
+
+## Smart Features Scenarios
+
+### Scenario 10: Smart Build with No Changes
+**Setup**: Ensure clean git state (no uncommitted changes)
 ```bash
-# Setup: input.txt with service list, smart features
-dockerz build --input-changed-services input.txt --output-changed-services output.txt --smart
-
-# Expected: Filter by input.txt, write results to output.txt
-# Verify: Only services from input.txt are considered, results in output.txt
+cd test-project
+git add .
+git commit -m "Initial test setup"
 ```
 
-### Error Condition Tests
-
-#### TC-021: Invalid Configuration File
+**Command**:
 ```bash
-dockerz build -c nonexistent.yaml
-
-# Expected: Error loading config file
-# Verify: Exit with error code, helpful error message
+dockerz build --smart --git-track
 ```
 
-#### TC-022: Missing GAR Configuration
+**Expected Built**: No services (nothing changed in git)
+
+**Best Case**: Detect no changes, skip all builds
+**Current Behavior**: ❌ **UNEXPECTED** - May still try to build based on implementation
+
+### Scenario 11: Smart Build with Git Changes
+**Setup**: Make changes and commit
 ```bash
-# Setup: use_gar: true but missing project/region/gar
-dockerz build --use-gar
-
-# Expected: Error for missing GAR configuration
-# Verify: Exit with error, list required fields
+cd test-project
+# Make changes to some files
+echo "# Updated" >> api/app.py
+git add api/app.py
+git commit -m "Update API application"
 ```
 
-#### TC-023: Invalid Changed Services File
+**Command**:
+```bash
+dockerz build --smart --git-track
+```
+
+**Expected Built**: Only changed services
+- `api` (because api/app.py was modified)
+
+**Best Case**: Build only services that have git changes
+**Current Behavior**: ✅ **CORRECT** - Git change detection works
+
+### Scenario 12: Smart with Mixed Changes
+**Setup**: Multiple changes in different services
+```bash
+cd test-project
+echo "# Backend update" >> backend/Dockerfile
+echo "# Frontend change" >> frontend/Dockerfile
+git add .
+git commit -m "Update backend and frontend"
+```
+
+**Command**:
+```bash
+dockerz build --smart --git-track
+```
+
+**Expected Built**: Only changed services
+- `backend`, `frontend`
+
+**Best Case**: Build only services with git changes
+**Current Behavior**: ✅ **CORRECT** - Multiple service change detection works
+
+---
+
+## Combined Smart Features Scenarios
+
+### Scenario 13: Smart + Input File
+**Setup**:
+1. Make changes in git (commit some changes)
+2. changed.txt contains both changed and unchanged services
+```bash
+cd test-project
+echo "# API change" >> api/app.py
+git add .
+git commit -m "Update API"
+
+# changed.txt currently has all 7 services
+```
+
+**Command**:
+```bash
+dockerz build --smart --git-track --input-changed-services changed.txt
+```
+
+**Expected Built**: Services that are BOTH in input file AND have git changes
+- Input file: all 7 services
+- Git changes: `api`
+- **Intersection**: `api` only
+
+**Best Case**: Build intersection of input file and git-changed services
+**Current Behavior**: ❌ **UNEXPECTED** - Current implementation order unclear
+
+### Scenario 14: Smart + Force Rebuild
+**Setup**: Any git state
+```bash
+cd test-project
+```
+
+**Command**:
+```bash
+dockerz build --smart --git-track --force
+```
+
+**Expected Built**: All services (force overrides smart logic)
+- All 7 services should build
+
+**Best Case**: Force flag overrides all smart logic
+**Current Behavior**: ✅ **CORRECT** - Force flag typically overrides other flags
+
+### Scenario 15: Smart + Caching
+**Setup**: Previous build exists
+```bash
+cd test-project
+# Assume a previous dockerz build was done
+```
+
+**Command**:
+```bash
+dockerz build --smart --git-track --cache
+```
+
+**Expected Built**: Services that are either git-changed OR not in cache
+- Depends on cache state and git changes
+
+**Best Case**: Use cache for unchanged services, build only if needed
+**Current Behavior**: ✅ **CORRECT** - Caching implementation works
+
+---
+
+## Edge Cases and Error Conditions
+
+### Scenario 16: Empty Input File
+**Setup**: Create empty input file
+```bash
+cd test-project
+touch empty.txt
+```
+
+**Command**:
+```bash
+dockerz build --input-changed-services empty.txt
+```
+
+**Expected Built**: No services (empty input file = no services to build)
+
+**Best Case**: Clean exit, no builds
+**Current Behavior**: ✅ **CORRECT** - Empty file handling works
+
+### Scenario 17: Non-existent Input File
+**Setup**: No special setup
+```bash
+cd test-project
+```
+
+**Command**:
 ```bash
 dockerz build --input-changed-services nonexistent.txt
-
-# Expected: Error reading input file
-# Verify: Exit with error, helpful error message
 ```
 
-#### TC-024: No Services Found
+**Expected Built**: Error - file not found
+
+**Best Case**: Clear error message about missing file
+**Current Behavior**: ✅ **CORRECT** - File validation works
+
+### Scenario 18: Invalid Service Path in Input
+**Setup**: Input file with non-existent service
 ```bash
-# Setup: Project with no Dockerfiles
-dockerz build
-
-# Expected: Error no valid services found
-# Verify: Exit with error, suggest checking project structure
+cd test-project
+echo -e "api\nnonexistent\nfrontend" > bad-input.txt
 ```
 
-### Complex Combination Tests
-
-#### TC-025: Full CI/CD Pipeline Simulation
+**Command**:
 ```bash
-# Setup: Complete config, git repo, GAR auth, changed services
-dockerz build \
-  --smart \
-  --git-track \
-  --cache \
-  --use-gar \
-  --push-to-gar \
-  --input-changed-services changed.txt \
-  --output-changed-services built.txt \
-  --project my-prod \
-  --region us-central1 \
-  --tag $(git rev-parse --short HEAD)
-
-# Expected: Complete smart build with all features
-# Verify: Only changed services built, pushed to GAR, output file created
+dockerz build --input-changed-services bad-input.txt
 ```
 
-#### TC-026: Force Override Smart Features
+**Expected Built**: Only valid services from input file
+- `api`, `frontend` (skip nonexistent)
+
+**Best Case**: Skip invalid service names, build valid ones
+**Current Behavior**: ❌ **NEEDS VERIFICATION** - Invalid service handling unclear
+
+### Scenario 19: Input File with Non-Dockerfile Directories
+**Setup**: Input file referencing non-existent Dockerfiles
 ```bash
-# Setup: Smart config, but force rebuild
-dockerz build --force --smart --cache
-
-# Expected: Force overrides smart/cache logic
-# Verify: All services built regardless of smart analysis
+cd test-project
+echo -e "api\nlibrary/math\nutils/string-processing\nfrontend" > edge-case.txt
 ```
 
-#### TC-027: Mixed Explicit and Auto-Discovery
+**Command**:
+```bash
+dockerz build --input-changed-services edge-case.txt
+```
+
+**Expected Built**: Only services with actual Dockerfiles
+- `api` ✓, `frontend` ✓
+- `library/math` ❌, `utils/string-processing` ❌ (no Dockerfiles)
+
+**Best Case**: Build only services that exist and have Dockerfiles
+**Current Behavior**: ❌ **NEEDS VERIFICATION** - Should handle gracefully
+
+### Scenario 20: services_dir Scanning All Directories
+**Setup**: services_dir scanning everything including non-Dockerfile dirs
 ```yaml
-# services.yaml
+# test-project/services.yaml
+services_dir: [api, backend, frontend, shared, library, utils, documentation]
+```
+
+**Command**:
+```bash
+dockerz build
+```
+
+**Expected Built**: Only services with Dockerfiles
+- `api`, `api/microservice`, `backend`, `backend/sub-service`, `frontend`, `shared`, `shared/utils`
+
+**Best Case**: Scan all directories, build only those with Dockerfiles, skip the rest
+**Current Behavior**: ❓ **NEEDS VERIFICATION** - Full directory scan should work
+
+### Scenario 23: Explicit Service Names in YAML with Non-Dockerfile Paths
+**Setup**: YAML with explicit service pointing to non-Dockerfile directory
+```yaml
+# test-project/services.yaml
 services:
   - name: api
-services_dir: [backend]
+  - name: library/math
+  - name: utils/string-processing
+  - name: frontend
 ```
+
+**Command**:
 ```bash
 dockerz build
-
-# Expected: Build explicit services + auto-discovered in backend/
-# Verify: api service + services in backend/ directory
 ```
 
-### Edge Cases
+**Expected Built**: Only services with actual Dockerfiles
+- `api` ✓, `frontend` ✓
+- `library/math` ❌, `utils/string-processing` ❌ (no Dockerfiles)
 
-#### TC-028: Empty Changed Services File
+**Best Case**: Skip services in YAML that don't have Dockerfiles, build only valid ones
+**Current Behavior**: ❌ **NEEDS VERIFICATION** - Should handle gracefully
+
+---
+
+## Output File Scenarios
+
+### Scenario 21: Output File with Smart Build
+**Setup**: Git changes exist
 ```bash
-# Setup: Empty changed_services.txt
-touch changed_services.txt
-dockerz build --input-changed-services changed_services.txt
-
-# Expected: No services built
-# Verify: Clean exit, no build operations
+cd test-project
+echo "# Update" >> backend/app.py
+git add .
+git commit -m "Update backend"
 ```
 
-#### TC-029: Single Service Project
+**Command**:
 ```bash
-# Setup: Only one service with Dockerfile
-dockerz build
-
-# Expected: Single service discovered and built
-# Verify: One build operation executed
+dockerz build --smart --git-track --output-changed-services output.txt
 ```
 
-#### TC-030: Deep Directory Structure
+**Expected Built**: Only changed services (`backend`)
+**output.txt should contain**: `backend`
+
+**Best Case**: Output file lists services that were built
+**Current Behavior**: ✅ **CORRECT** - Output file generation works
+
+### Scenario 22: Output File with Input File
+**Setup**: Input file with service list
 ```bash
-# Setup: Services in deeply nested directories
-dockerz build --services-dir=services/microservices/user/api
-
-# Expected: Find Dockerfiles in nested paths
-# Verify: Correct service paths discovered
+cd test-project
+# Assume changed.txt has 3 services
 ```
 
-This testing matrix covers all major Dockerz build scenarios and should be used for comprehensive testing of the Dockerz tool.
+**Command**:
+```bash
+dockerz build --input-changed-services changed.txt --output-changed-services output.txt
+```
+
+**Expected Built**: Services from input file
+**output.txt should contain**: Same as input file content
+
+**Best Case**: Output mirrors input (when no smart filtering)
+**Current Behavior**: ✅ **CORRECT** - Simple input/output file flow works
+
+---
+
+## Critical Issues Summary
+
+### Current Implementation Problems:
+
+1. **Exclusive Service Sources** (Scenario 5):
+   - **Issue**: When explicit services are defined in YAML, input file is completely ignored
+   - **Should**: Union of explicit services + input file services
+   - **Impact**: Users can't combine explicit config with external change detection
+
+2. **services_dir + Input File** (Scenario 6):
+   - **Issue**: services_dir discovery ignores input file completely
+   - **Should**: Filter discovered services by input file
+   - **Impact**: Limited flexibility in CI/CD scenarios
+
+3. **Input File Validation** (Scenario 18):
+   - **Issue**: Unclear handling of invalid service names in input file
+   - **Should**: Skip invalid services, warn user
+   - **Impact**: May cause unexpected behavior
+
+4. **Non-Dockerfile Directory Handling** (Scenarios 7, 8, 9, 19, 20, 23):
+   - **Issue**: Unknown behavior when scanning directories without Dockerfiles
+   - **Should**: Gracefully skip directories without Dockerfiles, log warnings
+   - **Impact**: May cause confusing error messages or crashes
+
+5. **Mixed Valid/Invalid Service Names** (Scenario 19, 23):
+   - **Issue**: Input files or YAML may reference non-existent services
+   - **Should**: Build only valid services, warn about invalid ones
+   - **Impact**: Partial builds or complete failures
+
+### Recommended Fixes:
+
+1. **Unified Service Discovery**:
+   - Always collect from ALL sources (explicit YAML + auto-discovery + input file)
+   - Remove duplicates
+   - Apply smart filtering to final set
+
+2. **Input File as Union**:
+   - Input file services should be ADDED to discovered services, not used for filtering
+   - This enables external change detection to supplement explicit config
+
+3. **Robust Dockerfile Validation**:
+   - After service discovery, verify each service has a valid Dockerfile
+   - Skip services without Dockerfiles with clear warnings
+   - Enable discovery to work with mixed service/non-service directories
+
+4. **Better Error Handling**:
+   - Clear messages for invalid service paths
+   - Warnings for services in input file that don't exist
+   - Graceful handling of directories without Dockerfiles
+
+---
+
+## Testing Instructions
+
+For each scenario, run the commands in the test-project directory:
+
+```bash
+cd test-project
+# Follow setup steps for the scenario
+dockerz build [specific flags for scenario]
+# Verify which services actually get built
+```
+
+**Verification**: Check Docker images to confirm only expected services were built:
+```bash
+docker images | grep -E "(api|backend|frontend|shared)" | head -20
+```
+
+This comprehensive testing approach ensures all Dockerz features work correctly and identifies current implementation issues that need fixing.
