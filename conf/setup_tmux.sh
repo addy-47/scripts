@@ -9,6 +9,16 @@ print_success() {
     echo -e "\033[32m[SUCCESS]\033[0m $1"
 }
 
+# Check if tmux is installed, install if not
+if ! command -v tmux &> /dev/null; then
+    print_info "tmux is not installed. Installing tmux..."
+    sudo apt update
+    sudo apt install -y tmux
+    print_success "tmux installed."
+else
+    print_info "tmux is already installed."
+fi
+
 # --- Tmux Configuration ---
 print_info "Writing .tmux.conf..."
 cat << 'EOF' > ~/.tmux.conf

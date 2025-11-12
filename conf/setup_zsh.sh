@@ -26,6 +26,15 @@ if [ ! -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlightin
   git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 fi
 
+# Create gcp-switch plugin directory and file
+if [ ! -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/gcp-switch" ]; then
+  mkdir -p ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/gcp-switch
+fi
+
+cat << 'EOF' > ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/gcp-switch/gcp-switch.plugin.zsh
+source $HOME/projects/scripts/gcp-k8s/gcloud-kubectl-switch.zsh
+EOF
+
 
 # --- Zsh Configuration ---
 print_info "Writing .zshrc..."
@@ -115,6 +124,7 @@ plugins=(
   history-substring-search
   zsh-autosuggestions
   zsh-syntax-highlighting
+  gcp-switch
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -201,15 +211,25 @@ alias dcu='docker-compose up -d'
 alias d='docker ps -a'
 alias dcd='docker-compose down'
 alias dl='docker logs'
+alias dip='docker image prune'
 
-#ansible aias
+#git alisa
+alias g='git add .'
+alias gc='git checkout '
+alias gcm='git commit -m '
+alias gpo='git push origin'
+alias gr='git reset HEAD~1'
+alias gs='git status'
+alias gl='git log '
+
+#ansible alias
 alias apl='ansible-playbook -i inventory.ini'
 alias aping='ansible all -i inventory.ini -m ping'
 alias apinit='ansible-playbook -i inventory.ini provision-vm.yml'
 
 # Interactive ripgrep search with fzf (using batcat)
 search() {
-    rg --color=always --line-number --no-heading --smart-case "" |
+    rg --color=always --line-number --no-heading --smart-case "" | \
     fzf --ansi \
         --exact \
         --disabled \
@@ -223,7 +243,7 @@ search() {
 # Search in specific directory
 searchin() {
     local dir=${1:-.}
-    rg --color=always --line-number --no-heading --smart-case "" "$dir" |
+    rg --color=always --line-number --no-heading --smart-case "" "$dir" | \
     fzf --ansi \
         --exact \
         --disabled \

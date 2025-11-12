@@ -45,8 +45,8 @@ apply_terminal_theme() {
 # -----------------------------------------------------------------------------------
 
 set_terminal_theme_red() {
-    local PALETTE="['#000000', '#cc241d', '#E67CA0', '#d79921', '#458588', '#b16286', '#689d6a', '#a89984', '#928374', '#fb4934', '#b8bb26', '#fabd2f', '#83a598', '#d3869b', '#8ec07c', '#ebdbb2']"
-    local FG_COLOR="'#E67CA0'"
+    local PALETTE="['#2A2828', '#BCB4B9', '#CEEEF2', '#C484C1', '#87CEFF', '#E9D1ED', '#A7B3F3', '#EEE8D5', '#C38ECA', '#ADACB3', '#CF9BF1', '#DC96D5', '#EF9FAF', '#D8239A', '#764176', '#FF9ACB']"
+    local FG_COLOR="'#E37E9E'"
     apply_terminal_theme "addy-red" "$PALETTE" "$FG_COLOR"
 }
 

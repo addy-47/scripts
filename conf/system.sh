@@ -376,8 +376,8 @@ GTK4EOF
 
 set_system_theme_red() {
     _log_system "Setting up system theme: addy-red"
-    local THEME_COLOR="#E67CA0"
-    local THEME_COLOR_RGB="230, 124, 160"
+    local THEME_COLOR="#E37E9E"
+    local THEME_COLOR_RGB="227, 126, 158"
     local YARU_COLOR="red"
 
     install_yaru_themes "$YARU_COLOR"
@@ -389,8 +389,8 @@ set_system_theme_red() {
     gsettings set org.gnome.desktop.interface icon-theme "Yaru-$YARU_COLOR"
     gsettings set org.gnome.desktop.interface cursor-theme "Adwaita"
     gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
-    gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/Downloads/tmp/cyberpunk-rooftop-reflection.jpg"
-    gsettings set org.gnome.desktop.background picture-uri-dark "$THEME_WALLPAPER_URI"
+    gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/red.png"
+    gsettings set org.gnome.desktop.background picture-uri-dark "file:///home/addy/projects/scripts/conf/wallpapers/red.png"
     gsettings set org.gnome.desktop.interface accent-color "$THEME_COLOR"
     
     _log_system "\xe2\x9c\x80 System theme 'addy-red' applied successfully."
@@ -411,8 +411,8 @@ set_system_theme_green() {
     gsettings set org.gnome.desktop.interface icon-theme "Yaru-$YARU_COLOR"
     gsettings set org.gnome.desktop.interface cursor-theme "Adwaita"
     gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
-    gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/Downloads/tmp/cyberpunk-rooftop-reflection.jpg"
-    gsettings set org.gnome.desktop.background picture-uri-dark "$THEME_WALLPAPER_URI"
+    gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/green.png"
+    gsettings set org.gnome.desktop.background picture-uri-dark "file:///home/addy/projects/scripts/conf/wallpapers/green.png"
     gsettings set org.gnome.desktop.interface accent-color "$THEME_COLOR"
     
     _log_system "\xe2\x9c\x80 System theme 'addy-green' applied successfully."

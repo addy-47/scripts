@@ -130,8 +130,14 @@ if ! shopt -oq posix; then
   fi
 fi
 export PATH=$PATH:/usr/local/go/bin
-source /home/addy/projects/scripts/gcp-k8s/gcloud-kubectl-switch.sh
-alias mongo-migrate="$HOME/projects/scripts/mongo-migrate/mongo-migrate.sh"
+# Source gcp-k8s script if it exists
+if [ -f "$HOME/projects/scripts/gcp-k8s/gcloud-kubectl-switch.sh" ]; then
+    source "$HOME/projects/scripts/gcp-k8s/gcloud-kubectl-switch.sh"
+fi
+# Create mongo-migrate alias if the script exists
+if [ -f "$HOME/projects/scripts/mongo-migrate/mongo-migrate.sh" ]; then
+    alias mongo-migrate="$HOME/projects/scripts/mongo-migrate/mongo-migrate.sh"
+fi
 export PATH="$PATH:/opt/nvim/bin"
 alias c=clear
 alias cursor='/opt/cursor.appimage --no-sandbox'
