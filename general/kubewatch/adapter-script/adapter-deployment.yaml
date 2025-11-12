@@ -1,0 +1,44 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubewatch-gchat-adapter
+  namespace: prod
+  labels:
+    app: kubewatch-gchat-adapter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubewatch-gchat-adapter
+  template:
+    metadata:
+      labels:
+        app: kubewatch-gchat-adapter
+    spec:
+      containers:
+      - name: adapter
+        image: asia-south1-docker.pkg.dev/unicommerce-477809/unicommerce-prod/adapter:1.0.5
+        ports:
+        - containerPort: 8080
+        env:
+        - name: GCHAT_WEBHOOK_URL
+          valueFrom:
+            secretKeyRef:
+              name: gchat-webhook-secret
+              key: url
+      serviceAccount: kubewatch
+      serviceAccountName: kubewatch       
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubewatch-gchat-adapter-service
+  namespace: prod
+spec:
+  selector:
+    app: kubewatch-gchat-adapter
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080

@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    meta.helm.sh/release-name: kubewatch
+    meta.helm.sh/release-namespace: prod
+  labels:
+    app.kubernetes.io/instance: kubewatch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kubewatch
+    helm.sh/chart: kubewatch-3.5.0
+  name: kubewatch
+  namespace: prod
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: kubewatch
+      app.kubernetes.io/name: kubewatch
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        checksum/config-map: ab528b704f249da01fb49a08d1a7b004b6af74784fdff6b1ea85ea0945d5d77a
+      labels:
+        app.kubernetes.io/instance: kubewatch
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kubewatch
+        helm.sh/chart: kubewatch-3.5.0
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: kubewatch
+                  app.kubernetes.io/name: kubewatch
+              namespaces:
+              - prod
+              topologyKey: kubernetes.io/hostname
+            weight: 1
+      containers:
+      - image: robustadev/kubewatch:v2.9.0
+        imagePullPolicy: IfNotPresent
+        name: kubewatch
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /opt/bitnami/kubewatch/.kubewatch.yaml
+          name: configuration
+          subPath: .kubewatch.yaml
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: kubewatch
+      serviceAccountName: kubewatch
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: kubewatch-config
+        name: configuration
+

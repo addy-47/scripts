@@ -1,0 +1,44 @@
+apiVersion: v1
+data:
+  .kubewatch.yaml: |
+    handler:
+      webhook: 
+        url: "http://kubewatch-gchat-adapter-service.prod.svc.cluster.local/webhook"
+        tlsskip: true
+    resource:
+      daemonset: false
+      deployment: false
+      event: false
+      job: true
+      persistentvolume: false
+      pod: true
+      replicaset: false
+      replicationcontroller: false
+      services: false
+      ingress: false
+    customresources:
+      []
+    namespace: "prod"
+    event:
+      # Global events - applies to all resources
+      global:
+        - pod
+      # Only alert on these event types
+      create:
+        []  # Don't alert on normal creation
+      update:
+        - pod  # Alert on pod updates (we'll filter in the adapter)
+      delete:
+        - pod  # Alert when pods are deleted unexpectedly 
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: kubewatch
+    meta.helm.sh/release-namespace: prod
+  labels:
+    app.kubernetes.io/instance: kubewatch
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kubewatch
+    helm.sh/chart: kubewatch-3.5.0
+  name: kubewatch-config
+  namespace: prod

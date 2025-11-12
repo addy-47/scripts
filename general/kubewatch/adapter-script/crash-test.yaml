@@ -1,0 +1,21 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crash-test
+  namespace: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crash-test
+  template:
+    metadata:
+      labels:
+        app: crash-test
+    spec:
+      containers:
+      - name: crash-container
+        image: busybox:1.35
+        # This command will run, exit with an error code, and cause a CrashLoopBackOff
+        command: ["/bin/sh", "-c", "echo 'This container will crash'; exit 1"]
