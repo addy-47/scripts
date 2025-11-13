@@ -12,13 +12,15 @@ if ! command -v gcloud &> /dev/null; then
 fi
 
 # --- Configurations ---
-typeset -A CONFIGS
-SCRIPT_DIR="${0:a:h}"  # ← CORRECT: Works when sourced from anywhere
+typeset -gA CONFIGS
+SCRIPT_DIR="${0:a:h}"
 CONFIG_FILE="$SCRIPT_DIR/gcloud-kubectl-switch.conf"
 
+# Temporarily add this right after sourcing the config file in your .zsh script
 if [[ -f "$CONFIG_FILE" ]]; then
   source "$CONFIG_FILE"
 else
+  # ... existing code
   echo "Warning: Configuration file not found at '$CONFIG_FILE'."
   echo "Creating an example config. Please edit it."
   cat > "$CONFIG_FILE" << 'EOF'
