@@ -237,7 +237,7 @@ search() {
         --delimiter : \
         --bind "change:reload:rg --color=always --line-number --no-heading --smart-case {q}" \
         --preview "batcat --color=always --style=numbers --highlight-line {2} {1}" \
-        --preview-window=right:60%:wrap
+        --preview-window='right:60%:wrap:+{2}-5'
 }
 
 # Search in specific directory
@@ -250,8 +250,9 @@ searchin() {
         --delimiter : \
         --bind "change:reload:rg --color=always --line-number --no-heading --smart-case {q} $dir" \
         --preview "batcat --color=always --style=numbers --highlight-line {2} {1}" \
-        --preview-window=right:60%:wrap
+        --preview-window='right:60%:wrap:+{2}-5'
 }
+
 EOF
 print_success "Custom aliases created."
 
