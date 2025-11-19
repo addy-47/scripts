@@ -17,19 +17,24 @@ sudo apt-get update -y
 
 # --- Core packages list ---
 CORE_PACKAGES=(
-  aircrack-ng ansible apt-transport-https bandit base-passwd bat bsdutils build-essential
-  ca-certificates cabextract dash debhelper devscripts dh-make dh-python diffutils
-  docker-compose dpkg-dev efibootmgr fakeroot ffmpeg findutils fonts-indic forticlient
-  fzf genisoimage gh git gnome-shell-extensions gnome-tweaks gnupg gpg grep grub-common
-  grub-efi-amd64-bin grub-efi-amd64-signed grub-gfxpayload-lists grub-pc grub-pc-bin
-  grub2-common gzip hostname htop iftop init language-pack-en language-pack-en-base
-  libc6 libdebconfclient0 libftdi1-2 libfuse2 libreoffice-help-common libreoffice-help-en-us
-  linux-generic linux-generic-hwe-22.04 login lsb-release mongodb-database-tools
-  ncurses-base ncurses-bin neofetch net-tools nghttp2-client nodejs obs-studio openssh-server
-  os-prober p7zip-full papirus-icon-theme pass pipx portaudio19-dev pybuild-plugin-pyproject
-  python3 python3-all python3-httpx python3-pip python3-pytest python3-setuptools python3-venv
-  python3-yaml ripgrep shim-signed software-properties-common thunderbird-locale-en thunderbird-locale-en-us
-  tmux trivy ubuntu-minimal ubuntu-standard ubuntu-wallpapers uvicorn vlc wget wrk xclip zsh
+  aircrack-ng ansible antigravity apt-transport-https bandit base-passwd bat bsdutils
+  build-essential ca-certificates cabextract code coturn curl dash debhelper
+  devscripts dh-make dh-python diffutils dpkg-dev efibootmgr fakeroot
+  fd-find ffmpeg findutils flow-app fonts-indic forticlient fzf genisoimage
+  gh git git-filter-repo gnome-shell-extensions gnome-tweaks gnupg
+  google-cloud-cli-gke-gcloud-auth-plugin google-cloud-sdk gpg graphviz grep grub-common
+  grub-efi-amd64-bin grub-efi-amd64-signed grub-gfxpayload-lists grub-pc grub-pc-bin grub2-common gzip
+  hostname htop hyphen-en-us iftop init language-pack-en language-pack-en-base
+  language-pack-gnome-en language-pack-gnome-en-base libc6 libdebconfclient0 libflashrom1 libftdi1-2
+  libfuse2 libfuse2t64 libllvm13 libreoffice-help-common libreoffice-help-en-us linux-generic
+  linux-generic-hwe-22.04 login lsb-release microsoft-edge-stable mokutil mongodb-database-tools
+  mythes-en-us ncdu ncurses-base ncurses-bin neofetch net-tools nghttp2-client nodejs
+  obs-studio openssh-server os-prober p7zip-full papirus-icon-theme pass pipx
+  portaudio19-dev pybuild-plugin-pyproject python3 python3-all python3-hatchling python3-httpx
+  python3-pip python3-pytest python3-setuptools python3-venv python3-yaml redis-tools ripgrep
+  sd shim-signed software-properties-common thunderbird-locale-en thunderbird-locale-en-us tmux
+  trivy ubuntu-desktop ubuntu-desktop-minimal ubuntu-minimal ubuntu-restricted-addons ubuntu-standard
+  ubuntu-wallpapers uvicorn vault vlc warp-terminal wget wrk xclip zsh
 )
 
 # --- Install each package separately ---
@@ -64,17 +69,6 @@ add_google_chrome() {
   sudo apt-get install -y google-chrome-stable
 }
 
-# Docker CE (official)
-add_docker() {
-  print_info "Adding Docker repo..."
-  sudo mkdir -p /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-  echo \
-    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
-    | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
-  sudo apt-get update
-  sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-}
 
 # dockerz (your custom tool)
 add_dockerz() {
@@ -97,7 +91,6 @@ add_mongodb() {
 # --- Call whichever extra repos you want ---
 add_brave
 add_google_chrome
-add_docker
 add_dockerz
 add_mongodb
 

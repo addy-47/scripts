@@ -207,11 +207,12 @@ alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
 alias x='exit'
-alias dcu='docker-compose up -d'
+alias dcu='docker compose up -d'
 alias d='docker ps -a'
-alias dcd='docker-compose down'
+alias dcd='docker compose down'
 alias dl='docker logs'
 alias dip='docker image prune'
+alias de='docker exec -it'
 
 #git alisa
 alias g='git add .'
@@ -220,7 +221,11 @@ alias gcm='git commit -m '
 alias gpo='git push origin'
 alias gr='git reset HEAD~1'
 alias gs='git status'
-alias gl='git log '
+alias gl='git log'
+alias grst='git restore .'
+
+alias fd='fdfind'
+alias rp='fd --exec sd'
 
 #ansible alias
 alias apl='ansible-playbook -i inventory.ini'
