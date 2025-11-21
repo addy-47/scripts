@@ -42,7 +42,7 @@ apply_terminal_theme() {
 
     # --- Apply COMMON settings from the 'addy' profile ---
     dconf write "$PROFILE_PATH/audible-bell" "true"
-    dconf write "$PROFILE_PATH/background-transparency-percent" "38"
+    dconf write "$PROFILE_PATH/background-transparency-percent" "46"
     dconf write "$PROFILE_PATH/bold-color-same-as-fg" "false"
     dconf write "$PROFILE_PATH/bold-is-bright" "false"
     dconf write "$PROFILE_PATH/cell-height-scale" "1.0"

@@ -127,8 +127,7 @@ headerbar,
 .titlebar,
 windowcontrols,
 dialog > headerbar {
-    backdrop-filter: blur(12px);
-    background: rgba(20, 20, 30, 0.8);
+    background: rgba(0, 0, 0, 0.54);
     color: $THEME_COLOR;
     border: none;
     box-shadow: none;
@@ -168,7 +167,6 @@ dialog headerbar button:hover {
 headerbar button.titlebutton:active,
 dialog headerbar button:active {
     background: rgba($THEME_COLOR_RGB, 0.25);
-    transform: scale(0.95);
 }
 
 /* === SPECIFIC BUTTON TYPES === */
@@ -180,8 +178,8 @@ headerbar .search-button {
     border: none;
     border-radius: 6px;
     margin: 0 2px;
-    min-width: 24px;
-    min-height: 24px;
+    min-width: 16px;
+    min-height: 16px;
     transition: all 0.25s ease;
 }
 
@@ -200,8 +198,8 @@ headerbar .image-button.new {
     border: none;
     border-radius: 6px;
     margin: 0 2px;
-    min-width: 24px;
-    min-height: 24px;
+    min-width: 16px;
+    min-height: 16px;
     transition: all 0.25s ease;
 }
 
@@ -213,7 +211,7 @@ headerbar .image-button.new:hover {
 }
 
 /* === ENSURE BUTTONS ARE RIGHT-ALIGNED === */
-windowcontrols.start { margin-left: auto; }
+windowcontrols.start { }
 windowcontrols.end   { margin-right: 6px; }
 headerbar .start,
 headerbar .end {
@@ -260,14 +258,31 @@ popover menuitem:hover {
     color: #fff;
 }
 
-/* === SCROLLBARS === */
+/* === MINIMAL CURVED SCROLLBAR === */
+scrollbar {
+    background: transparent;
+    border: none;
+}
+
 scrollbar slider {
-    background: rgba($THEME_COLOR_RGB, 0.4);
-    border-radius: 6px;
+    background: rgba($THEME_COLOR_RGB, 0.3);
+    border-radius: 10px;
+    min-width: 3px;
+    border: none;
 }
 
 scrollbar slider:hover {
     background: rgba($THEME_COLOR_RGB, 0.6);
+}
+
+scrollbar.vertical slider {
+    min-width: 3px;
+    border-radius: 10px;
+}
+
+scrollbar.horizontal slider {
+    min-height: 3px;
+    border-radius: 10px;
 }
 
 /* === ENTRIES / SEARCH BOXES === */
@@ -289,7 +304,6 @@ entry:focus,
 /* === BOTTOM STATUS BAR / FOOTER === */
 .terminal-window .status-bar,
 statusbar {
-    backdrop-filter: blur(12px);
     background: rgba(20, 20, 30, 0.55);
     color: $THEME_COLOR;
     border: none;
@@ -299,25 +313,25 @@ statusbar {
 check:checked,
 switch:checked,
 progressbar trough progress {
-    background-color: $THEME_COLOR !important;
-    border-color: $THEME_COLOR !important;
+    background-color: $THEME_COLOR;
+    border-color: $THEME_COLOR;
 }
 
 switch:checked slider {
-    background-color: #ffffff !important;
+    background-color: #ffffff;
 }
 
 radio:checked {
-    background-color: $THEME_COLOR !important;
-    border-color: $THEME_COLOR !important;
+    background-color: $THEME_COLOR;
+    border-color: $THEME_COLOR;
 }
 
 scale highlight {
-    background-color: $THEME_COLOR !important;
+    background-color: $THEME_COLOR;
 }
 
 scale slider {
-    background-color: $THEME_COLOR !important;
+    background-color: $THEME_COLOR;
 }
 GTK3EOF
 
