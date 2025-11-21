@@ -37,7 +37,7 @@ install_yaru_themes() {
     
     if [ ! -d "$YARU_DIR" ]; then
         _log_system "Cloning Yaru-Colors repository from GitHub..."
-        if ! timeout 60 git clone https://github.com/Jannomag/Yaru-Colors.git "$YARU_DIR" 2>/dev/null; then
+        if ! timeout 180 git clone https://github.com/Jannomag/Yaru-Colors.git "$YARU_DIR" 2>/dev/null; then
             _log_system "❌ Failed to clone the repository. Continuing without Yaru themes."
             return 1
         fi
@@ -46,7 +46,7 @@ install_yaru_themes() {
     # Check if installer exists and run with timeout
     if [ -f "$YARU_DIR/install.sh" ]; then
         _log_system "Running the Yaru-Colors installer for '$color' non-interactively..."
-        if (cd "$YARU_DIR" && timeout 60 ./install.sh -d -c "$color" 2>/dev/null); then
+        if (cd "$YARU_DIR" && timeout 300 ./install.sh -d -c "$color" > /dev/null 2>&1); then
             _log_system "✅ Yaru-Colors-$color installation completed."
         else
             _log_system "⚠️ Yaru-Colors installer had issues, but continuing..."
@@ -123,6 +123,16 @@ apply_custom_css() {
     local THEME_COLOR_RGB=$2
     _log_system "Applying custom CSS overrides with accent color $THEME_COLOR..."
     mkdir -p "$HOME/.config/gtk-3.0/" "$HOME/.config/gtk-4.0/"
+
+    # Backup existing CSS files if they exist
+    if [ -f "$HOME/.config/gtk-3.0/gtk.css" ]; then
+        _log_system "Backing up existing GTK3 CSS to gtk.css.bak"
+        mv "$HOME/.config/gtk-3.0/gtk.css" "$HOME/.config/gtk-3.0/gtk.css.bak"
+    fi
+    if [ -f "$HOME/.config/gtk-4.0/gtk.css" ]; then
+        _log_system "Backing up existing GTK4 CSS to gtk.css.bak"
+        mv "$HOME/.config/gtk-4.0/gtk.css" "$HOME/.config/gtk-4.0/gtk.css.bak"
+    fi
 
     # --- Write GTK3 CSS Override ---
     cat > "$HOME/.config/gtk-3.0/gtk.css" << GTK3EOF

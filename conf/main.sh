@@ -175,17 +175,17 @@ apply_theme() {
     case $theme_name in
         "addy-red")
             required_functions=("set_system_theme_red" "set_terminal_theme_red")
-            ;;
+            ;; 
         "addy-green")
             required_functions=("set_system_theme_green" "set_terminal_theme_green")
-            ;;
+            ;; 
         "addy-yellow")
             required_functions=("set_system_theme_yellow" "set_terminal_theme_yellow")
-            ;;
+            ;; 
         *)
             print_error "Unknown theme: $theme_name"
             return 1
-            ;;
+            ;; 
     esac
     
     print_debug "Checking for required functions: ${required_functions[*]}"
@@ -219,7 +219,7 @@ apply_theme() {
                 print_debug "System theme red failed. Check $SYSTEM_LOG_FILE"
                 system_success=true  # Don't fail completely
             fi
-            ;;
+            ;; 
         "addy-green")
             print_debug "Calling set_system_theme_green..."
             SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
@@ -231,7 +231,7 @@ apply_theme() {
                 print_debug "System theme green failed. Check $SYSTEM_LOG_FILE"
                 system_success=true
             fi
-            ;;
+            ;; 
         "addy-yellow")
             print_debug "Calling set_system_theme_yellow..."
             SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
@@ -243,7 +243,7 @@ apply_theme() {
                 print_debug "System theme yellow failed. Check $SYSTEM_LOG_FILE"
                 system_success=true
             fi
-            ;;
+            ;; 
     esac
     
     # Apply terminal theme
@@ -260,7 +260,7 @@ apply_theme() {
                 print_debug "Terminal theme red failed. Check $TERMINAL_LOG_FILE"
                 terminal_success=false
             fi
-            ;;
+            ;; 
         "addy-green")
             print_debug "Calling set_terminal_theme_green..."
             TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
@@ -272,7 +272,7 @@ apply_theme() {
                 print_debug "Terminal theme green failed. Check $TERMINAL_LOG_FILE"
                 terminal_success=false
             fi
-            ;;
+            ;; 
         "addy-yellow")
             print_debug "Calling set_terminal_theme_yellow..."
             TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
@@ -284,7 +284,7 @@ apply_theme() {
                 print_debug "Terminal theme yellow failed. Check $TERMINAL_LOG_FILE"
                 terminal_success=false
             fi
-            ;;
+            ;; 
     esac
     
     # Report results
@@ -405,7 +405,7 @@ install_packages_and_tools() {
     print_success "Package and tool setup completed!"
 }
 
-# Option 2: Install packages and setup terminals
+# Option 3: Install packages and setup terminals
 install_packages_and_terminals() {
     print_banner "Installing Packages and Setup Terminals"
     
@@ -450,7 +450,7 @@ install_packages_and_terminals() {
     print_success "Package and terminal setup completed!"
 }
 
-# Option 3: Apply themes only
+# Option 4: Apply themes only
 apply_themes_only() {
     print_banner "Applying Themes Only"
 
@@ -484,6 +484,36 @@ apply_themes_only() {
     fi
 }
 
+# Option 5: Save current theme
+save_current_theme() {
+    print_banner "Saving Current Theme"
+    local script_path="$SCRIPT_DIR/save_theme.sh"
+    if validate_script_exists "$script_path"; then
+        if bash "$script_path"; then
+            print_success "Current theme saved successfully."
+        else
+            print_error "Failed to save current theme."
+        fi
+    else
+        print_warning "save_theme.sh not found."
+    fi
+}
+
+# Option 6: Restore saved theme
+restore_saved_theme() {
+    print_banner "Restoring Saved Theme"
+    local script_path="$SCRIPT_DIR/restore_theme.sh"
+    if validate_script_exists "$script_path"; then
+        if bash "$script_path"; then
+            print_success "Saved theme restored successfully."
+        else
+            print_error "Failed to restore saved theme."
+        fi
+    else
+        print_warning "restore_theme.sh not found."
+    fi
+}
+
 # Main menu function
 show_main_menu() {
     print_banner "Adhbhut System Setup - Interactive Menu"
@@ -494,19 +524,26 @@ show_main_menu() {
     echo "2) Install packages and setup tools"
     echo "3) Install packages and setup terminals"
     echo "4) Apply themes only"
-    echo "5) Exit"
+    echo "5) Save current theme"
+    echo "6) Restore saved theme"
+    echo "7) Exit"
     echo ""
 }
 
 # Main script logic
 main() {
+    # Set up logging
+    LOG_FILE="$PWD/adhbhut_setup_$(date +%Y%m%d_%H%M%S).log"
+    print_info "All output will be logged to: $LOG_FILE"
+    exec > >(tee "$LOG_FILE") 2>&1
+
     # Set up signal handling for graceful exit
     trap 'echo -e "\n\033[33m[SIGNAL]\033[0m Script interrupted. Exiting..."; exit 130' INT TERM
     
     # Check if running in interactive terminal
     if [ ! -t 0 ] && [ $# -eq 0 ]; then
         print_error "This script must be run in an interactive terminal or with command line arguments."
-        print_info "Usage: $0 [0-5] (for non-interactive mode)"
+        print_info "Usage: $0 [0-7] (for non-interactive mode)"
         exit 1
     fi
     
@@ -529,7 +566,7 @@ main() {
         
         if [ $# -eq 0 ]; then
             # Interactive mode
-            echo -n "Enter your choice (0-5): "
+            echo -n "Enter your choice (0-7): "
             read -r choice
         else
             # Command line argument mode
@@ -541,29 +578,37 @@ main() {
                 print_info "Running complete setup..."
                 run_complete_setup
                 break
-                ;;
+                ;; 
             1)
                 install_packages_only
                 break
-                ;;
+                ;; 
             2)
                 install_packages_and_tools
                 break
-                ;;
+                ;; 
             3)
                 install_packages_and_terminals
                 break
-                ;;
+                ;; 
             4)
                 apply_themes_only
                 break
-                ;;
+                ;; 
             5)
+                save_current_theme
+                break
+                ;; 
+            6)
+                restore_saved_theme
+                break
+                ;; 
+            7)
                 print_info "Exiting setup script."
                 exit 0
-                ;;
+                ;; 
             *)
-                print_error "Invalid option '$choice'. Please choose 0-5."
+                print_error "Invalid option '$choice'. Please choose 0-7."
                 if [ $# -eq 0 ]; then
                     echo ""
                     sleep 1
@@ -571,7 +616,7 @@ main() {
                 else
                     exit 1
                 fi
-                ;;
+                ;; 
         esac
     done
     
