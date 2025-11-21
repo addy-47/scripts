@@ -1,58 +1,40 @@
 #!/bin/bash
 # ===================================================================================
-# System Theme Library - Fixed Version
+# System Theme Library - Orchis Theme
 # This script is a collection of functions to apply system-wide themes (GTK, icons).
-# It is intended to be sourced by an orchestrator script like main.sh.
+# It uses the Orchis theme for a modern, customizable look.
 # ===================================================================================
 
 _log_system() { echo -e "\n\e[1;33m➡️  $1\e[0m"; }
 
-# Validate if a Yaru color is supported
-validate_yaru_color() {
-    local color="$1"
-    local supported_colors=("amber" "aqua" "aubergine" "blue" "brown" "cinnamon" "deepblue" "green" "grey" "lavender" "mate" "pink" "purple" "orange" "red" "teal" "yellow")
-    
-    color=$(echo "$color" | tr '[:upper:]' '[:lower:]')
-    
-    for supported_color in "${supported_colors[@]}"; do
-        if [ "$color" = "$supported_color" ]; then
-            return 0
-        fi
-    done
-    
-    return 1
-}
-
-# Installs the base Yaru theme for a given color (with timeout and error handling)
-install_yaru_themes() {
+# Installs the Orchis theme for a given color
+install_orchis_theme() {
     local color=$1
-    _log_system "Installing Yaru-$color-dark GTK and Icon themes..."
-    local YARU_DIR="/tmp/yaru-colors-theme"
+    _log_system "Installing Orchis GTK theme with '$color' accent..."
+    local ORCHIS_DIR="$HOME/.config/orchis-theme-repo"
     
-    # Check if git is available
     if ! command -v git &> /dev/null; then
-        _log_system "⚠️ Git not available, skipping Yaru theme installation."
-        return 0
+        _log_system "❌ Git not available, skipping Orchis theme installation."
+        return 1
     fi
     
-    if [ ! -d "$YARU_DIR" ]; then
-        _log_system "Cloning Yaru-Colors repository from GitHub..."
-        if ! timeout 180 git clone https://github.com/Jannomag/Yaru-Colors.git "$YARU_DIR" 2>/dev/null; then
-            _log_system "❌ Failed to clone the repository. Continuing without Yaru themes."
+    if [ -d "$ORCHIS_DIR" ]; then
+        _log_system "Updating Orchis-theme repository..."
+        (cd "$ORCHIS_DIR" && git pull)
+    else
+        _log_system "Cloning Orchis-theme repository to $ORCHIS_DIR..."
+        if ! git clone https://github.com/vinceliuice/Orchis-theme.git "$ORCHIS_DIR"; then
+            _log_system "❌ Failed to clone the repository."
             return 1
         fi
     fi
     
-    # Check if installer exists and run with timeout
-    if [ -f "$YARU_DIR/install.sh" ]; then
-        _log_system "Running the Yaru-Colors installer for '$color' non-interactively..."
-        if (cd "$YARU_DIR" && timeout 300 ./install.sh -d -c "$color" > /dev/null 2>&1); then
-            _log_system "✅ Yaru-Colors-$color installation completed."
-        else
-            _log_system "⚠️ Yaru-Colors installer had issues, but continuing..."
-        fi
+    _log_system "Running the Orchis installer..."
+    if (cd "$ORCHIS_DIR" && ./install.sh -t "$color" -c dark --tweaks solid); then
+        _log_system "✅ Orchis theme installation completed."
     else
-        _log_system "⚠️ Yaru-Colors installer not found, skipping..."
+        _log_system "⚠️ Orchis theme installer encountered issues."
+        return 1
     fi
     
     return 0
@@ -417,19 +399,17 @@ set_system_theme_red() {
     _log_system "Setting up system theme: addy-red"
     local THEME_COLOR="#E37E9E"
     local THEME_COLOR_RGB="227, 126, 158"
-    local YARU_COLOR="red"
+    local ORCHIS_COLOR="red"
 
-    # Install Yaru themes (with error handling)
-    if ! install_yaru_themes "$YARU_COLOR"; then
-        _log_system "⚠️ Yaru installation failed, continuing with custom themes..."
-    fi
+    # Install Orchis theme
+    install_orchis_theme "$ORCHIS_COLOR"
     
     create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
     apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
 
     # Apply system settings
-    gsettings set org.gnome.desktop.interface gtk-theme "Yaru-$YARU_COLOR-dark"
-    gsettings set org.gnome.desktop.interface icon-theme "Yaru-$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface gtk-theme "Orchis-Red-Dark"
+    gsettings set org.gnome.desktop.interface icon-theme "Orchis-Red-Dark"
     gsettings set org.gnome.desktop.interface cursor-theme "Adwaita"
     gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
     gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/red.png"
@@ -443,19 +423,17 @@ set_system_theme_green() {
     _log_system "Setting up system theme: addy-green"
     local THEME_COLOR="#27b78e"
     local THEME_COLOR_RGB="39, 183, 142"
-    local YARU_COLOR="green"
+    local ORCHIS_COLOR="green"
 
-    # Install Yaru themes (with error handling)
-    if ! install_yaru_themes "$YARU_COLOR"; then
-        _log_system "⚠️ Yaru installation failed, continuing with custom themes..."
-    fi
+    # Install Orchis theme
+    install_orchis_theme "$ORCHIS_COLOR"
     
     create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
     apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
 
     # Apply system settings
-    gsettings set org.gnome.desktop.interface gtk-theme "Yaru-$YARU_COLOR-dark"
-    gsettings set org.gnome.desktop.interface icon-theme "Yaru-$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface gtk-theme "Orchis-Green-Dark"
+    gsettings set org.gnome.desktop.interface icon-theme "Orchis-Green-Dark"
     gsettings set org.gnome.desktop.interface cursor-theme "Adwaita"
     gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
     gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/green.png"
@@ -469,19 +447,17 @@ set_system_theme_yellow() {
     _log_system "Setting up system theme: addy-yellow"
     local THEME_COLOR="#F39C12"
     local THEME_COLOR_RGB="243, 156, 18"
-    local YARU_COLOR="yellow"
+    local ORCHIS_COLOR="yellow"
 
-    # Install Yaru themes (with error handling)
-    if ! install_yaru_themes "$YARU_COLOR"; then
-        _log_system "⚠️ Yaru installation failed, continuing with custom themes..."
-    fi
+    # Install Orchis theme
+    install_orchis_theme "$ORCHIS_COLOR"
     
     create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
     apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
 
     # Apply system settings
-    gsettings set org.gnome.desktop.interface gtk-theme "Yaru-$YARU_COLOR-dark"
-    gsettings set org.gnome.desktop.interface icon-theme "Yaru-$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface gtk-theme "Orchis-Yellow-Dark"
+    gsettings set org.gnome.desktop.interface icon-theme "Orchis-Yellow-Dark"
     gsettings set org.gnome.desktop.interface cursor-theme "Adwaita"
     gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
     gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/yellow.png"
