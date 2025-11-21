@@ -132,7 +132,9 @@ sudo update-alternatives --set gnome-shell-theme.gresource /usr/share/gnome-shel
 echo "🖼️ Setting GDM background..."
 sudo cp "$CURRENT_WALLPAPER" /usr/share/backgrounds/adhbhut-lockscreen.jpg
 
-# Create GDM background configuration
+# Create GDM background configuration directory
+sudo mkdir -p /etc/dconf/db/gdm.d
+
 sudo tee /etc/dconf/db/gdm.d/00-background << GDMBACKGROUND
 [org/gnome/desktop/background]
 picture-uri='file:///usr/share/backgrounds/adhbhut-lockscreen.jpg'

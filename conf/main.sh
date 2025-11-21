@@ -210,34 +210,37 @@ apply_theme() {
     case $theme_name in
         "addy-red")
             print_debug "Calling set_system_theme_red..."
-            if set_system_theme_red 2>&1 | tee /tmp/system_theme.log; then
+            SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
+            if set_system_theme_red 2>&1 | tee "$SYSTEM_LOG_FILE"; then
                 system_success=true
                 print_debug "System theme red succeeded"
             else
                 print_warning "System theme application encountered issues, but continuing..."
-                print_debug "System theme red failed. Check /tmp/system_theme.log"
+                print_debug "System theme red failed. Check $SYSTEM_LOG_FILE"
                 system_success=true  # Don't fail completely
             fi
             ;;
         "addy-green")
             print_debug "Calling set_system_theme_green..."
-            if set_system_theme_green 2>&1 | tee /tmp/system_theme.log; then
+            SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
+            if set_system_theme_green 2>&1 | tee "$SYSTEM_LOG_FILE"; then
                 system_success=true
                 print_debug "System theme green succeeded"
             else
                 print_warning "System theme application encountered issues, but continuing..."
-                print_debug "System theme green failed. Check /tmp/system_theme.log"
+                print_debug "System theme green failed. Check $SYSTEM_LOG_FILE"
                 system_success=true
             fi
             ;;
         "addy-yellow")
             print_debug "Calling set_system_theme_yellow..."
-            if set_system_theme_yellow 2>&1 | tee /tmp/system_theme.log; then
+            SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
+            if set_system_theme_yellow 2>&1 | tee "$SYSTEM_LOG_FILE"; then
                 system_success=true
                 print_debug "System theme yellow succeeded"
             else
                 print_warning "System theme application encountered issues, but continuing..."
-                print_debug "System theme yellow failed. Check /tmp/system_theme.log"
+                print_debug "System theme yellow failed. Check $SYSTEM_LOG_FILE"
                 system_success=true
             fi
             ;;
@@ -248,34 +251,37 @@ apply_theme() {
     case $theme_name in
         "addy-red")
             print_debug "Calling set_terminal_theme_red..."
-            if set_terminal_theme_red 2>&1 | tee /tmp/terminal_theme.log; then
+            TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
+            if set_terminal_theme_red 2>&1 | tee "$TERMINAL_LOG_FILE"; then
                 terminal_success=true
                 print_debug "Terminal theme red succeeded"
             else
                 print_warning "Terminal theme application encountered issues."
-                print_debug "Terminal theme red failed. Check /tmp/terminal_theme.log"
+                print_debug "Terminal theme red failed. Check $TERMINAL_LOG_FILE"
                 terminal_success=false
             fi
             ;;
         "addy-green")
             print_debug "Calling set_terminal_theme_green..."
-            if set_terminal_theme_green 2>&1 | tee /tmp/terminal_theme.log; then
+            TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
+            if set_terminal_theme_green 2>&1 | tee "$TERMINAL_LOG_FILE"; then
                 terminal_success=true
                 print_debug "Terminal theme green succeeded"
             else
                 print_warning "Terminal theme application encountered issues."
-                print_debug "Terminal theme green failed. Check /tmp/terminal_theme.log"
+                print_debug "Terminal theme green failed. Check $TERMINAL_LOG_FILE"
                 terminal_success=false
             fi
             ;;
         "addy-yellow")
             print_debug "Calling set_terminal_theme_yellow..."
-            if set_terminal_theme_yellow 2>&1 | tee /tmp/terminal_theme.log; then
+            TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
+            if set_terminal_theme_yellow 2>&1 | tee "$TERMINAL_LOG_FILE"; then
                 terminal_success=true
                 print_debug "Terminal theme yellow succeeded"
             else
                 print_warning "Terminal theme application encountered issues."
-                print_debug "Terminal theme yellow failed. Check /tmp/terminal_theme.log"
+                print_debug "Terminal theme yellow failed. Check $TERMINAL_LOG_FILE"
                 terminal_success=false
             fi
             ;;
@@ -334,7 +340,27 @@ run_complete_setup() {
     echo "2. Open tmux and press 'prefix + I' (usually Ctrl+a + I) to install the tmux plugins."
 }
 
-# Option 1: Install packages and setup tools
+# Option 1: Install packages only
+install_packages_only() {
+    print_banner "Installing Packages Only"
+
+    local script_path="$SCRIPT_DIR/install_packages.sh"
+
+    if ! validate_script_exists "$script_path"; then
+        print_error "install_packages.sh not found. Aborting."
+        return 1
+    fi
+
+    print_info "Installing packages and dependencies..."
+    if bash "$script_path"; then
+        print_success "Package installation completed successfully."
+    else
+        print_error "Package installation failed."
+        return 1
+    fi
+}
+
+# Option 2: Install packages and setup tools
 install_packages_and_tools() {
     print_banner "Installing Packages and Setup Tools"
     
@@ -427,7 +453,16 @@ install_packages_and_terminals() {
 # Option 3: Apply themes only
 apply_themes_only() {
     print_banner "Applying Themes Only"
-    
+
+    # Check if required commands are available
+    local required_commands=("dconf" "glib-compile-resources" "gsettings")
+    for cmd in "${required_commands[@]}"; do
+        if ! which "$cmd" &> /dev/null; then
+            print_error "Required command '$cmd' not found. Please run option 1 or 2 first to install packages."
+            return 1
+        fi
+    done
+
     if select_theme; then
         print_success "Theme application completed!"
     else
@@ -455,10 +490,11 @@ show_main_menu() {
     echo -e "\033[1;33mPlease select an option:\033[0m"
     echo ""
     echo "0) Run complete scripts (default)"
-    echo "1) Install packages and setup tools"
-    echo "2) Install packages and setup terminals"
-    echo "3) Apply themes only"
-    echo "4) Exit"
+    echo "1) Install packages only"
+    echo "2) Install packages and setup tools"
+    echo "3) Install packages and setup terminals"
+    echo "4) Apply themes only"
+    echo "5) Exit"
     echo ""
 }
 
@@ -470,7 +506,7 @@ main() {
     # Check if running in interactive terminal
     if [ ! -t 0 ] && [ $# -eq 0 ]; then
         print_error "This script must be run in an interactive terminal or with command line arguments."
-        print_info "Usage: $0 [0-4] (for non-interactive mode)"
+        print_info "Usage: $0 [0-5] (for non-interactive mode)"
         exit 1
     fi
     
@@ -493,7 +529,7 @@ main() {
         
         if [ $# -eq 0 ]; then
             # Interactive mode
-            echo -n "Enter your choice (0-4): "
+            echo -n "Enter your choice (0-5): "
             read -r choice
         else
             # Command line argument mode
@@ -507,23 +543,27 @@ main() {
                 break
                 ;;
             1)
-                install_packages_and_tools
+                install_packages_only
                 break
                 ;;
             2)
-                install_packages_and_terminals
+                install_packages_and_tools
                 break
                 ;;
             3)
-                apply_themes_only
+                install_packages_and_terminals
                 break
                 ;;
             4)
+                apply_themes_only
+                break
+                ;;
+            5)
                 print_info "Exiting setup script."
                 exit 0
                 ;;
             *)
-                print_error "Invalid option '$choice'. Please choose 0-4."
+                print_error "Invalid option '$choice'. Please choose 0-5."
                 if [ $# -eq 0 ]; then
                     echo ""
                     sleep 1
