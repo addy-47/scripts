@@ -1,38 +1,67 @@
 #!/bin/bash
 # ===================================================================================
-# System Theme Library
-#
+# System Theme Library - Fixed Version
 # This script is a collection of functions to apply system-wide themes (GTK, icons).
 # It is intended to be sourced by an orchestrator script like main.sh.
 # ===================================================================================
 
-_log_system() { echo -e "\n\e[1;33m\xe2\x86\x90  $1\e[0m"; }
+_log_system() { echo -e "\n\e[1;33m➡️  $1\e[0m"; }
 
-# -----------------------------------------------------------------------------------
-# SECTION 1: HELPER FUNCTIONS
-# -----------------------------------------------------------------------------------
+# Validate if a Yaru color is supported
+validate_yaru_color() {
+    local color="$1"
+    local supported_colors=("amber" "aqua" "aubergine" "blue" "brown" "cinnamon" "deepblue" "green" "grey" "lavender" "mate" "pink" "purple" "orange" "red" "teal" "yellow")
+    
+    color=$(echo "$color" | tr '[:upper:]' '[:lower:]')
+    
+    for supported_color in "${supported_colors[@]}"; do
+        if [ "$color" = "$supported_color" ]; then
+            return 0
+        fi
+    done
+    
+    return 1
+}
 
-# Installs the base Yaru theme for a given color
+# Installs the base Yaru theme for a given color (with timeout and error handling)
 install_yaru_themes() {
     local color=$1
     _log_system "Installing Yaru-$color-dark GTK and Icon themes..."
     local YARU_DIR="/tmp/yaru-colors-theme"
     
+    # Check if git is available
+    if ! command -v git &> /dev/null; then
+        _log_system "⚠️ Git not available, skipping Yaru theme installation."
+        return 0
+    fi
+    
     if [ ! -d "$YARU_DIR" ]; then
         _log_system "Cloning Yaru-Colors repository from GitHub..."
-        if ! git clone https://github.com/Jannomag/Yaru-Colors.git "$YARU_DIR"; then
-            _log_system "\xe2\x9c\x96 Failed to clone the repository."; exit 1;
+        if ! timeout 30 git clone https://github.com/Jannomag/Yaru-Colors.git "$YARU_DIR" 2>/dev/null; then
+            _log_system "❌ Failed to clone the repository. Continuing without Yaru themes."
+            return 1
         fi
     fi
     
-    _log_system "Running the Yaru-Colors installer for '$color' non-interactively..."
-    (cd "$YARU_DIR" && ./install.sh -d -c "$color")
-    _log_system "\xe2\x9c\x80 Yaru-Colors-$color installation script finished."
+    # Check if installer exists and run with timeout
+    if [ -f "$YARU_DIR/install.sh" ]; then
+        _log_system "Running the Yaru-Colors installer for '$color' non-interactively..."
+        if (cd "$YARU_DIR" && timeout 60 ./install.sh -d -c "$color" 2>/dev/null); then
+            _log_system "✅ Yaru-Colors-$color installation completed."
+        else
+            _log_system "⚠️ Yaru-Colors installer had issues, but continuing..."
+        fi
+    else
+        _log_system "⚠️ Yaru-Colors installer not found, skipping..."
+    fi
+    
+    return 0
 }
 
 # Creates the custom shell theme directory and files
 create_shell_theme() {
     local THEME_COLOR=$1
+    local THEME_COLOR_RGB=$2
     local THEME_NAME="Adhbhut-Transparent"
     local THEME_DIR="$HOME/.themes/$THEME_NAME"
     
@@ -85,7 +114,7 @@ ButtonLayout=menu:minimize,maximize,close
 Gtk/DecorationLayout=menu:minimize,maximize,close
 METADATAEOF
 
-    _log_system "\xe2\x9c\x80 Shell theme '$THEME_NAME' created."
+    _log_system "✅ Shell theme '$THEME_NAME' created."
 }
 
 # Generates the custom GTK3 and GTK4 CSS override files based on a color
@@ -367,12 +396,12 @@ headerbar {
     color: @accent_color;
 }
 GTK4EOF
-    _log_system "\xe2\x9c\x80 Custom CSS files created."
+    _log_system "✅ Custom CSS files created."
 }
 
-# -----------------------------------------------------------------------------------
+# ===================================================================================
 # SECTION 2: THEME DEFINITIONS
-# -----------------------------------------------------------------------------------
+# ===================================================================================
 
 set_system_theme_red() {
     _log_system "Setting up system theme: addy-red"
@@ -380,20 +409,25 @@ set_system_theme_red() {
     local THEME_COLOR_RGB="227, 126, 158"
     local YARU_COLOR="red"
 
-    install_yaru_themes "$YARU_COLOR"
-    create_shell_theme "$THEME_COLOR"
+    # Install Yaru themes (with error handling)
+    if ! install_yaru_themes "$YARU_COLOR"; then
+        _log_system "⚠️ Yaru installation failed, continuing with custom themes..."
+    fi
+    
+    create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
     apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
 
-    # Apply system settings
-    gsettings set org.gnome.desktop.interface gtk-theme "Yaru-$YARU_COLOR-dark"
-    gsettings set org.gnome.desktop.interface icon-theme "Yaru-$YARU_COLOR"
-    gsettings set org.gnome.desktop.interface cursor-theme "Adwaita"
-    gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
-    gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/red.png"
-    gsettings set org.gnome.desktop.background picture-uri-dark "file:///home/addy/projects/scripts/conf/wallpapers/red.png"
-    gsettings set org.gnome.desktop.interface accent-color "$THEME_COLOR"
+    # Apply system settings with error handling
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru-$YARU_COLOR-dark" 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru-$YARU_COLOR" 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface cursor-theme "Adwaita" 2>/dev/null || true
+    gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent" 2>/dev/null || true
+    gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/red.png" 2>/dev/null || true
+    gsettings set org.gnome.desktop.background picture-uri-dark "file:///home/addy/projects/scripts/conf/wallpapers/red.png" 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface accent-color "$THEME_COLOR" 2>/dev/null || true
     
-    _log_system "\xe2\x9c\x80 System theme 'addy-red' applied successfully."
+    _log_system "✅ System theme 'addy-red' applied successfully."
+    return 0
 }
 
 set_system_theme_green() {
@@ -402,18 +436,50 @@ set_system_theme_green() {
     local THEME_COLOR_RGB="39, 183, 142"
     local YARU_COLOR="green"
 
-    install_yaru_themes "$YARU_COLOR"
-    create_shell_theme "$THEME_COLOR"
+    # Install Yaru themes (with error handling)
+    if ! install_yaru_themes "$YARU_COLOR"; then
+        _log_system "⚠️ Yaru installation failed, continuing with custom themes..."
+    fi
+    
+    create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
     apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
 
-    # Apply system settings
-    gsettings set org.gnome.desktop.interface gtk-theme "Yaru-$YARU_COLOR-dark"
-    gsettings set org.gnome.desktop.interface icon-theme "Yaru-$YARU_COLOR"
-    gsettings set org.gnome.desktop.interface cursor-theme "Adwaita"
-    gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
-    gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/green.png"
-    gsettings set org.gnome.desktop.background picture-uri-dark "file:///home/addy/projects/scripts/conf/wallpapers/green.png"
-    gsettings set org.gnome.desktop.interface accent-color "$THEME_COLOR"
+    # Apply system settings with error handling
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru-$YARU_COLOR-dark" 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru-$YARU_COLOR" 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface cursor-theme "Adwaita" 2>/dev/null || true
+    gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent" 2>/dev/null || true
+    gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/green.png" 2>/dev/null || true
+    gsettings set org.gnome.desktop.background picture-uri-dark "file:///home/addy/projects/scripts/conf/wallpapers/green.png" 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface accent-color "$THEME_COLOR" 2>/dev/null || true
     
-    _log_system "\xe2\x9c\x80 System theme 'addy-green' applied successfully."
+    _log_system "✅ System theme 'addy-green' applied successfully."
+    return 0
+}
+    
+set_system_theme_yellow() {
+    _log_system "Setting up system theme: addy-yellow"
+    local THEME_COLOR="#F39C12"
+    local THEME_COLOR_RGB="243, 156, 18"
+    local YARU_COLOR="yellow"
+
+    # Install Yaru themes (with error handling)
+    if ! install_yaru_themes "$YARU_COLOR"; then
+        _log_system "⚠️ Yaru installation failed, continuing with custom themes..."
+    fi
+    
+    create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
+    apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
+
+    # Apply system settings with error handling
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru-$YARU_COLOR-dark" 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru-$YARU_COLOR" 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface cursor-theme "Adwaita" 2>/dev/null || true
+    gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent" 2>/dev/null || true
+    gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/yellow.png" 2>/dev/null || true
+    gsettings set org.gnome.desktop.background picture-uri-dark "file:///home/addy/projects/scripts/conf/wallpapers/yellow.png" 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface accent-color "$THEME_COLOR" 2>/dev/null || true
+    
+    _log_system "✅ System theme 'addy-yellow' applied successfully."
+    return 0
 }

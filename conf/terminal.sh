@@ -55,3 +55,9 @@ set_terminal_theme_green() {
     local FG_COLOR="'#b3f7d8'"
     apply_terminal_theme "addy-green" "$PALETTE" "$FG_COLOR"
 }
+
+set_terminal_theme_yellow() {
+    local PALETTE="['#2A2828', '#FFF3CD', '#F4E5A1', '#FFD700', '#FFFF00', '#F7E46C', '#E5CF74', '#FFEB3B', '#F9E79F', '#F8C471', '#F4D03F', '#F1C40F', '#D4AC0D', '#F7DC6F', '#F39C12', '#FCF3CF']"
+    local FG_COLOR="'#F39C12'"
+    apply_terminal_theme "addy-yellow" "$PALETTE" "$FG_COLOR"
+}
