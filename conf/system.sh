@@ -210,6 +210,22 @@ headerbar .image-button.new:hover {
     box-shadow: 0 0 6px rgba($THEME_COLOR_RGB, 0.4);
 }
 
+/* === TERMINAL SPECIFIC BUTTONS === */
+/* Terminal buttons - minimal styling */
+headerbar button.image-button {
+    color: $THEME_COLOR;
+    background: transparent;
+    border: none;
+    min-width: 16px;
+    min-height: 16px;
+}
+
+headerbar button.image-button:hover {
+    color: #fff;
+    background: rgba($THEME_COLOR_RGB, 0.15);
+    box-shadow: 0 0 6px rgba($THEME_COLOR_RGB, 0.4);
+}
+
 /* === ENSURE BUTTONS ARE RIGHT-ALIGNED === */
 windowcontrols.start { }
 windowcontrols.end   { margin-right: 6px; }
