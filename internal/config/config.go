@@ -20,6 +20,11 @@ func ValidateTxtFile(filePath string) error {
 
 // LoadConfig loads configuration from file and environment variables
 func LoadConfig(configPath string) (*Config, error) {
+	// Validate that the config file exists
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("config file %s does not exist", configPath)
+	}
+
 	// Set up viper
 	viper.SetConfigFile(configPath)
 	viper.SetConfigType("yaml")
@@ -28,8 +33,11 @@ func LoadConfig(configPath string) (*Config, error) {
 
 	// Read config file
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to read config file %s: %w", configPath, err)
+		return nil, fmt.Errorf("failed to parse config file %s: %w", configPath, err)
 	}
+
+	// Log successful config file loading
+	fmt.Printf("✓ Loaded configuration from: %s\n", configPath)
 
 	var config Config
 	if err := viper.Unmarshal(&config); err != nil {
@@ -68,8 +76,8 @@ func LoadConfig(configPath string) (*Config, error) {
 		config.MaxProcesses = 4 // Default to 4 parallel processes
 	}
 
-	// Set default services_dir to "." for auto-discovery if empty
-	if len(config.ServicesDir) == 0 {
+	// Set default services_dir to "." for auto-discovery only if no explicit services and no services_dir specified
+	if len(config.Services) == 0 && len(config.ServicesDir) == 0 {
 		config.ServicesDir = []string{"."}
 	}
 
