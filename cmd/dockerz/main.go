@@ -167,22 +167,17 @@ All flags can override corresponding settings in the configuration file.`,
 			cfg.ServicesDir = dirs
 		}
 
-		// Discover services
-		discoveryResult, err := discovery.DiscoverServices(cfg, defaultTag)
-		if err != nil {
-			log.Fatalf("Failed to discover services: %v", err)
-		}
-
-		// Filter services based on changed services file if provided
+		// Validate input file extension if provided
 		if inputChangedServices != "" {
-			// Validate input file extension
 			if err := config.ValidateTxtFile(inputChangedServices); err != nil {
 				log.Fatalf("Invalid input changed services file: %v", err)
 			}
-			discoveryResult, err = discovery.FilterServicesByChangedFile(discoveryResult, inputChangedServices)
-			if err != nil {
-				log.Fatalf("Failed to filter services by changed file: %v", err)
-			}
+		}
+
+		// Discover services (unified discovery including input file)
+		discoveryResult, err := discovery.DiscoverServices(cfg, defaultTag, inputChangedServices)
+		if err != nil {
+			log.Fatalf("Failed to discover services: %v", err)
 		}
 
 		// Validate output file extension if provided
