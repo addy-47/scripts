@@ -46,7 +46,7 @@ create_shell_theme() {
     cat > "$THEME_DIR/gnome-shell/gnome-shell.css" << SHELLEOF
 /* GNOME Shell Theme */
 #panel { 
-    background: rgba(20, 20, 30, 0.9); 
+    background: rgba(0, 0, 0, 0.7); 
     color: $THEME_COLOR; 
 }
 
@@ -56,19 +56,19 @@ create_shell_theme() {
 .search-section-content, 
 .notification-banner, 
 .message-tray { 
-    background: rgba(25, 25, 35, 0.9); 
+    background: rgba(0, 0, 0, 0.7); 
 }
 
 /* System menu */
 .popup-menu {
-    background: rgba(20, 20, 30, 0.95);
+    background: rgba(0, 0, 0, 0.85);
     color: $THEME_COLOR;
     border: 1px solid rgba($THEME_COLOR_RGB, 0.3);
 }
 
 /* App menu */
 .app-menu {
-    background: rgba(20, 20, 30, 0.95);
+    background: rgba(0, 0, 0, 0.85);
 }
 SHELLEOF
 
@@ -232,14 +232,14 @@ filechooser,
 filechooserwidget,
 dialog,
 messagedialog {
-    background: rgba(25, 25, 35, 0.62);
+    background: rgba(0, 0, 0, 0.62);
     color: $THEME_COLOR;
 }
 
 dialog .dialog-content,
 .dialog-action-area button {
     color: $THEME_COLOR;
-    background: rgba(40, 40, 55, 0.62);
+    background: rgba(0, 0, 0, 0.62);
     border: 1px solid rgba($THEME_COLOR_RGB, 0.2);
     border-radius: 8px;
     transition: all 0.2s ease;
@@ -255,7 +255,7 @@ popover,
 .menu,
 menuitem,
 .popup {
-    background: rgba(20, 20, 30, 0.62);
+    background: rgba(0, 0, 0, 0.62);
     color: $THEME_COLOR;
     border-radius: 8px;
     border: 1px solid rgba($THEME_COLOR_RGB, 0.2);
@@ -298,7 +298,7 @@ scrollbar.horizontal slider {
 entry,
 textview,
 .search-entry {
-    background: rgba(30, 30, 45, 0.62);
+    background: rgba(0, 0, 0, 0.62);
     color: $THEME_COLOR;
     border-radius: 6px;
     border: 1px solid rgba($THEME_COLOR_RGB, 0.25);
@@ -313,7 +313,7 @@ entry:focus,
 /* === BOTTOM STATUS BAR / FOOTER === */
 .terminal-window .status-bar,
 statusbar {
-    background: rgba(20, 20, 30, 0.55);
+    background: rgba(0, 0, 0, 0.55);
     color: $THEME_COLOR;
     border: none;
 }
@@ -348,7 +348,7 @@ scale slider {
 .nautilus-window .navigation-sidebar,
 .nautilus-window .places-sidebar,
 .sidebar {
-    background: rgba(15, 15, 25, 0.7);
+    background: rgba(0, 0, 0, 0.7);
     color: $THEME_COLOR;
     border-right: 1px solid rgba($THEME_COLOR_RGB, 0.2);
 }
@@ -410,7 +410,7 @@ scale slider {
 .nautilus-window .navigation-sidebar .search-entry,
 .nautilus-window .places-sidebar .search-entry,
 .sidebar .search-entry {
-    background: rgba(30, 30, 45, 0.62);
+    background: rgba(0, 0, 0, 0.62);
     color: $THEME_COLOR;
     border-radius: 6px;
     border: 1px solid rgba($THEME_COLOR_RGB, 0.25);
@@ -484,11 +484,11 @@ button.destructive-action {
 
 /* Additional styling for libadwaita apps */
 window {
-    background-color: rgba(25, 25, 35, 0.9);
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
 headerbar {
-    background: rgba(20, 20, 30, 0.8);
+    background: rgba(0, 0, 0, 0.7);
     color: @accent_color;
 }
 
@@ -497,7 +497,7 @@ headerbar {
 .nautilus-window .navigation-sidebar,
 .nautilus-window .places-sidebar,
 .sidebar {
-    background: rgba(15, 15, 25, 0.7);
+    background: rgba(0, 0, 0, 0.7);
     color: @accent_color;
     border-right: 1px solid rgba(var(--accent-color-rgb), 0.2);
 }
@@ -559,7 +559,7 @@ headerbar {
 .nautilus-window .navigation-sidebar .search-entry,
 .nautilus-window .places-sidebar .search-entry,
 .sidebar .search-entry {
-    background: rgba(30, 30, 45, 0.62);
+    background: rgba(0, 0, 0, 0.62);
     color: @accent_color;
     border-radius: 6px;
     border: 1px solid rgba(var(--accent-color-rgb), 0.25);
@@ -620,8 +620,8 @@ set_system_theme_green() {
     apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
 
     # Apply system settings with Yaru theme
-    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR-dark"
-    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR-dark"
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR"
     gsettings set org.gnome.desktop.interface cursor-theme "Yaru"
     gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
     gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/green.png"
@@ -647,8 +647,8 @@ set_system_theme_yellow() {
     apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
 
     # Apply system settings with Yaru theme
-    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR-dark"
-    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR-dark"
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR"
     gsettings set org.gnome.desktop.interface cursor-theme "Yaru"
     gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
     gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/yellow.png"
@@ -660,3 +660,34 @@ set_system_theme_yellow() {
     _log_system "✅ System theme 'addy-yellow' applied successfully."
     return 0
 }
+
+set_system_theme_grey() {
+    _log_system "Setting up system theme: addy-grey"
+    # Using the exact colors from the current 'addy' profile
+    local THEME_COLOR="#E9F3F2"
+    local THEME_COLOR_RGB="233, 243, 242"
+    local YARU_COLOR="grey"
+
+    # Install Yaru theme
+    install_yaru_theme "$YARU_COLOR"
+    
+    create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
+    apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
+
+    # Apply system settings with Yaru theme
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface cursor-theme "Yaru"
+    gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
+    gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/grey.png"
+    gsettings set org.gnome.desktop.background picture-uri-dark "file:///home/addy/projects/scripts/conf/wallpapers/grey.png"
+    
+    # Set prefer-dark color scheme for Ubuntu
+    gsettings set org.gnome.shell.ubuntu color-scheme prefer-dark
+    
+    sed -i 's/background: rgba(0, 0, 0, 0.54);/background: rgba(0, 0, 0, 0.18);/g' "$HOME/.config/gtk-3.0/gtk.css"
+    
+    _log_system "✅ System theme 'addy-grey' applied successfully with custom settings."
+    return 0
+}
+

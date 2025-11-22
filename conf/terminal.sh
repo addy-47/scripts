@@ -21,7 +21,7 @@ hex_to_rgb() {
     echo "rgb($r,$g,$b)"
 }
 
-# Applies a color palette and settings to a new GNOME terminal profile
+# Applies a color palette and settings to a GNOME terminal profile (create if doesn't exist)
 apply_terminal_theme() {
     local THEME_NAME=$1
     local PALETTE=$2
@@ -29,8 +29,41 @@ apply_terminal_theme() {
     local BG_COLOR="'rgb(0,0,0)'"
     local BOLD_COLOR=$4
 
-    _log_terminal "Creating new terminal profile: $THEME_NAME"
-    local PROFILE_ID=$(uuidgen)
+    # Check if profile already exists
+    _log_terminal "Checking for existing terminal profile: $THEME_NAME"
+    local PROFILE_ID=""
+    
+    # Get all profile IDs and find the one with matching name
+    local PROFILES_LIST=$(dconf read /org/gnome/terminal/legacy/profiles:/list)
+    if [[ "$PROFILES_LIST" != "[]" && "$PROFILES_LIST" != "@as []" ]]; then
+        # Extract profile IDs
+        echo "$PROFILES_LIST" | tr -d "[]'" | tr ',' '\n' | while read -r pid; do
+            if [[ -n "$pid" ]]; then
+                local profile_name=$(dconf read "/org/gnome/terminal/legacy/profiles:/:$pid/visible-name" 2>/dev/null | tr -d "'")
+                if [[ "$profile_name" == "$THEME_NAME" ]]; then
+                    PROFILE_ID="$pid"
+                    break
+                fi
+            fi
+        done
+    fi
+    
+    if [[ -z "$PROFILE_ID" ]]; then
+        # Create new profile if it doesn't exist
+        _log_terminal "Creating new terminal profile: $THEME_NAME"
+        PROFILE_ID=$(uuidgen)
+        
+        # Add new profile to list
+        if [[ "$PROFILES_LIST" == "[]" || "$PROFILES_LIST" == "@as []" ]]; then
+            dconf write /org/gnome/terminal/legacy/profiles:/list "['$PROFILE_ID']"
+        else
+            dconf write /org/gnome/terminal/legacy/profiles:/list "$PROFILES_LIST, '$PROFILE_ID'"
+        fi
+    else
+        # Update existing profile
+        _log_terminal "Updating existing terminal profile: $THEME_NAME"
+    fi
+    
     local PROFILE_PATH="/org/gnome/terminal/legacy/profiles:/:$PROFILE_ID"
 
     # --- Apply THEME-SPECIFIC colors ---
@@ -95,6 +128,13 @@ set_terminal_theme_red() {
     local FG_COLOR="'$(hex_to_rgb "#E37E9E")'"
     local BOLD_COLOR="'$(hex_to_rgb "#7f6b79")'"
     apply_terminal_theme "addy-red" "$PALETTE" "$FG_COLOR" "$BOLD_COLOR"
+    
+    # Set as default and restart terminal safely
+    set_default_profile_by_name "addy-red"
+    restart_gnome_terminal
+    
+    # Apply tmux colors for red theme
+    apply_tmux_theme "red"
 }
 
 set_terminal_theme_green() {
@@ -109,6 +149,13 @@ set_terminal_theme_green() {
     local FG_COLOR="'$(hex_to_rgb "#b3f7d8")'"
     local BOLD_COLOR="'$(hex_to_rgb "#597f8b")'"
     apply_terminal_theme "addy-green" "$PALETTE" "$FG_COLOR" "$BOLD_COLOR"
+    
+    # Set as default and restart terminal safely
+    set_default_profile_by_name "addy-green"
+    restart_gnome_terminal
+    
+    # Apply tmux colors for green theme
+    apply_tmux_theme "green"
 }
 
 set_terminal_theme_yellow() {
@@ -123,4 +170,116 @@ set_terminal_theme_yellow() {
     local FG_COLOR="'$(hex_to_rgb "#F39C12")'"
     local BOLD_COLOR="'$(hex_to_rgb "#D4AC0D")'"
     apply_terminal_theme "addy-yellow" "$PALETTE" "$FG_COLOR" "$BOLD_COLOR"
+    
+    # Set as default and restart terminal safely
+    set_default_profile_by_name "addy-yellow"
+    restart_gnome_terminal
+    
+    # Apply tmux colors for yellow theme
+    apply_tmux_theme "yellow"
+}
+
+set_terminal_theme_grey() {
+    # Colors from the current 'addy' profile (converted from RGB to hex)
+    # Original RGB values: rgb(31,30,30), rgb(188,180,185), rgb(204,238,242), etc.
+    local colors=('#1f1e1e' '#bcb4b9' '#cceef2' '#84b6c4' '#89a8a4' '#c7d1cd' '#597372' '#e0eed5' '#8eadca' '#adaca3' '#9bf1a3' '#96dcc8' '#1e6152' '#135564' '#417656' '#9affd2')
+    local PALETTE_ARRAY=()
+    for color in "${colors[@]}"; do
+        PALETTE_ARRAY+=("'$(hex_to_rgb "$color")'")
+    done
+    local PALETTE_STRING=$(IFS=,; echo "${PALETTE_ARRAY[*]}")
+    local PALETTE="[$PALETTE_STRING]"
+
+    # Use the exact colors from the current 'addy' profile
+    local FG_COLOR="'rgb(233,243,242)'"
+    local BOLD_COLOR="'rgb(107,127,111)'"
+    apply_terminal_theme "addy-grey" "$PALETTE" "$FG_COLOR" "$BOLD_COLOR"
+    local PROFILE_PATH=$(dconf read /org/gnome/terminal/legacy/profiles:/default | tr -d "'")
+    # Ensure path starts with slash
+    if [[ ! "$PROFILE_PATH" =~ ^/ ]]; then
+        PROFILE_PATH="/$PROFILE_PATH"
+    fi
+    dconf write "$PROFILE_PATH/background-transparency-percent" "82"
+    
+    # Set as default and restart terminal safely
+    set_default_profile_by_name "addy-grey"
+    restart_gnome_terminal
+    
+    # Apply tmux colors for grey theme
+    apply_tmux_theme "grey"
+}
+# -----------------------------------------------------------------------------------
+# SECTION 3: TMUX THEME FUNCTIONS USING SED
+# -----------------------------------------------------------------------------------
+
+# Apply tmux theme colors using sed
+apply_tmux_theme() {
+    local theme="$1"
+    local tmux_conf="$HOME/.tmux.conf"
+    
+    case $theme in
+        "red")
+            sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#DC143C' "$tmux_conf"
+            ;;
+        "green")
+            sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#32CD32' "$tmux_conf"
+            ;;
+        "yellow")
+            sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#FFD700' "$tmux_conf"
+            ;;
+        "grey")
+            sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#808080' "$tmux_conf"
+            ;;
+    esac
+    
+    reload_tmux
+}
+
+# Reload tmux configuration
+reload_tmux() {
+    tmux source-file ~/.tmux.conf
+
+# -----------------------------------------------------------------------------------
+# HELPER FUNCTIONS FOR SAFE TERMINAL MANAGEMENT
+# -----------------------------------------------------------------------------------
+
+# Restart gnome-terminal safely to avoid D-Bus conflicts
+restart_gnome_terminal() {
+    _log_terminal "Restarting gnome-terminal to avoid D-Bus conflicts..."
+    
+    # Kill any existing gnome-terminal instances
+    pkill -f gnome-terminal 2>/dev/null || true
+    sleep 1
+    
+    # Wait a moment for D-Bus cleanup
+    sleep 1
+}
+
+# Get profile ID by name
+get_profile_id_by_name() {
+    local profile_name="$1"
+    local profiles_list=$(dconf read /org/gnome/terminal/legacy/profiles:/list)
+    
+    if [[ "$profiles_list" != "[]" && "$profiles_list" != "@as []" ]]; then
+        echo "$profiles_list" | tr -d "[]'" | tr ',' '\n' | while read -r pid; do
+            if [[ -n "$pid" ]]; then
+                local current_name=$(dconf read "/org/gnome/terminal/legacy/profiles:/:$pid/visible-name" 2>/dev/null | tr -d "'")
+                if [[ "$current_name" == "$profile_name" ]]; then
+                    echo "$pid"
+                    break
+                fi
+            fi
+        done
+    fi
+}
+
+# Set default profile by name
+set_default_profile_by_name() {
+    local profile_name="$1"
+    local profile_id=$(get_profile_id_by_name "$profile_name")
+    
+    if [[ -n "$profile_id" ]]; then
+        dconf write /org/gnome/terminal/legacy/profiles:/default "'$profile_id'"
+        _log_terminal "Set '$profile_name' as default profile"
+    fi
 }
