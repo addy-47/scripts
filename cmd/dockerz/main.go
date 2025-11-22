@@ -167,22 +167,38 @@ All flags can override corresponding settings in the configuration file.`,
 			cfg.ServicesDir = dirs
 		}
 
-		// Validate input file extension if provided
-		if inputChangedServices != "" {
-			if err := config.ValidateTxtFile(inputChangedServices); err != nil {
+		// Handle input/output changed services files with proper priority:
+		// CLI flag takes precedence over YAML config, YAML config used when no CLI flag
+		var effectiveInputFile string
+		if cmd.Flags().Changed("input-changed-services") {
+			effectiveInputFile = inputChangedServices
+		} else if cfg.InputChangedServices != "" {
+			effectiveInputFile = cfg.InputChangedServices
+		}
+
+		var effectiveOutputFile string
+		if cmd.Flags().Changed("output-changed-services") {
+			effectiveOutputFile = outputChangedServices
+		} else if cfg.OutputChangedServices != "" {
+			effectiveOutputFile = cfg.OutputChangedServices
+		}
+
+		// Validate input file extension if provided (either from CLI flag or YAML config)
+		if effectiveInputFile != "" {
+			if err := config.ValidateTxtFile(effectiveInputFile); err != nil {
 				log.Fatalf("Invalid input changed services file: %v", err)
 			}
 		}
 
 		// Discover services (unified discovery including input file)
-		discoveryResult, err := discovery.DiscoverServices(cfg, defaultTag, inputChangedServices)
+		discoveryResult, err := discovery.DiscoverServices(cfg, defaultTag, effectiveInputFile)
 		if err != nil {
 			log.Fatalf("Failed to discover services: %v", err)
 		}
 
-		// Validate output file extension if provided
-		if outputChangedServices != "" {
-			if err := config.ValidateTxtFile(outputChangedServices); err != nil {
+		// Validate output file extension if provided (either from CLI flag or YAML config)
+		if effectiveOutputFile != "" {
+			if err := config.ValidateTxtFile(effectiveOutputFile); err != nil {
 				log.Fatalf("Invalid output changed services file: %v", err)
 			}
 		}
@@ -254,7 +270,7 @@ All flags can override corresponding settings in the configuration file.`,
 		}
 
 		// Root feature: Write changed services to file if requested (works with any command)
-		if outputChangedServices != "" {
+		if effectiveOutputFile != "" {
 			var servicesForOutput []discovery.DiscoveredService
 
 			if cfg.Smart && len(servicesToBuild) < len(discoveryResult.Services) {
@@ -272,10 +288,10 @@ All flags can override corresponding settings in the configuration file.`,
 				servicesForOutput = servicesToBuild
 			}
 
-			if err := discovery.WriteChangedServicesFile(servicesForOutput, outputChangedServices); err != nil {
+			if err := discovery.WriteChangedServicesFile(servicesForOutput, effectiveOutputFile); err != nil {
 				log.Printf("Warning: Failed to write changed services file: %v", err)
 			} else {
-				log.Printf("Changed services written to: %s", outputChangedServices)
+				log.Printf("Changed services written to: %s", effectiveOutputFile)
 			}
 		}
 

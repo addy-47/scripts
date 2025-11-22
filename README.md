@@ -393,6 +393,7 @@ GOOS=windows GOARCH=amd64 go build -o dockerz-windows-amd64.exe ./cmd/dockerz
   - Deduplicate services to prevent double builds
   - Preserve existing auto-discovery logic
   - Update help text and examples
+  - add a --dry-run flag to simulate builds without executing them
 
 ---
 

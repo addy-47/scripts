@@ -324,36 +324,38 @@ func DiscoverServices(cfg *config.Config, defaultTag string, inputFilePath ...st
 	var allServices []DiscoveredService
 	var allErrors []error
 
-	// 1. Collect explicit services from YAML (if any)
-	if len(cfg.Services) > 0 {
-		services, errors := discoverExplicitServices(cfg, defaultTag)
-		allServices = append(allServices, services...)
-		allErrors = append(allErrors, errors...)
-	}
-
-	// 2. Collect services from configured directories (if any)
-	if len(cfg.ServicesDir) > 0 {
-		services, errors := discoverFromDirectories(cfg.ServicesDir, defaultTag)
-		allServices = append(allServices, services...)
-		allErrors = append(allErrors, errors...)
-	}
-
-	// 3. Auto-discovery (if no explicit config provided)
-	if len(cfg.Services) == 0 && len(cfg.ServicesDir) == 0 {
-		services, errors := autoDiscoverServices(defaultTag)
-		allServices = append(allServices, services...)
-		allErrors = append(allErrors, errors...)
-	}
-
-	// 4. Collect services from input file (if provided)
+	// PRIORITY: If input file is provided, use ONLY services from input file
 	if len(inputFilePath) > 0 && inputFilePath[0] != "" {
 		services, errors := discoverFromInputFile(inputFilePath[0], defaultTag)
 		allServices = append(allServices, services...)
 		allErrors = append(allErrors, errors...)
-	}
+	} else {
+		// No input file provided, use other discovery methods
 
-	// Remove duplicates
-	allServices = deduplicateServices(allServices)
+		// 1. Collect explicit services from YAML (if any)
+		if len(cfg.Services) > 0 {
+			services, errors := discoverExplicitServices(cfg, defaultTag)
+			allServices = append(allServices, services...)
+			allErrors = append(allErrors, errors...)
+		}
+
+		// 2. Collect services from configured directories (if any)
+		if len(cfg.ServicesDir) > 0 {
+			services, errors := discoverFromDirectories(cfg.ServicesDir, defaultTag)
+			allServices = append(allServices, services...)
+			allErrors = append(allErrors, errors...)
+		}
+
+		// 3. Auto-discovery (if no explicit config provided)
+		if len(cfg.Services) == 0 && len(cfg.ServicesDir) == 0 {
+			services, errors := autoDiscoverServices(defaultTag)
+			allServices = append(allServices, services...)
+			allErrors = append(allErrors, errors...)
+		}
+
+		// Remove duplicates
+		allServices = deduplicateServices(allServices)
+	}
 
 	result := &DiscoveryResult{
 		Services: allServices,
