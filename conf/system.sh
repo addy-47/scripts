@@ -1,40 +1,33 @@
 #!/bin/bash
 # ===================================================================================
-# System Theme Library - Orchis Theme
+# System Theme Library - Yaru Theme
 # This script is a collection of functions to apply system-wide themes (GTK, icons).
-# It uses the Orchis theme for a modern, customizable look.
+# It uses the Yaru theme for a modern, Ubuntu-native look.
 # ===================================================================================
 
 _log_system() { echo -e "\n\e[1;33m➡️  $1\e[0m"; }
 
-# Installs the Orchis theme for a given color
-install_orchis_theme() {
+# Installs the Yaru theme for a given color
+install_yaru_theme() {
     local color=$1
-    _log_system "Installing Orchis GTK theme with '$color' accent..."
-    local ORCHIS_DIR="$HOME/.config/orchis-theme-repo"
+    _log_system "Installing Yaru GTK theme with '$color' accent..."
     
-    if ! command -v git &> /dev/null; then
-        _log_system "❌ Git not available, skipping Orchis theme installation."
-        return 1
-    fi
-    
-    if [ -d "$ORCHIS_DIR" ]; then
-        _log_system "Updating Orchis-theme repository..."
-        (cd "$ORCHIS_DIR" && git pull)
-    else
-        _log_system "Cloning Orchis-theme repository to $ORCHIS_DIR..."
-        if ! git clone https://github.com/vinceliuice/Orchis-theme.git "$ORCHIS_DIR"; then
-            _log_system "❌ Failed to clone the repository."
+    # Yaru is typically pre-installed on Ubuntu systems
+    # Check if Yaru themes are available
+    if [ ! -d "/usr/share/themes/Yaru" ] && [ ! -d "$HOME/.themes/Yaru" ]; then
+        _log_system "❌ Yaru theme not found. Installing yaru-theme package..."
+        if command -v apt &> /dev/null; then
+            sudo apt update && sudo apt install -y yaru-theme-gtk yaru-theme-icon yaru-theme-sound
+        elif command -v dnf &> /dev/null; then
+            sudo dnf install -y yaru-theme
+        elif command -v pacman &> /dev/null; then
+            sudo pacman -S --noconfirm yaru
+        else
+            _log_system "⚠️ Unable to install Yaru automatically. Please install manually."
             return 1
         fi
-    fi
-    
-    _log_system "Running the Orchis installer..."
-    if (cd "$ORCHIS_DIR" && ./install.sh -t "$color" -c dark --tweaks solid); then
-        _log_system "✅ Orchis theme installation completed."
     else
-        _log_system "⚠️ Orchis theme installer encountered issues."
-        return 1
+        _log_system "✅ Yaru theme is already available on the system."
     fi
     
     return 0
@@ -119,7 +112,7 @@ apply_custom_css() {
     # --- Write GTK3 CSS Override ---
     cat > "$HOME/.config/gtk-3.0/gtk.css" << GTK3EOF
 /* ========================================================== 
-   Elegant Transparent Theme
+   Elegant Transparent Theme - Yaru Compatible
    ========================================================== */
 
 /* === GLOBAL HEADERBAR / TITLEBAR === */
@@ -349,11 +342,92 @@ scale highlight {
 scale slider {
     background-color: $THEME_COLOR;
 }
+
+/* ====== Nautilus (Files) Sidebar ====== */
+.nautilus-window .sidebar,
+.nautilus-window .navigation-sidebar,
+.nautilus-window .places-sidebar,
+.sidebar {
+    background: rgba(15, 15, 25, 0.7);
+    color: $THEME_COLOR;
+    border-right: 1px solid rgba($THEME_COLOR_RGB, 0.2);
+}
+
+.nautilus-window .sidebar row,
+.nautilus-window .navigation-sidebar row,
+.nautilus-window .places-sidebar row,
+.sidebar row {
+    color: $THEME_COLOR;
+    border-radius: 6px;
+    margin: 2px 4px;
+    transition: all 0.2s ease;
+}
+
+.nautilus-window .sidebar row:hover,
+.nautilus-window .navigation-sidebar row:hover,
+.nautilus-window .places-sidebar row:hover,
+.sidebar row:hover {
+    background: rgba($THEME_COLOR_RGB, 0.15);
+    color: #fff;
+    box-shadow: 0 0 4px rgba($THEME_COLOR_RGB, 0.3);
+}
+
+.nautilus-window .sidebar row:selected,
+.nautilus-window .navigation-sidebar row:selected,
+.nautilus-window .places-sidebar row:selected,
+.sidebar row:selected {
+    background: rgba($THEME_COLOR_RGB, 0.25);
+    color: #fff;
+    box-shadow: 0 0 6px rgba($THEME_COLOR_RGB, 0.4);
+}
+
+.nautilus-window .sidebar scrollbar,
+.nautilus-window .navigation-sidebar scrollbar,
+.nautilus-window .places-sidebar scrollbar,
+.sidebar scrollbar {
+    background: transparent;
+    border: none;
+}
+
+.nautilus-window .sidebar scrollbar slider,
+.nautilus-window .navigation-sidebar scrollbar slider,
+.nautilus-window .places-sidebar scrollbar slider,
+.sidebar scrollbar slider {
+    background: rgba($THEME_COLOR_RGB, 0.3);
+    border-radius: 10px;
+    min-width: 3px;
+    border: none;
+}
+
+.nautilus-window .sidebar scrollbar slider:hover,
+.nautilus-window .navigation-sidebar scrollbar slider:hover,
+.nautilus-window .places-sidebar scrollbar slider:hover,
+.sidebar scrollbar slider:hover {
+    background: rgba($THEME_COLOR_RGB, 0.6);
+}
+
+.nautilus-window .sidebar .search-entry,
+.nautilus-window .navigation-sidebar .search-entry,
+.nautilus-window .places-sidebar .search-entry,
+.sidebar .search-entry {
+    background: rgba(30, 30, 45, 0.62);
+    color: $THEME_COLOR;
+    border-radius: 6px;
+    border: 1px solid rgba($THEME_COLOR_RGB, 0.25);
+}
+
+.nautilus-window .sidebar .search-entry:focus,
+.nautilus-window .navigation-sidebar .search-entry:focus,
+.nautilus-window .places-sidebar .search-entry:focus,
+.sidebar .search-entry:focus {
+    border-color: rgba($THEME_COLOR_RGB, 0.6);
+    box-shadow: 0 0 6px rgba($THEME_COLOR_RGB, 0.4);
+}
 GTK3EOF
 
     # --- Write GTK4 CSS Override ---
     cat > "$HOME/.config/gtk-4.0/gtk.css" << GTK4EOF
-/* Libadwaita Accent Color Override */
+/* Libadwaita Accent Color Override - Yaru Compatible */
 @define-color accent_bg_color $THEME_COLOR;
 @define-color accent_color $THEME_COLOR;
 @define-color accent_fg_color #ffffff;
@@ -417,6 +491,87 @@ headerbar {
     background: rgba(20, 20, 30, 0.8);
     color: @accent_color;
 }
+
+/* ====== Nautilus (Files) Sidebar GTK4 ====== */
+.nautilus-window .sidebar,
+.nautilus-window .navigation-sidebar,
+.nautilus-window .places-sidebar,
+.sidebar {
+    background: rgba(15, 15, 25, 0.7);
+    color: @accent_color;
+    border-right: 1px solid rgba(var(--accent-color-rgb), 0.2);
+}
+
+.nautilus-window .sidebar row,
+.nautilus-window .navigation-sidebar row,
+.nautilus-window .places-sidebar row,
+.sidebar row {
+    color: @accent_color;
+    border-radius: 6px;
+    margin: 2px 4px;
+    transition: all 0.2s ease;
+}
+
+.nautilus-window .sidebar row:hover,
+.nautilus-window .navigation-sidebar row:hover,
+.nautilus-window .places-sidebar row:hover,
+.sidebar row:hover {
+    background: rgba(var(--accent-color-rgb), 0.15);
+    color: #fff;
+    box-shadow: 0 0 4px rgba(var(--accent-color-rgb), 0.3);
+}
+
+.nautilus-window .sidebar row:selected,
+.nautilus-window .navigation-sidebar row:selected,
+.nautilus-window .places-sidebar row:selected,
+.sidebar row:selected {
+    background: rgba(var(--accent-color-rgb), 0.25);
+    color: #fff;
+    box-shadow: 0 0 6px rgba(var(--accent-color-rgb), 0.4);
+}
+
+.nautilus-window .sidebar scrollbar,
+.nautilus-window .navigation-sidebar scrollbar,
+.nautilus-window .places-sidebar scrollbar,
+.sidebar scrollbar {
+    background: transparent;
+    border: none;
+}
+
+.nautilus-window .sidebar scrollbar slider,
+.nautilus-window .navigation-sidebar scrollbar slider,
+.nautilus-window .places-sidebar scrollbar slider,
+.sidebar scrollbar slider {
+    background: rgba(var(--accent-color-rgb), 0.3);
+    border-radius: 10px;
+    min-width: 3px;
+    border: none;
+}
+
+.nautilus-window .sidebar scrollbar slider:hover,
+.nautilus-window .navigation-sidebar scrollbar slider:hover,
+.nautilus-window .places-sidebar scrollbar slider:hover,
+.sidebar scrollbar slider:hover {
+    background: rgba(var(--accent-color-rgb), 0.6);
+}
+
+.nautilus-window .sidebar .search-entry,
+.nautilus-window .navigation-sidebar .search-entry,
+.nautilus-window .places-sidebar .search-entry,
+.sidebar .search-entry {
+    background: rgba(30, 30, 45, 0.62);
+    color: @accent_color;
+    border-radius: 6px;
+    border: 1px solid rgba(var(--accent-color-rgb), 0.25);
+}
+
+.nautilus-window .sidebar .search-entry:focus,
+.nautilus-window .navigation-sidebar .search-entry:focus,
+.nautilus-window .places-sidebar .search-entry:focus,
+.sidebar .search-entry:focus {
+    border-color: rgba(var(--accent-color-rgb), 0.6);
+    box-shadow: 0 0 6px rgba(var(--accent-color-rgb), 0.4);
+}
 GTK4EOF
     _log_system "✅ Custom CSS files created."
 }
@@ -427,23 +582,26 @@ GTK4EOF
 
 set_system_theme_red() {
     _log_system "Setting up system theme: addy-red"
-    local THEME_COLOR="#E37E9E"
-    local THEME_COLOR_RGB="227, 126, 158"
-    local ORCHIS_COLOR="red"
+    local THEME_COLOR="#E95420"
+    local THEME_COLOR_RGB="233, 84, 32"
+    local YARU_COLOR="red"
 
-    # Install Orchis theme
-    install_orchis_theme "$ORCHIS_COLOR"
+    # Install Yaru theme
+    install_yaru_theme "$YARU_COLOR"
     
     create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
     apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
 
-    # Apply system settings
-    gsettings set org.gnome.desktop.interface gtk-theme "Orchis-Red-Dark"
-    gsettings set org.gnome.desktop.interface icon-theme "Orchis-Red-Dark"
-    gsettings set org.gnome.desktop.interface cursor-theme "Adwaita"
+    # Apply system settings with Yaru theme
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR-dark"
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR-dark"
+    gsettings set org.gnome.desktop.interface cursor-theme "Yaru"
     gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
     gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/red.png"
     gsettings set org.gnome.desktop.background picture-uri-dark "file:///home/addy/projects/scripts/conf/wallpapers/red.png"
+    
+    # Set prefer-dark color scheme for Ubuntu
+    gsettings set org.gnome.shell.ubuntu color-scheme prefer-dark
     
     _log_system "✅ System theme 'addy-red' applied successfully."
     return 0
@@ -451,23 +609,26 @@ set_system_theme_red() {
 
 set_system_theme_green() {
     _log_system "Setting up system theme: addy-green"
-    local THEME_COLOR="#27b78e"
-    local THEME_COLOR_RGB="39, 183, 142"
-    local ORCHIS_COLOR="green"
+    local THEME_COLOR="#00A153"
+    local THEME_COLOR_RGB="0, 161, 83"
+    local YARU_COLOR="green"
 
-    # Install Orchis theme
-    install_orchis_theme "$ORCHIS_COLOR"
+    # Install Yaru theme
+    install_yaru_theme "$YARU_COLOR"
     
     create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
     apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
 
-    # Apply system settings
-    gsettings set org.gnome.desktop.interface gtk-theme "Orchis-Green-Dark"
-    gsettings set org.gnome.desktop.interface icon-theme "Orchis-Green-Dark"
-    gsettings set org.gnome.desktop.interface cursor-theme "Adwaita"
+    # Apply system settings with Yaru theme
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR-dark"
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR-dark"
+    gsettings set org.gnome.desktop.interface cursor-theme "Yaru"
     gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
     gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/green.png"
     gsettings set org.gnome.desktop.background picture-uri-dark "file:///home/addy/projects/scripts/conf/wallpapers/green.png"
+    
+    # Set prefer-dark color scheme for Ubuntu
+    gsettings set org.gnome.shell.ubuntu color-scheme prefer-dark
     
     _log_system "✅ System theme 'addy-green' applied successfully."
     return 0
@@ -475,23 +636,26 @@ set_system_theme_green() {
     
 set_system_theme_yellow() {
     _log_system "Setting up system theme: addy-yellow"
-    local THEME_COLOR="#F39C12"
-    local THEME_COLOR_RGB="243, 156, 18"
-    local ORCHIS_COLOR="yellow"
+    local THEME_COLOR="#FFAA00"
+    local THEME_COLOR_RGB="255, 170, 0"
+    local YARU_COLOR="yellow"
 
-    # Install Orchis theme
-    install_orchis_theme "$ORCHIS_COLOR"
+    # Install Yaru theme
+    install_yaru_theme "$YARU_COLOR"
     
     create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
     apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
 
-    # Apply system settings
-    gsettings set org.gnome.desktop.interface gtk-theme "Orchis-Yellow-Dark"
-    gsettings set org.gnome.desktop.interface icon-theme "Orchis-Yellow-Dark"
-    gsettings set org.gnome.desktop.interface cursor-theme "Adwaita"
+    # Apply system settings with Yaru theme
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR-dark"
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR-dark"
+    gsettings set org.gnome.desktop.interface cursor-theme "Yaru"
     gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
     gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/yellow.png"
     gsettings set org.gnome.desktop.background picture-uri-dark "file:///home/addy/projects/scripts/conf/wallpapers/yellow.png"
+    
+    # Set prefer-dark color scheme for Ubuntu
+    gsettings set org.gnome.shell.ubuntu color-scheme prefer-dark
     
     _log_system "✅ System theme 'addy-yellow' applied successfully."
     return 0
