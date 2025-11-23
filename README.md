@@ -40,7 +40,7 @@ Dockerz is distributed as a standalone binary. Download the latest release for y
    dockerz init
    ```
 
-2. **Edit the generated `services.yaml`** with your service configurations
+2. **Edit the generated `build.yaml`** with your service configurations
 
 3. **Build all services:**
    ```bash
@@ -150,13 +150,13 @@ dockerz build --services-dir services/api,services/web
 
 ## Configuration
 
-Dockerz is configured through a `services.yaml` file. Generate a sample configuration:
+Dockerz is configured through a `build.yaml` file. Generate a sample configuration:
 
 ```bash
 dockerz init
 ```
 
-### Example `services.yaml`
+### Example `build.yaml`
 
 ```yaml
 # Dockerz v2.5 Configuration
@@ -317,7 +317,7 @@ backend/service1/frontend
 
 ### Setup GAR Integration
 
-1. **Configure GAR in services.yaml:**
+1. **Configure GAR in build.yaml:**
    ```yaml
    use_gar: true
    push_to_gar: true
@@ -344,7 +344,7 @@ backend/service1/frontend
 | Issue | Solution |
 |-------|----------|
 | **Binary not found** | Use absolute path or add to PATH |
-| **services.yaml not found** | Run `dockerz init` or specify with `--config` |
+| **build.yaml not found** | Run `dockerz init` or specify with `--config` |
 | **Wrong working directory** | Run from project root containing services |
 | **Path errors** | Verify relative paths in configuration |
 | **System overload** | Reduce `--max-processes` value |
@@ -387,7 +387,7 @@ GOOS=windows GOARCH=amd64 go build -o dockerz-windows-amd64.exe ./cmd/dockerz
   - `path` can be:
     - A **service directory** (e.g. `backend/`) → auto-detects `Dockerfile` and builds it
     - A **parent directory** (e.g. `services/`) → recursively scans for all `Dockerfile`s
-    - Omitted → uses `services_dir` from `services.yaml`
+    - Omitted → uses `services_dir` from `build.yaml`
   - Per-service overrides (`--image-name`, `--tag`) apply to the **last service/directory before them**
   - Repeated flags allowed for multiple overrides
   - Deduplicate services to prevent double builds

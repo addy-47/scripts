@@ -7,7 +7,7 @@ This document provides **practical test scenarios** using the `test-project` dir
 ```
 test-project/
 ├── changed.txt                    # Pre-defined service list for testing
-├── services.yaml                  # Main configuration file
+├── build.yaml                  # Main configuration file
 ├── api/                           # Service: "api"
 │   ├── Dockerfile                 # ✓ Has Dockerfile
 │   ├── app.py
@@ -69,7 +69,7 @@ Each scenario follows this pattern:
 **Setup**: Fresh test-project with no special config
 ```bash
 cd test-project
-# Ensure services.yaml has default config (empty services, empty services_dir)
+# Ensure build.yaml has default config (empty services, empty services_dir)
 ```
 
 **Command**:
@@ -81,10 +81,10 @@ dockerz build
 - `api`, `api/microservice`, `backend`, `backend/sub-service`, `frontend`, `shared`, `shared/utils`
 
 **Best Case**: Auto-discover all 7 services and build them in parallel
-**Current Behavior**: ✅ **CORRECT** - Auto-discovery works properly for empty services.yaml
+**Current Behavior**: ✅ **CORRECT** - Auto-discovery works properly for empty build.yaml
 
 ### Scenario 2: Filtered by services_dir
-**Setup**: Modify test-project/services.yaml to specify directories
+**Setup**: Modify test-project/build.yaml to specify directories
 ```yaml
 services_dir: [api, backend]
 ```
@@ -101,7 +101,7 @@ dockerz build
 **Current Behavior**: ✅ **CORRECT** - services_dir filtering works
 
 ### Scenario 3: Explicit Service List in YAML
-**Setup**: Modify test-project/services.yaml
+**Setup**: Modify test-project/build.yaml
 ```yaml
 services:
   - name: api
@@ -144,7 +144,7 @@ dockerz build --input-changed-services changed.txt
 
 ### Scenario 5: Input File with Explicit Services
 **Setup**: 
-1. Modify test-project/services.yaml for explicit services
+1. Modify test-project/build.yaml for explicit services
 ```yaml
 services:
   - name: api
@@ -171,7 +171,7 @@ dockerz build --input-changed-services changed.txt
 
 ### Scenario 6: Input File with services_dir
 **Setup**:
-1. Modify test-project/services.yaml
+1. Modify test-project/build.yaml
 ```yaml
 services_dir: [api, backend]
 ```
@@ -200,7 +200,7 @@ dockerz build --input-changed-services changed.txt
 **Setup**: Default test-project with no changes
 ```bash
 cd test-project
-# Ensure services.yaml has default config (empty services, empty services_dir)
+# Ensure build.yaml has default config (empty services, empty services_dir)
 ```
 
 **Command**:
@@ -215,7 +215,7 @@ dockerz build
 **Current Behavior**: ✅ **CORRECT** - Should skip directories without Dockerfiles
 
 ### Scenario 8: services_dir Pointing to Non-Dockerfile Directories
-**Setup**: Modify test-project/services.yaml to scan non-Dockerfile directories
+**Setup**: Modify test-project/build.yaml to scan non-Dockerfile directories
 ```yaml
 services_dir: [library, utils, documentation]
 ```
@@ -235,7 +235,7 @@ dockerz build
 **Current Behavior**: ❓ **NEEDS VERIFICATION** - Should handle gracefully
 
 ### Scenario 9: Mixed Dockerfile and Non-Dockerfile in services_dir
-**Setup**: Modify test-project/services.yaml for mixed directories
+**Setup**: Modify test-project/build.yaml for mixed directories
 ```yaml
 services_dir: [api, library, utils, frontend]
 ```
@@ -329,7 +329,7 @@ dockerz build --input-changed-services edge-case.txt
 ### Scenario 14: services_dir Scanning All Directories
 **Setup**: services_dir scanning everything including non-Dockerfile dirs
 ```yaml
-# test-project/services.yaml
+# test-project/build.yaml
 services_dir: [api, backend, frontend, shared, library, utils, documentation]
 ```
 
@@ -347,7 +347,7 @@ dockerz build
 ### Scenario 15: Explicit Service Names in YAML with Non-Dockerfile Paths
 **Setup**: YAML with explicit service pointing to non-Dockerfile directory
 ```yaml
-# test-project/services.yaml
+# test-project/build.yaml
 services:
   - name: api
   - name: library/math

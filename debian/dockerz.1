@@ -10,14 +10,14 @@ Dockerz v2.0 is a powerful CLI tool for building and pushing multiple Docker ima
 .SH COMMANDS
 .TP
 .B init
-Creates a sample \fBservices.yaml\fR configuration file.
+Creates a sample \fBbuild.yaml\fR configuration file.
 .TP
 .B build
-Builds Docker images based on \fBservices.yaml\fR with smart features. Options:
+Builds Docker images based on \fBbuild.yaml\fR with smart features. Options:
 .RS
 .TP
 .B \-\-config FILE, \-c FILE
-Path to the \fBservices.yaml\fR configuration file (default: \fBservices.yaml\fR).
+Path to the \fBbuild.yaml\fR configuration file (default: \fBbuild.yaml\fR).
 .TP
 .B \-\-max\-processes NUM, \-m NUM
 Maximum number of parallel build processes (0 = use system default; overrides config file).
@@ -79,7 +79,7 @@ Builds multiple services concurrently with configurable process limits.
 Secure image storage and distribution with GCP integration.
 .SH FILES
 .TP
-.B services.yaml
+.B build.yaml
 Configuration file specifying services, GAR details, and smart features.
 .TP
 .B changed_services.txt

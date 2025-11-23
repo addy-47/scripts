@@ -60,7 +60,7 @@ func PrintDockerzBanner() {
 var rootCmd = &cobra.Command{
 	Use:   "dockerz",
 	Short: "Dockerz - Build and push multiple Docker images in parallel",
-	Long:  `Dockerz is a tool for building and pushing multiple Docker images in parallel based on a services.yaml configuration file.`,
+	Long:  `Dockerz is a tool for building and pushing multiple Docker images in parallel based on a build.yaml configuration file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if version {
 			fmt.Println("dockerz version 2.0.0")
@@ -75,22 +75,22 @@ var rootCmd = &cobra.Command{
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a new project with sample configuration",
-	Long:  `Create a sample services.yaml configuration file in the current directory.`,
+	Long:  `Create a sample build.yaml configuration file in the current directory.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := config.SaveSampleConfig("services.yaml"); err != nil {
+		if err := config.SaveSampleConfig("build.yaml"); err != nil {
 			log.Fatalf("Failed to create sample config: %v", err)
 		}
-		fmt.Println("✓ Created sample services.yaml")
+		fmt.Println("✓ Created sample build.yaml")
 		fmt.Println("\nNext steps:")
-		fmt.Println("1. Edit services.yaml to configure your services")
+		fmt.Println("1. Edit build.yaml to configure your services")
 		fmt.Println("2. Run 'dockerz build' to build your images")
 	},
 }
 
 var buildCmd = &cobra.Command{
 	Use:   "build",
-	Short: "Build Docker images based on services.yaml configuration",
-	Long: `Build Docker images for all services defined in services.yaml.
+	Short: "Build Docker images based on build.yaml configuration",
+	Long: `Build Docker images for all services defined in build.yaml.
 
 This command supports parallel processing, smart change detection using git tracking,
 multi-level caching (layer, local hash, and registry), and Google Artifact Registry (GAR)
@@ -329,7 +329,7 @@ func init() {
 
 	rootCmd.Flags().BoolVarP(&version, "version", "v", false, "Print version information")
 
-	buildCmd.Flags().StringVarP(&configPath, "config", "c", "services.yaml", "Path to the services.yaml configuration file (default: services.yaml)")
+	buildCmd.Flags().StringVarP(&configPath, "config", "c", "build.yaml", "Path to the build.yaml configuration file (default: build.yaml)")
 	buildCmd.Flags().IntVarP(&maxProcesses, "max-processes", "m", 0, "Maximum number of parallel build processes (0 = use system default; overrides config file)")
 	buildCmd.Flags().StringVar(&project, "project", "", "Google Cloud Platform project ID for GAR integration (overrides config file)")
 	buildCmd.Flags().StringVar(&region, "region", "", "GCP region for GAR (e.g., us-central1, europe-west1; overrides config file)")

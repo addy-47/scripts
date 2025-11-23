@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/viper"
 )
+
 // ValidateTxtFile validates that the file path has a .txt extension
 func ValidateTxtFile(filePath string) error {
 	if filePath == "" {
@@ -104,7 +105,7 @@ func LoadConfig(configPath string) (*Config, error) {
 	return &config, nil
 }
 
-// SaveSampleConfig creates a sample services.yaml file
+// SaveSampleConfig creates a sample build.yaml file
 func SaveSampleConfig(filename string) error {
 	sampleYAML := `# Dockerz Configuration File
 # This file configures how Dockerz builds and manages your microservices.
