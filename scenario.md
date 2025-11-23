@@ -659,7 +659,7 @@ git commit -m "Update frontend"
 
 **Command**:
 ```bash
-dockerz build --smart --git-track --git-track-depth 0
+dockerz build --smart --git-track --depth 0
 ```
 
 **Expected Built**: All services with changes in ANY commit
@@ -690,7 +690,7 @@ git commit -m "Update frontend"
 
 **Command**:
 ```bash
-dockerz build --smart --git-track --git-track-depth 1
+dockerz build --smart --git-track --depth 1
 ```
 
 **Expected Built**: Only services changed in latest commit
@@ -721,7 +721,7 @@ git commit -m "Update backend app"
 
 **Command**:
 ```bash
-dockerz build --smart --git-track --git-track-depth 3
+dockerz build --smart --git-track --depth 3
 ```
 
 **Expected Built**: Services changed in last 3 commits

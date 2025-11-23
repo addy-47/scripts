@@ -1,10 +1,21 @@
-# Dockerz v2.5.0 - Intelligent Multi-Service Docker Builder
+# Dockerz v2.5.0 - The Ultimate Docker Companion Tool
+
+```
+     _            _                    
+  __| | ___   ___| | _____ _ __ ____  
+ / _' |/ _ \ / __| |/ / _ \ '__|_  /  
+| (_| | (_) | (__|   <  __/ |   / /   
+ \__,_|\___/ \___|_|\_\___|_|  /___|  
+```
+
+**The ultimate Docker companion tool making container management effortless**
 
 Dockerz is a powerful CLI tool for building and pushing multiple Docker images in parallel with advanced **smart features** for optimized CI/CD workflows. It combines intelligent change detection, multi-level caching, and smart build orchestration to dramatically improve build performance and reduce CI/CD pipeline times.
 
 ## 🚀 Key Features
 
 ### Core Features
+- **🖥️ ASCII Art Banner**: Beautiful terminal welcome with project branding
 - **Parallel Building**: Build multiple Docker images simultaneously with configurable process limits
 - **Google Artifact Registry (GAR)**: Native support for GAR with automatic authentication and image naming
 - **Auto-Discovery**: Automatically find and build services from directory structure or explicit configurations
@@ -18,6 +29,15 @@ Dockerz is a powerful CLI tool for building and pushing multiple Docker images i
 - **SHA256 Hash Calculation**: Content-based hashing for accurate change detection
 - **CI/CD Integration**: Input/output files for changed services to integrate with external CI/CD systems
 - **Intelligent Discovery**: Auto-excludes build directories, dependency folders, and version control systems
+
+### 🏗️ Modular Architecture
+Dockerz is built with a modular internal structure:
+- **Builder Module**: Handles parallel Docker image builds
+- **Cache Module**: Manages multi-level caching (layer, hash, registry)
+- **Config Module**: Configuration management and validation
+- **Discovery Module**: Intelligent service discovery and scanning
+- **Git Module**: Git-based change detection and tracking
+- **Smart Module**: Advanced orchestration and decision making
 
 ## Installation
 
@@ -61,7 +81,52 @@ Dockerz is distributed as a standalone binary. Download the latest release for y
 | **Go 1.19+** (for building from source) | Required to build Dockerz | `go version` |
 | **Google Cloud SDK** (Optional) | Required only for GAR integration | `gcloud --version` |
 
-## Usage
+## Commands
+
+### `dockerz init`
+Initialize a new project with a sample configuration file.
+
+```bash
+dockerz init
+```
+
+This creates a `build.yaml` file with sample configuration and helpful comments.
+
+### `dockerz build`
+Build Docker images based on configuration with advanced features.
+
+```bash
+dockerz build [flags]
+```
+
+**Core Flags:**
+- `--config, -c`: Configuration file path (default: build.yaml)
+- `--max-processes, -m`: Maximum parallel build processes
+- `--version, -v`: Print version information
+
+**GAR Integration:**
+- `--project`: GCP project ID for GAR integration
+- `--region`: GCP region for GAR (e.g., us-central1, europe-west1)
+- `--gar`: Name of the Google Artifact Registry repository
+- `--use-gar`: Use Google Artifact Registry naming convention
+- `--push-to-gar`: Automatically push built images to GAR
+
+**Smart Features:**
+- `--smart`: Enable smart build orchestration
+- `--git-track`: Enable git change tracking
+- `--depth`: Git tracking depth (0 for full history, default 2)
+- `--cache`: Enable multi-level build caching
+- `--force`: Force rebuild of all services
+
+**CI/CD Integration:**
+- `--services-dir`: Comma-separated list of directories to scan
+- `--input-changed-services`: Path to input file with changed services
+- `--output-changed-services`: Path to output file for detected changes
+
+**Global Configuration:**
+- `--global-tag`: Global Docker tag for all built images
+
+## Usage Examples
 
 ### Basic Usage
 
@@ -76,7 +141,7 @@ dockerz build
 dockerz build --max-processes 8
 
 # Build with custom configuration
-dockerz build --project my-project --region us-west1 --gar my-registry --tag v2.5.0
+dockerz build --project my-project --region us-west1 --gar my-registry --global-tag v2.5.0
 ```
 
 ### Smart Features Usage
@@ -142,12 +207,6 @@ dockerz build --smart --git-track --depth 3
 dockerz build --smart --git-track --depth 0
 ```
 
-#### Build Specific Services
-```bash
-# Build only explicitly defined services
-dockerz build --services-dir services/api,services/web
-```
-
 ## Configuration
 
 Dockerz is configured through a `build.yaml` file. Generate a sample configuration:
@@ -163,8 +222,8 @@ dockerz init
 # This file configures how Dockerz builds and manages your microservices.
 
 # ===== DIRECTORY CONFIGURATION =====
-# Directory to scan for services (leave empty for auto-discovery)
-services_dir: 
+# Directories to scan for services (leave empty for auto-discovery)
+services_dir: []
 
 # ===== GOOGLE CLOUD CONFIGURATION =====
 project: my-gcp-project          # Your GCP project ID
@@ -174,8 +233,8 @@ region: us-central1              # GCP region
 # ===== BUILD CONFIGURATION =====
 global_tag: latest               # Global tag (defaults to Git commit hash)
 max_processes: 4                 # Max parallel builds
-use_gar: true                    # Use GAR naming
-push_to_gar: true                # Push to GAR after building
+use_gar: false                   # Use GAR naming
+push_to_gar: false               # Push to GAR after building
 
 # ===== SMART FEATURES (v2.5) =====
 smart: false                     # Enable smart build orchestration
@@ -183,14 +242,12 @@ git_track: false                 # Enable git change detection
 cache: false                     # Enable build caching
 force: false                     # Force rebuild all services
 git_track_depth: 2               # Number of commits to check
-
-# ===== CHANGE DETECTION FILES =====
 input_changed_services:          # Input file with changed services
 output_changed_services:         # Output file for detected changes
 
 # ===== SERVICE DEFINITIONS =====
 # Explicitly define services (leave empty for auto-discovery)
-services:
+services: []
   # - name: services/api
   #   image_name: my-api-service    # Custom image name
   #   tag: v1.0.0                   # Service-specific tag
@@ -200,7 +257,7 @@ services:
 
 | Field | Description | Default |
 |-------|-------------|---------|
-| `services_dir` | Base directory to scan for Dockerfiles | Current directory (.) |
+| `services_dir` | Directories to scan for services | Current directory (.) |
 | `project` | GCP project ID for GAR | Required for GAR |
 | `gar` | GAR repository name | Required for GAR |
 | `region` | GCP region for GAR | Required for GAR |
@@ -213,27 +270,8 @@ services:
 | `cache` | Enable build caching | false |
 | `force` | Force rebuild all services | false |
 | `git_track_depth` | Commits to check for changes | 2 |
-
-### CLI Override Flags
-
-| Flag | Description | Example |
-|------|-------------|---------|
-| `--config` | Configuration file path | `--config my-config.yaml` |
-| `--max-processes` | Override parallel processes | `--max-processes 8` |
-| `--project` | Override GCP project | `--project my-project` |
-| `--region` | Override GCP region | `--region us-west1` |
-| `--gar` | Override GAR repository | `--gar my-registry` |
-| `--global-tag` | Override global tag | `--global-tag v2.5.0` |
-| `--services-dir` | Override services directory | `--services-dir ./backend,./api` |
-| `--input-changed-services` | Input changed services file | `--input-changed-services changed.txt` |
-| `--output-changed-services` | Output changed services file | `--output-changed-services changed.txt` |
-| `--git-track` | Enable git tracking | `--git-track` |
-| `--git-track-depth` | Git tracking depth | `--git-track-depth 3` |
-| `--cache` | Enable caching | `--cache` |
-| `--force` | Force rebuild | `--force` |
-| `--smart` | Enable smart features | `--smart` |
-| `--use-gar` | Use GAR naming | `--use-gar` |
-| `--push-to-gar` | Push to GAR | `--push-to-gar` |
+| `input_changed_services` | Input changed services file | "" |
+| `output_changed_services` | Output changed services file | "" |
 
 ## Smart Features Deep Dive
 
@@ -338,6 +376,32 @@ backend/service1/frontend
 - **Push Integration**: Automatically push successful builds
 - **Error Handling**: Failed pushes logged separately
 - **Build Logging**: Comprehensive logs stored in `build.log`
+
+## Architecture
+
+Dockerz follows a modular architecture with the following internal components:
+
+### Internal Modules
+
+```
+internal/
+├── builder/       # Parallel Docker image building
+├── cache/         # Multi-level caching system
+├── config/        # Configuration management
+├── discovery/     # Service discovery and scanning
+├── git/          # Git change detection
+└── smart/        # Smart orchestration logic
+```
+
+### Code Structure
+
+- **cmd/dockerz/main.go**: Entry point with CLI commands and banner
+- **internal/builder/**: Handles parallel build execution
+- **internal/cache/**: Manages layer, hash, and registry caching
+- **internal/config/**: Configuration loading and validation
+- **internal/discovery/**: Service discovery and file scanning
+- **internal/git/**: Git tracking and diff analysis
+- **internal/smart/**: Intelligent build orchestration
 
 ## Troubleshooting
 
