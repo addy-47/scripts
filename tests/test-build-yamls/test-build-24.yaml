@@ -1,1 +1,12 @@
+# Scenario 24: Smart + Caching
+# Configuration to test caching with smart build
 
+services_dir: []
+
+# Smart features enabled with caching
+smart: true
+git_track: true
+cache: true
+force: false
+
+# No explicit services - use auto-discovery

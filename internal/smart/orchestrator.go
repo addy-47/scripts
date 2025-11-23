@@ -9,6 +9,7 @@ import (
 	"github.com/addy-47/dockerz/internal/config"
 	"github.com/addy-47/dockerz/internal/discovery"
 	"github.com/addy-47/dockerz/internal/git"
+	"github.com/addy-47/dockerz/internal/logging"
 )
 
 // Orchestrator handles smart build decisions
@@ -16,6 +17,7 @@ type Orchestrator struct {
 	config     *SmartConfig
 	cacheMgr   cache.CacheManager
 	gitTracker *git.Tracker
+	logger     *logging.Logger
 }
 
 // NewOrchestrator creates a new smart orchestrator
@@ -46,6 +48,16 @@ func NewOrchestrator(config *SmartConfig) *Orchestrator {
 		config:     config,
 		cacheMgr:   cacheMgr,
 		gitTracker: git.NewTracker(),
+		logger:     nil, // Will be set by caller
+	}
+}
+
+// SetLogger sets the logger for the orchestrator
+func (o *Orchestrator) SetLogger(logger *logging.Logger) {
+	o.logger = logger
+	// Also set logger for cache manager if it supports it
+	if registryCache, ok := o.cacheMgr.(*cache.RegistryCache); ok {
+		registryCache.SetLogger(logger)
 	}
 }
 
@@ -90,13 +102,24 @@ func (o *Orchestrator) analyzeService(service discovery.DiscoveredService) (Serv
 		ServiceName: service.Name,
 	}
 
+	// Log analysis start
+	if o.logger != nil {
+		o.logger.Debug(logging.CATEGORY_SMART, fmt.Sprintf("Analyzing service: %s", service.Name))
+	}
+
 	// Force rebuild takes highest priority
 	if o.config.ForceRebuild {
+		if o.logger != nil {
+			o.logger.Info(logging.CATEGORY_SMART, fmt.Sprintf("%s: FORCE_BUILD - force rebuild enabled", service.Name))
+		}
 		return state, ForceBuild
 	}
 
 	// If git tracking is disabled, always build
 	if !o.config.GitTracking {
+		if o.logger != nil {
+			o.logger.Info(logging.CATEGORY_SMART, fmt.Sprintf("%s: CONDITIONAL_BUILD - git tracking disabled", service.Name))
+		}
 		return state, ConditionalBuild
 	}
 
@@ -105,22 +128,43 @@ func (o *Orchestrator) analyzeService(service discovery.DiscoveredService) (Serv
 	if depth == 0 {
 		depth = 2 // Default depth
 	}
+	
+	if o.logger != nil {
+		o.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("Checking git changes for %s (depth: %d)", service.Name, depth))
+	}
+
 	changedFiles, err := o.gitTracker.GetChangedFiles(service.Path, depth)
 	if err != nil {
-		log.Printf("Failed to get git changes for %s: %v", service.Name, err)
+		if o.logger != nil {
+			o.logger.Warn(logging.CATEGORY_GIT, fmt.Sprintf("Failed to get git changes for %s: %v", service.Name, err))
+		}
 		// Git failed - always build
+		if o.logger != nil {
+			o.logger.Info(logging.CATEGORY_SMART, fmt.Sprintf("%s: CONDITIONAL_BUILD - git check failed", service.Name))
+		}
 		return state, ConditionalBuild
 	}
 
 	state.ChangedFiles = changedFiles
 	if len(changedFiles) > 0 {
-		log.Printf("Git changes detected for %s: %d files changed", service.Name, len(changedFiles))
+		if o.logger != nil {
+			o.logger.Info(logging.CATEGORY_GIT, fmt.Sprintf("Git changes detected for %s: %d files changed", service.Name, len(changedFiles)))
+			for _, file := range changedFiles {
+				o.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("  %s: %s", service.Name, file))
+			}
+		}
 		// Git detected changes - build
+		if o.logger != nil {
+			o.logger.Info(logging.CATEGORY_SMART, fmt.Sprintf("%s: CONDITIONAL_BUILD - git changes detected", service.Name))
+		}
 		return state, ConditionalBuild
 	}
 
 	// Git says no changes - skip build (trust Git over cache)
-	log.Printf("Git reports no changes for %s: skipping build", service.Name)
+	if o.logger != nil {
+		o.logger.Info(logging.CATEGORY_GIT, fmt.Sprintf("Git reports no changes for %s", service.Name))
+		o.logger.Info(logging.CATEGORY_SMART, fmt.Sprintf("%s: SKIP_BUILD - no git changes", service.Name))
+	}
 	return state, SkipBuild
 }
 

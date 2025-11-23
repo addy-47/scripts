@@ -1,1 +1,15 @@
+# Scenario 25: Output File with Smart Build
+# Configuration to test output file generation with smart build
 
+services_dir: []
+
+# Smart features enabled
+smart: true
+git_track: true
+cache: false
+force: false
+
+# Output file configuration
+output_changed_services: ../output-files/output-25.txt
+
+# No explicit services - use auto-discovery

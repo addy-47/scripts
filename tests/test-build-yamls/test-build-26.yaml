@@ -1,1 +1,16 @@
+# Scenario 26: Output File with Input File
+# Configuration to test input file with output file generation
 
+services_dir: []
+
+# Smart features disabled - just use input file
+smart: false
+git_track: false
+cache: false
+force: false
+
+# Input and output file configuration
+input_changed_services: ../input-files/changed-scenario-26.txt
+output_changed_services: ../output-files/output-26.txt
+
+# No explicit services - use input file for discovery

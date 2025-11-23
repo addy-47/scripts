@@ -12,6 +12,7 @@ import (
 	"github.com/addy-47/dockerz/internal/config"
 	"github.com/addy-47/dockerz/internal/discovery"
 	"github.com/addy-47/dockerz/internal/git"
+	"github.com/addy-47/dockerz/internal/logging"
 	"github.com/addy-47/dockerz/internal/smart"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -107,9 +108,27 @@ Key features:
 All flags can override corresponding settings in the configuration file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		// Initialize comprehensive logging
+		logger, err := logging.NewLogger("build.log")
+		if err != nil {
+			log.Fatalf("Failed to initialize logging: %v", err)
+		}
+		defer logger.Close()
+
+		// Print startup banner with configuration
+		logger.PrintBanner("DOCKERZ BUILD START", []string{
+			fmt.Sprintf("Config: %s", configPath),
+			fmt.Sprintf("Smart Features: %v", smartEnabled),
+			fmt.Sprintf("Git Tracking: %v", gitTrack),
+			fmt.Sprintf("Cache Enabled: %v", cacheEnabled),
+			fmt.Sprintf("Force Rebuild: %v", forceRebuild),
+		})
+
 		// Load configuration
+		logger.Info(logging.CATEGORY_CONFIG, fmt.Sprintf("Loading config from %s", configPath))
 		cfg, err := config.LoadConfig(configPath)
 		if err != nil {
+			logger.Error(logging.CATEGORY_CONFIG, fmt.Sprintf("Failed to load config: %v", err))
 			log.Fatalf("Failed to load config: %v", err)
 		}
 
@@ -191,9 +210,24 @@ All flags can override corresponding settings in the configuration file.`,
 		}
 
 		// Discover services (unified discovery including input file)
+		logger.PrintSection("SERVICE DISCOVERY")
+		logger.Info(logging.CATEGORY_DISCOVERY, fmt.Sprintf("Discovering services from input file: %s", effectiveInputFile))
 		discoveryResult, err := discovery.DiscoverServices(cfg, defaultTag, effectiveInputFile)
 		if err != nil {
+			logger.Error(logging.CATEGORY_DISCOVERY, fmt.Sprintf("Failed to discover services: %v", err))
 			log.Fatalf("Failed to discover services: %v", err)
+		}
+
+		logger.Info(logging.CATEGORY_DISCOVERY, fmt.Sprintf("Found %d services", len(discoveryResult.Services)))
+		if len(discoveryResult.Services) > 0 {
+			serviceList := make([]string, len(discoveryResult.Services))
+			for i, service := range discoveryResult.Services {
+				serviceList[i] = fmt.Sprintf("  %s (%s)", service.Name, service.Path)
+			}
+			logger.Info(logging.CATEGORY_DISCOVERY, "Services discovered:")
+			for _, service := range serviceList {
+				logger.Info(logging.CATEGORY_DISCOVERY, service)
+			}
 		}
 
 		// Validate output file extension if provided (either from CLI flag or YAML config)
@@ -213,6 +247,12 @@ All flags can override corresponding settings in the configuration file.`,
 		var changedFiles map[string][]string // Track changed files for output
 
 		if cfg.Smart {
+			logger.PrintSection("SMART ORCHESTRATION")
+			logger.Info(logging.CATEGORY_SMART, "Smart build orchestration enabled")
+			logger.Info(logging.CATEGORY_SMART, fmt.Sprintf("Git tracking: %v (depth: %d)", cfg.GitTrack, cfg.GitTrackDepth))
+			logger.Info(logging.CATEGORY_SMART, fmt.Sprintf("Cache enabled: %v", cfg.Cache))
+			logger.Info(logging.CATEGORY_SMART, fmt.Sprintf("Force rebuild: %v", cfg.Force))
+
 			smartConfig := &smart.SmartConfig{
 				Enabled:       cfg.Smart,
 				GitTracking:   cfg.GitTrack,
@@ -224,12 +264,27 @@ All flags can override corresponding settings in the configuration file.`,
 			}
 
 			orchestrator := smart.NewOrchestrator(smartConfig)
+			orchestrator.SetLogger(logger)
 			result, err := orchestrator.OrchestrateBuilds(cfg, discoveryResult.Services)
 			if err != nil {
+				logger.Error(logging.CATEGORY_SMART, fmt.Sprintf("Failed to orchestrate builds: %v", err))
 				log.Fatalf("Failed to orchestrate builds: %v", err)
 			}
 
-			log.Printf("%s", orchestrator.GetStats(result))
+			logger.Info(logging.CATEGORY_SMART, orchestrator.GetStats(result))
+
+			// Log detailed decisions for each service
+			logger.Info(logging.CATEGORY_SMART, "Service build decisions:")
+			for serviceName, decision := range result.Decisions {
+				switch decision {
+				case smart.ForceBuild:
+					logger.Info(logging.CATEGORY_SMART, fmt.Sprintf("  %s: FORCE_BUILD (configured)", serviceName))
+				case smart.ConditionalBuild:
+					logger.Info(logging.CATEGORY_SMART, fmt.Sprintf("  %s: BUILD (changes detected)", serviceName))
+				case smart.SkipBuild:
+					logger.Info(logging.CATEGORY_SMART, fmt.Sprintf("  %s: SKIP (no changes)", serviceName))
+				}
+			}
 
 			// Filter services that need building
 			for i, service := range discoveryResult.Services {
@@ -245,13 +300,16 @@ All flags can override corresponding settings in the configuration file.`,
 				}
 			}
 		} else {
+			logger.PrintSection("GIT TRACKING (NON-SMART)")
 			// For non-smart builds, build all services but check for git changes if requested
 			servicesToBuild = discoveryResult.Services
 
 			// If git tracking is enabled but smart is disabled, check for changes
 			if cfg.GitTrack {
+				logger.Info(logging.CATEGORY_GIT, fmt.Sprintf("Git tracking enabled (depth: %d)", cfg.GitTrackDepth))
 				changedFiles = make(map[string][]string)
 				gitTracker := git.NewTracker()
+				changesFound := false
 				for _, service := range servicesToBuild {
 					depth := cfg.GitTrackDepth
 					if depth == 0 {
@@ -259,8 +317,15 @@ All flags can override corresponding settings in the configuration file.`,
 					}
 					if files, err := gitTracker.GetChangedFiles(service.Path, depth); err == nil && len(files) > 0 {
 						changedFiles[service.Path] = files
+						changesFound = true
+						logger.Info(logging.CATEGORY_GIT, fmt.Sprintf("Changes found in %s: %d files", service.Name, len(files)))
 					}
 				}
+				if !changesFound {
+					logger.Info(logging.CATEGORY_GIT, "No git changes detected in any service")
+				}
+			} else {
+				logger.Info(logging.CATEGORY_GIT, "Git tracking disabled, building all services")
 			}
 
 			// Mark all as needing build when smart features disabled
@@ -271,13 +336,16 @@ All flags can override corresponding settings in the configuration file.`,
 
 		// Root feature: Write changed services to file if requested (works with any command)
 		if effectiveOutputFile != "" {
+			logger.Info(logging.CATEGORY_CONFIG, fmt.Sprintf("Writing changed services to: %s", effectiveOutputFile))
 			var servicesForOutput []discovery.DiscoveredService
 
 			if cfg.Smart && len(servicesToBuild) < len(discoveryResult.Services) {
 				// Smart mode: write only the services that will be built
+				logger.Info(logging.CATEGORY_SMART, "Smart mode: writing services to be built")
 				servicesForOutput = servicesToBuild
 			} else if cfg.GitTrack && len(changedFiles) > 0 {
 				// Git track mode: write only services with changes
+				logger.Info(logging.CATEGORY_GIT, "Git tracking mode: writing services with changes")
 				for _, service := range servicesToBuild {
 					if _, hasChanges := changedFiles[service.Path]; hasChanges {
 						servicesForOutput = append(servicesForOutput, service)
@@ -285,13 +353,14 @@ All flags can override corresponding settings in the configuration file.`,
 				}
 			} else {
 				// Default: write all services being built
+				logger.Info(logging.CATEGORY_CONFIG, "Default mode: writing all services to be built")
 				servicesForOutput = servicesToBuild
 			}
 
 			if err := discovery.WriteChangedServicesFile(servicesForOutput, effectiveOutputFile); err != nil {
-				log.Printf("Warning: Failed to write changed services file: %v", err)
+				logger.Warn(logging.CATEGORY_CONFIG, fmt.Sprintf("Failed to write changed services file: %v", err))
 			} else {
-				log.Printf("Changed services written to: %s", effectiveOutputFile)
+				logger.Info(logging.CATEGORY_CONFIG, fmt.Sprintf("Changed services written: %d services", len(servicesForOutput)))
 			}
 		}
 
@@ -302,16 +371,38 @@ All flags can override corresponding settings in the configuration file.`,
 		}
 
 		// Build images in parallel
+		logger.PrintSection("BUILD EXECUTION")
+		logger.Info(logging.CATEGORY_BUILD, fmt.Sprintf("Building %d services with max %d processes", len(servicesToBuild), maxProcesses))
+
 		maxProcs := maxProcesses
 		if maxProcs == 0 {
 			maxProcs = cfg.MaxProcesses
 		}
 
+		startBuildTime := time.Now()
 		_, summary := builder.BuildImages(cfg, filteredResult, maxProcs)
+		buildDuration := time.Since(startBuildTime)
+
+		// Log build summary with metrics
+		logger.PrintSummary(map[string]interface{}{
+			"total_services":      len(discoveryResult.Services),
+			"services_built":      len(servicesToBuild),
+			"successful_builds":   summary.SuccessfulBuilds,
+			"failed_builds":       summary.FailedBuilds,
+			"skipped_builds":      len(discoveryResult.Services) - len(servicesToBuild),
+			"build_duration":      buildDuration,
+			"cache_effectiveness": fmt.Sprintf("%.1f%%", float64(summary.SuccessfulBuilds)/float64(len(servicesToBuild))*100),
+		})
+
+		// Log final performance metrics
+		logger.PrintMetrics("Total Build", buildDuration, summary.SuccessfulBuilds+summary.FailedBuilds)
 
 		// Exit with error code if there were build failures
 		if summary.FailedBuilds > 0 {
+			logger.Error(logging.CATEGORY_BUILD, fmt.Sprintf("Build completed with %d failures", summary.FailedBuilds))
 			os.Exit(1)
+		} else {
+			logger.Info(logging.CATEGORY_BUILD, "Build completed successfully")
 		}
 	},
 }

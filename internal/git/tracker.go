@@ -4,11 +4,20 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+
+	"github.com/addy-47/dockerz/internal/logging"
 )
 
 // NewTracker creates a new git tracker
 func NewTracker() *Tracker {
-	return &Tracker{}
+	return &Tracker{
+		logger: nil, // Will be set by caller
+	}
+}
+
+// SetLogger sets the logger for the tracker
+func (t *Tracker) SetLogger(logger *logging.Logger) {
+	t.logger = logger
 }
 
 // getGitRoot finds the root directory of the git repository
@@ -26,10 +35,18 @@ func (t *Tracker) GetChangedFiles(servicePath string, depth int) ([]string, erro
 	var allChangedFiles []string
 	fileSet := make(map[string]bool) // Use map to deduplicate files
 
+	if t.logger != nil {
+		t.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("Analyzing git changes for %s (depth: %d)", servicePath, depth))
+	}
+
 	// Check 1: Get uncommitted changes (git status --porcelain)
 	statusFiles, err := t.getUncommittedChanges(servicePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get uncommitted changes for %s: %w", servicePath, err)
+	}
+
+	if t.logger != nil {
+		t.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("Found %d uncommitted changes in %s", len(statusFiles), servicePath))
 	}
 
 	// Add status files to result
@@ -46,12 +63,20 @@ func (t *Tracker) GetChangedFiles(servicePath string, depth int) ([]string, erro
 		return nil, fmt.Errorf("failed to get commit changes for %s: %w", servicePath, err)
 	}
 
+	if t.logger != nil {
+		t.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("Found %d commit changes in %s", len(commitFiles), servicePath))
+	}
+
 	// Add commit files to result (deduplicated)
 	for _, file := range commitFiles {
 		if !fileSet[file] {
 			fileSet[file] = true
 			allChangedFiles = append(allChangedFiles, file)
 		}
+	}
+
+	if t.logger != nil {
+		t.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("Total changes in %s: %d (deduplicated)", servicePath, len(allChangedFiles)))
 	}
 
 	return allChangedFiles, nil
