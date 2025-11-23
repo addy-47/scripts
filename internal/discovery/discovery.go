@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -257,27 +258,49 @@ func autoDiscoverServices(defaultTag string) ([]DiscoveredService, []error) {
 	return services, errors
 }
 
-// discoverFromInputFile discovers services listed in an input file
+// discoverFromInputFile discovers services listed in an input file with enhanced logging
 func discoverFromInputFile(inputFilePath string, defaultTag string) ([]DiscoveredService, []error) {
 	var services []DiscoveredService
 	var errors []error
 
+	log.Printf("INFO: Reading input file: %s", inputFilePath)
+
 	content, err := os.ReadFile(inputFilePath)
 	if err != nil {
 		errors = append(errors, fmt.Errorf("failed to read input file %s: %w", inputFilePath, err))
+		log.Printf("ERROR: Failed to read input file %s: %v", inputFilePath, err)
 		return services, errors
 	}
 
 	// Parse service names from file (one per line)
 	lines := strings.Split(strings.TrimSpace(string(content)), "\n")
+
+	// Filter out empty lines for counting
+	nonEmptyLines := 0
+	for _, line := range lines {
+		if strings.TrimSpace(line) != "" {
+			nonEmptyLines++
+		}
+	}
+
+	if nonEmptyLines == 0 {
+		log.Printf("WARNING: Input file '%s' is empty or contains no valid service paths", inputFilePath)
+		return services, errors
+	}
+
+	log.Printf("INFO: Found %d service entries in input file", nonEmptyLines)
+
 	for _, line := range lines {
 		serviceName := strings.TrimSpace(line)
 		if serviceName == "" {
 			continue
 		}
 
+		log.Printf("INFO: Processing service from input file: %s", serviceName)
+
 		// Validate that the service exists and has a Dockerfile
 		if err := ValidateDockerfile(serviceName); err != nil {
+			log.Printf("WARNING: Service '%s' from input file is invalid: %v", serviceName, err)
 			errors = append(errors, fmt.Errorf("service %s from input file: %w", serviceName, err))
 			continue
 		}
@@ -285,6 +308,7 @@ func discoverFromInputFile(inputFilePath string, defaultTag string) ([]Discovere
 		// Create service entry
 		imageName := NormalizeImageName(filepath.Base(serviceName))
 		if err := ValidateImageName(imageName); err != nil {
+			log.Printf("WARNING: Service '%s' has invalid image name: %v", serviceName, err)
 			errors = append(errors, fmt.Errorf("service %s: %w", serviceName, err))
 			continue
 		}
@@ -296,6 +320,13 @@ func discoverFromInputFile(inputFilePath string, defaultTag string) ([]Discovere
 			Tag:       defaultTag,
 		}
 		services = append(services, discovered)
+		log.Printf("INFO: Successfully added service '%s' from input file", serviceName)
+	}
+
+	if len(services) == 0 {
+		log.Printf("WARNING: Input file '%s' contained %d entries but no valid services were found", inputFilePath, nonEmptyLines)
+	} else {
+		log.Printf("INFO: Successfully discovered %d services from input file", len(services))
 	}
 
 	return services, errors
@@ -316,43 +347,102 @@ func deduplicateServices(services []DiscoveredService) []DiscoveredService {
 	return uniqueServices
 }
 
-// DiscoverServices scans directories for services based on configuration using unified discovery
+// DiscoverServices scans directories for services based on configuration
+// Uses unified discovery only when multiple sources are provided
 func DiscoverServices(cfg *config.Config, defaultTag string, inputFilePath ...string) (*DiscoveryResult, error) {
 	var allServices []DiscoveredService
 	var allErrors []error
 
-	// UNIFIED DISCOVERY: Always collect from ALL available sources and combine them
+	// Determine which discovery sources are available
+	hasExplicitServices := len(cfg.Services) > 0
 
-	// 1. Collect explicit services from YAML (if any)
-	if len(cfg.Services) > 0 {
-		services, errors := discoverExplicitServices(cfg, defaultTag)
-		allServices = append(allServices, services...)
-		allErrors = append(allErrors, errors...)
+	// Check if services directories are configured (user explicitly set values)
+	// services_dir: [] (empty/not set by user) = no services directories
+	// services_dir: ["."] (user explicitly set ".") = services directories
+	hasServicesDirectories := len(cfg.ServicesDir) > 0
+
+	hasInputFile := len(inputFilePath) > 0 && inputFilePath[0] != ""
+
+	// Count active sources (auto-discovery only when no other sources are configured)
+	numSources := 0
+	if hasExplicitServices {
+		numSources++
+	}
+	if hasServicesDirectories {
+		numSources++
+	}
+	if hasInputFile {
+		numSources++
 	}
 
-	// 2. Collect services from configured directories (if any)
-	if len(cfg.ServicesDir) > 0 {
-		services, errors := discoverFromDirectories(cfg.ServicesDir, defaultTag)
-		allServices = append(allServices, services...)
-		allErrors = append(allErrors, errors...)
+	log.Printf("DEBUG: Discovery sources - explicit_services: %v, services_dirs: %v (config: %v), input_file: %v, total_sources: %d",
+		hasExplicitServices, hasServicesDirectories, cfg.ServicesDir, hasInputFile, numSources)
+
+	// UNIFIED DISCOVERY: Use when multiple sources are provided
+	if numSources > 1 {
+		log.Printf("DEBUG: Using UNIFIED discovery (multiple sources)")
+		// 1. Collect explicit services from YAML (if any)
+		if hasExplicitServices {
+			services, errors := discoverExplicitServices(cfg, defaultTag)
+			allServices = append(allServices, services...)
+			allErrors = append(allErrors, errors...)
+		}
+
+		// 2. Collect services from configured directories (if any)
+		if hasServicesDirectories {
+			services, errors := discoverFromDirectories(cfg.ServicesDir, defaultTag)
+			allServices = append(allServices, services...)
+			allErrors = append(allErrors, errors...)
+		}
+
+		// 3. Auto-discovery (if no explicit config provided)
+		if !hasExplicitServices && !hasServicesDirectories && !hasInputFile {
+			services, errors := autoDiscoverServices(defaultTag)
+			allServices = append(allServices, services...)
+			allErrors = append(allErrors, errors...)
+		}
+
+		// 4. Collect services from input file (if provided)
+		if hasInputFile {
+			services, errors := discoverFromInputFile(inputFilePath[0], defaultTag)
+			allServices = append(allServices, services...)
+			allErrors = append(allErrors, errors...)
+		}
+
+		// Remove duplicates to prevent double builds
+		allServices = deduplicateServices(allServices)
+	} else {
+		log.Printf("DEBUG: Using SINGLE SOURCE discovery")
+		// SINGLE SOURCE DISCOVERY: Use only the provided source
+
+		if hasExplicitServices {
+			// Use explicit services only
+			log.Printf("DEBUG: Using explicit services from YAML")
+			services, errors := discoverExplicitServices(cfg, defaultTag)
+			allServices = append(allServices, services...)
+			allErrors = append(allErrors, errors...)
+		} else if hasServicesDirectories {
+			// Use services directories only
+			log.Printf("DEBUG: Using services directories")
+			services, errors := discoverFromDirectories(cfg.ServicesDir, defaultTag)
+			allServices = append(allServices, services...)
+			allErrors = append(allErrors, errors...)
+		} else if hasInputFile {
+			// Use input file only - with enhanced logging for edge cases
+			log.Printf("DEBUG: Using input file only")
+			services, errors := discoverFromInputFile(inputFilePath[0], defaultTag)
+			allServices = append(allServices, services...)
+			allErrors = append(allErrors, errors...)
+		} else {
+			// No sources configured - fall back to auto-discovery
+			log.Printf("DEBUG: No sources configured, falling back to auto-discovery")
+			services, errors := autoDiscoverServices(defaultTag)
+			allServices = append(allServices, services...)
+			allErrors = append(allErrors, errors...)
+		}
 	}
 
-	// 3. Auto-discovery (if no explicit config provided)
-	if len(cfg.Services) == 0 && len(cfg.ServicesDir) == 0 {
-		services, errors := autoDiscoverServices(defaultTag)
-		allServices = append(allServices, services...)
-		allErrors = append(allErrors, errors...)
-	}
-
-	// 4. Collect services from input file (if provided) - SUPPLEMENTARY, not exclusive
-	if len(inputFilePath) > 0 && inputFilePath[0] != "" {
-		services, errors := discoverFromInputFile(inputFilePath[0], defaultTag)
-		allServices = append(allServices, services...)
-		allErrors = append(allErrors, errors...)
-	}
-
-	// 5. Remove duplicates to prevent double builds
-	allServices = deduplicateServices(allServices)
+	log.Printf("DEBUG: Final service count: %d", len(allServices))
 
 	result := &DiscoveryResult{
 		Services: allServices,
@@ -365,8 +455,6 @@ func DiscoverServices(cfg *config.Config, defaultTag string, inputFilePath ...st
 
 	return result, nil
 }
-
-
 
 // WriteChangedServicesFile writes the list of changed services to a file
 func WriteChangedServicesFile(services []DiscoveredService, outputFilePath string) error {

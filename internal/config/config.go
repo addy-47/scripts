@@ -77,11 +77,6 @@ func LoadConfig(configPath string) (*Config, error) {
 		config.MaxProcesses = 4 // Default to 4 parallel processes
 	}
 
-	// Set default services_dir to "." for auto-discovery only if no explicit services and no services_dir specified
-	if len(config.Services) == 0 && len(config.ServicesDir) == 0 {
-		config.ServicesDir = []string{"."}
-	}
-
 	// Ensure smart features are disabled by default for basic builds
 	if !config.Smart {
 		config.Smart = false
