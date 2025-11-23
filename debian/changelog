@@ -1,4 +1,4 @@
-dockerz (2.0.0-1) jammy; urgency=medium
+dockerz (2.5.0-1) jammy; urgency=medium
 
   * Major version bump to 2.0 with complete rewrite in Go.
   * Added smart build features: git change detection, multi-level caching, and smart orchestration.
