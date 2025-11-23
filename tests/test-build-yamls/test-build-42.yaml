@@ -1,1 +1,13 @@
+# Dockerz Configuration - Scenario 42: Smart Build with Deleted Files
+# This scenario tests correct processing when files are removed from services
 
+# ===== SMART FEATURES =====
+smart: true
+git_track: true
+cache: false
+force: false
+git_track_depth: 2
+
+# ===== SERVICE DEFINITIONS =====
+services: []
+services_dir: []

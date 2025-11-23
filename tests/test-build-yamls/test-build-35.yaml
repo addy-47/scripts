@@ -1,1 +1,2 @@
-
+# Scenario 35: Smart Build with Cache + Force Flag
+# Configuration will be overridden by command line flags

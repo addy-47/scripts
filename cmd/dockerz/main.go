@@ -408,6 +408,7 @@ All flags can override corresponding settings in the configuration file.`,
 }
 
 func init() {
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	// Set custom help function for root command
 	rootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
 		PrintDockerzBanner()

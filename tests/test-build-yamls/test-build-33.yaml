@@ -1,1 +1,6 @@
+# Build configuration for Scenario 33: Smart Build with Configuration File Changes
+# This config uses auto-discovery with empty services and services_dir
+# The actual filtering will be done by smart features detecting configuration file changes
 
+services: []
+services_dir: []

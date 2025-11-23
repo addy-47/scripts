@@ -1,1 +1,6 @@
+# Build configuration for Scenario 31: Smart Build with Different File Change Types - Application Files
+# This config uses auto-discovery with empty services and services_dir
+# The actual filtering will be done by smart features detecting application source file changes
 
+services: []
+services_dir: []

@@ -1,1 +1,6 @@
+# Build configuration for Scenario 32: Smart Build with Mixed File Changes - Dockerfile + Source
+# This config uses auto-discovery with empty services and services_dir
+# The actual filtering will be done by smart features detecting both Dockerfile and source file changes
 
+services: []
+services_dir: []

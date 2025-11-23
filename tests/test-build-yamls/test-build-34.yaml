@@ -1,1 +1,6 @@
+# Build configuration for Scenario 34: Smart Build with Deep Directory Changes
+# This config uses auto-discovery with empty services and services_dir
+# The actual filtering will be done by smart features detecting changes in nested service directories
 
+services: []
+services_dir: []

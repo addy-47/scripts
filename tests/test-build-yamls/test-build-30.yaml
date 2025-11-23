@@ -1,1 +1,6 @@
+# Build configuration for Scenario 30: Smart Build with Different File Change Types - Dockerfile
+# This config uses auto-discovery with empty services and services_dir
+# The actual filtering will be done by smart features detecting Dockerfile changes
 
+services: []
+services_dir: []
