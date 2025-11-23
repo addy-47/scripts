@@ -88,9 +88,6 @@ func isExcludedDirectory(dirName string) bool {
 		// OS generated files
 		".DS_Store": true,
 		"Thumbs.db": true,
-
-		// Internal project directories
-		"internal": true,
 	}
 
 	// Exclude any directory starting with a dot (hidden directories)
@@ -324,38 +321,38 @@ func DiscoverServices(cfg *config.Config, defaultTag string, inputFilePath ...st
 	var allServices []DiscoveredService
 	var allErrors []error
 
-	// PRIORITY: If input file is provided, use ONLY services from input file
+	// UNIFIED DISCOVERY: Always collect from ALL available sources and combine them
+
+	// 1. Collect explicit services from YAML (if any)
+	if len(cfg.Services) > 0 {
+		services, errors := discoverExplicitServices(cfg, defaultTag)
+		allServices = append(allServices, services...)
+		allErrors = append(allErrors, errors...)
+	}
+
+	// 2. Collect services from configured directories (if any)
+	if len(cfg.ServicesDir) > 0 {
+		services, errors := discoverFromDirectories(cfg.ServicesDir, defaultTag)
+		allServices = append(allServices, services...)
+		allErrors = append(allErrors, errors...)
+	}
+
+	// 3. Auto-discovery (if no explicit config provided)
+	if len(cfg.Services) == 0 && len(cfg.ServicesDir) == 0 {
+		services, errors := autoDiscoverServices(defaultTag)
+		allServices = append(allServices, services...)
+		allErrors = append(allErrors, errors...)
+	}
+
+	// 4. Collect services from input file (if provided) - SUPPLEMENTARY, not exclusive
 	if len(inputFilePath) > 0 && inputFilePath[0] != "" {
 		services, errors := discoverFromInputFile(inputFilePath[0], defaultTag)
 		allServices = append(allServices, services...)
 		allErrors = append(allErrors, errors...)
-	} else {
-		// No input file provided, use other discovery methods
-
-		// 1. Collect explicit services from YAML (if any)
-		if len(cfg.Services) > 0 {
-			services, errors := discoverExplicitServices(cfg, defaultTag)
-			allServices = append(allServices, services...)
-			allErrors = append(allErrors, errors...)
-		}
-
-		// 2. Collect services from configured directories (if any)
-		if len(cfg.ServicesDir) > 0 {
-			services, errors := discoverFromDirectories(cfg.ServicesDir, defaultTag)
-			allServices = append(allServices, services...)
-			allErrors = append(allErrors, errors...)
-		}
-
-		// 3. Auto-discovery (if no explicit config provided)
-		if len(cfg.Services) == 0 && len(cfg.ServicesDir) == 0 {
-			services, errors := autoDiscoverServices(defaultTag)
-			allServices = append(allServices, services...)
-			allErrors = append(allErrors, errors...)
-		}
-
-		// Remove duplicates
-		allServices = deduplicateServices(allServices)
 	}
+
+	// 5. Remove duplicates to prevent double builds
+	allServices = deduplicateServices(allServices)
 
 	result := &DiscoveryResult{
 		Services: allServices,
@@ -369,41 +366,7 @@ func DiscoverServices(cfg *config.Config, defaultTag string, inputFilePath ...st
 	return result, nil
 }
 
-// FilterServicesByChangedFile filters services based on a changed services file
-func FilterServicesByChangedFile(result *DiscoveryResult, changedFilePath string) (*DiscoveryResult, error) {
-	content, err := os.ReadFile(changedFilePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// Log warning and return original result unchanged
-			fmt.Printf("Warning: Changed services file '%s' not found, proceeding with all discovered services\n", changedFilePath)
-			return result, nil
-		}
-		return nil, fmt.Errorf("failed to read changed services file %s: %w", changedFilePath, err)
-	}
 
-	// Parse changed services (one per line)
-	changedServices := make(map[string]bool)
-	lines := strings.Split(strings.TrimSpace(string(content)), "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line != "" {
-			changedServices[line] = true
-		}
-	}
-
-	// Filter services
-	var filteredServices []DiscoveredService
-	for _, service := range result.Services {
-		if changedServices[service.Path] {
-			filteredServices = append(filteredServices, service)
-		}
-	}
-
-	return &DiscoveryResult{
-		Services: filteredServices,
-		Errors:   result.Errors,
-	}, nil
-}
 
 // WriteChangedServicesFile writes the list of changed services to a file
 func WriteChangedServicesFile(services []DiscoveredService, outputFilePath string) error {

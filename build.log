@@ -1,308 +1,66 @@
 === Dockerz Build Log ===
-Started at: 2025-11-09 10:36:56
-Services to build: 9
+Started at: 2025-11-22 21:44:57
+Services to build: 3
 Max processes: 4
 
-Starting parallel builds for 9 services with max_processes=4
-=== Dockerz Build Log ===
-Started at: 2025-11-09 13:39:16
-Services to build: 9
-Max processes: 4
-
-Starting parallel builds for 9 services with max_processes=4
-=== Dockerz Build Log ===
-Started at: 2025-11-09 14:13:48
-Services to build: 9
-Max processes: 4
-
-Starting parallel builds for 9 services with max_processes=4
-=== Dockerz Build Log ===
-Started at: 2025-11-09 14:21:01
-Services to build: 9
-Max processes: 4
-
-Starting parallel builds for 9 services with max_processes=4
-[14:21:12] Service: debian/.debhelper/generated/_source/home/go/pkg/mod/github.com/pelletier/go-toml/v2@v2.2.4, Image: v2-v2.2.4:1e9c7bc, Status: failed, Build Output: exit status 1
-[14:21:13] Service: test-project/api, Image: api:1e9c7bc, Status: success
-[14:21:13] Service: test-project/backend/sub-service, Image: sub-service:1e9c7bc, Status: failed, Build Output: exit status 1
-[14:21:14] Service: debian/.debhelper/generated/_source/home/go/pkg/mod/golang.org/x/sys@v0.29.0/unix/linux, Image: linux:1e9c7bc, Status: failed, Build Output: exit status 100
-[14:21:26] Service: test-project/frontend, Image: frontend:1e9c7bc, Status: success
-[14:21:26] Service: test-project/shared, Image: shared:1e9c7bc, Status: failed, Build Output: exit status 1
-[14:21:28] Service: test-project/shared/utils, Image: utils:1e9c7bc, Status: failed, Build Output: exit status 2
-[14:21:29] Service: test-project/api/microservice, Image: microservice:1e9c7bc, Status: failed, Build Output: exit status 1
-[14:21:37] Service: test-project/backend, Image: backend:1e9c7bc, Status: failed, Build Output: exit status 1
+Starting parallel builds for 3 services with max_processes=4
+[21:44:57] Service: test-project/frontend, Image: frontend:latest, Status: success
+[21:44:59] Service: test-project/shared/utils, Image: utils:latest, Status: failed, Build Output: exit status 1
+[21:45:00] Service: test-project/shared, Image: shared:latest, Status: failed, Build Output: exit status 1
 
 === Build Summary ===
-Total services: 9
-Successful builds: 2
-Failed builds: 7
-Duration: 36.299061538s
-Completed at: 2025-11-09 14:21:37
+Total services: 3
+Successful builds: 1
+Failed builds: 2
+Duration: 2.862364208s
+Completed at: 2025-11-22 21:45:00
 
 Failed builds:
-- debian/.debhelper/generated/_source/home/go/pkg/mod/github.com/pelletier/go-toml/v2@v2.2.4: v2-v2.2.4:1e9c7bc
-- test-project/backend/sub-service: sub-service:1e9c7bc
-- debian/.debhelper/generated/_source/home/go/pkg/mod/golang.org/x/sys@v0.29.0/unix/linux: linux:1e9c7bc
-- test-project/shared: shared:1e9c7bc
-- test-project/shared/utils: utils:1e9c7bc
-- test-project/api/microservice: microservice:1e9c7bc
-- test-project/backend: backend:1e9c7bc
-=== Dockerz Build Log ===
-Started at: 2025-11-09 14:21:59
-Services to build: 9
-Max processes: 4
-
-Starting parallel builds for 9 services with max_processes=4
-=== Dockerz Build Log ===
-Started at: 2025-11-09 14:22:23
-Services to build: 9
-Max processes: 4
-
-Starting parallel builds for 9 services with max_processes=4
-=== Dockerz Build Log ===
-Started at: 2025-11-09 14:40:44
-Services to build: 9
-Max processes: 4
-
-Starting parallel builds for 9 services with max_processes=4
-[14:40:56] Service: test-project/api, Image: api:8c6bbc8, Status: success
-[14:40:56] Service: test-project/frontend, Image: frontend:8c6bbc8, Status: success
-[14:40:56] Service: debian/.debhelper/generated/_source/home/go/pkg/mod/github.com/pelletier/go-toml/v2@v2.2.4, Image: v2-v2.2.4:8c6bbc8, Status: failed, Build Output: exit status 1
-[14:40:57] Service: test-project/backend, Image: backend:8c6bbc8, Status: failed, Build Output: exit status 1
-=== Dockerz Build Log ===
-Started at: 2025-11-09 15:20:38
-Services to build: 7
-Max processes: 4
-
-Starting parallel builds for 7 services with max_processes=4
-=== Dockerz Build Log ===
-Started at: 2025-11-09 15:22:52
-Services to build: 7
-Max processes: 4
-
-Starting parallel builds for 7 services with max_processes=4
-=== Dockerz Build Log ===
-Started at: 2025-11-09 15:24:24
-Services to build: 7
-Max processes: 4
-
-Starting parallel builds for 7 services with max_processes=4
-=== Dockerz Build Log ===
-Started at: 2025-11-09 20:05:48
-Services to build: 7
-Max processes: 4
-
-Starting parallel builds for 7 services with max_processes=4
-[20:06:01] Service: test-project/backend/sub-service, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/sub-service:latest, Status: failed, Build Output: exit status 1
-[20:06:02] Service: test-project/shared, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/shared:latest, Status: failed, Build Output: exit status 1
-[20:06:04] Service: test-project/api/microservice, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/microservice:latest, Status: failed, Build Output: exit status 1
-[20:06:06] Service: test-project/frontend, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/frontend:latest, Status: success
-[20:06:14] Service: test-project/backend, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/backend:latest, Status: failed, Build Output: exit status 1
-[20:06:16] Service: test-project/shared/utils, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/utils:latest, Status: failed, Build Output: exit status 2
-[20:06:22] Service: test-project/api, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/api:latest, Status: success
-
-=== Build Summary ===
-Total services: 7
-Successful builds: 2
-Failed builds: 5
-Duration: 34.028992428s
-Completed at: 2025-11-09 20:06:22
-
-Failed builds:
-- test-project/backend/sub-service: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/sub-service:latest
-- test-project/shared: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/shared:latest
-- test-project/api/microservice: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/microservice:latest
-- test-project/backend: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/backend:latest
-- test-project/shared/utils: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/utils:latest
-
-Failed pushes:
-- test-project/frontend: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/frontend:latest
-- test-project/api: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/api:latest
-=== Dockerz Build Log ===
-Started at: 2025-11-09 20:07:41
-Services to build: 7
-Max processes: 4
-
-Starting parallel builds for 7 services with max_processes=4
-=== Dockerz Build Log ===
-Started at: 2025-11-09 20:09:41
-Services to build: 7
-Max processes: 4
-
-Starting parallel builds for 7 services with max_processes=4
-[20:09:55] Service: test-project/backend/sub-service, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/sub-service:latest, Status: failed, Build Output: exit status 1
-[20:09:55] Service: test-project/backend, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/backend:latest, Status: failed, Build Output: exit status 1
-[20:09:57] Service: test-project/shared, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/shared:latest, Status: failed, Build Output: exit status 1
-[20:10:01] Service: test-project/api, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/api:latest, Status: success
-[20:10:08] Service: test-project/shared/utils, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/utils:latest, Status: failed, Build Output: exit status 2
-[20:10:11] Service: test-project/api/microservice, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/microservice:latest, Status: failed, Build Output: exit status 1
-[20:10:12] Service: test-project/frontend, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/frontend:latest, Status: success
-
-=== Build Summary ===
-Total services: 7
-Successful builds: 2
-Failed builds: 5
-Duration: 30.952926924s
-Completed at: 2025-11-09 20:10:12
-
-Failed builds:
-- test-project/backend/sub-service: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/sub-service:latest
-- test-project/backend: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/backend:latest
-- test-project/shared: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/shared:latest
-- test-project/shared/utils: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/utils:latest
-- test-project/api/microservice: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/microservice:latest
-
-Failed pushes:
-- test-project/api: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/api:latest
-- test-project/frontend: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/frontend:latest
-=== Dockerz Build Log ===
-Started at: 2025-11-09 20:15:26
-Services to build: 7
-Max processes: 4
-
-Starting parallel builds for 7 services with max_processes=4
-[20:15:37] Service: test-project/frontend, Image: frontend:latest, Status: success
-[20:15:38] Service: test-project/backend/sub-service, Image: sub-service:latest, Status: failed, Build Output: exit status 1
-[20:15:38] Service: test-project/shared/utils, Image: utils:latest, Status: failed, Build Output: exit status 2
-[20:15:39] Service: test-project/shared, Image: shared:latest, Status: failed, Build Output: exit status 1
-[20:15:49] Service: test-project/api, Image: api:latest, Status: success
-[20:15:50] Service: test-project/backend, Image: backend:latest, Status: failed, Build Output: exit status 1
-[20:15:52] Service: test-project/api/microservice, Image: microservice:latest, Status: failed, Build Output: exit status 1
-
-=== Build Summary ===
-Total services: 7
-Successful builds: 2
-Failed builds: 5
-Duration: 26.100783906s
-Completed at: 2025-11-09 20:15:52
-
-Failed builds:
-- test-project/backend/sub-service: sub-service:latest
 - test-project/shared/utils: utils:latest
 - test-project/shared: shared:latest
-- test-project/backend: backend:latest
+=== Dockerz Build Log ===
+Started at: 2025-11-22 21:53:44
+Services to build: 7
+Max processes: 4
+
+Starting parallel builds for 7 services with max_processes=4
+[21:53:46] Service: test-project/api/microservice, Image: microservice:latest, Status: failed, Build Output: exit status 1
+[21:53:46] Service: test-project/api, Image: api:latest, Status: success
+[21:53:47] Service: test-project/frontend, Image: frontend:latest, Status: success
+[21:53:48] Service: test-project/backend/sub-service, Image: sub-service:latest, Status: failed, Build Output: exit status 1
+[21:53:48] Service: test-project/backend, Image: backend:latest, Status: failed, Build Output: exit status 1
+[21:53:48] Service: test-project/shared, Image: shared:latest, Status: failed, Build Output: exit status 1
+[21:53:49] Service: test-project/shared/utils, Image: utils:latest, Status: failed, Build Output: exit status 1
+
+=== Build Summary ===
+Total services: 7
+Successful builds: 2
+Failed builds: 5
+Duration: 5.362668811s
+Completed at: 2025-11-22 21:53:49
+
+Failed builds:
 - test-project/api/microservice: microservice:latest
+- test-project/backend/sub-service: sub-service:latest
+- test-project/backend: backend:latest
+- test-project/shared: shared:latest
+- test-project/shared/utils: utils:latest
 === Dockerz Build Log ===
-Started at: 2025-11-09 20:27:08
-Services to build: 7
+Started at: 2025-11-22 22:04:59
+Services to build: 3
 Max processes: 4
 
-Starting parallel builds for 7 services with max_processes=4
-[20:27:23] Service: test-project/backend/sub-service, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/sub-service:latest, Status: failed, Build Output: exit status 1
-[20:27:23] Service: test-project/shared, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/shared:latest, Status: failed, Build Output: exit status 1
-[20:27:35] Service: test-project/frontend, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/frontend:latest, Status: success
-[20:27:35] Service: test-project/shared/utils, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/utils:latest, Status: failed, Build Output: exit status 2
-[20:27:37] Service: test-project/api/microservice, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/microservice:latest, Status: failed, Build Output: exit status 1
-[20:27:42] Service: test-project/api, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/api:latest, Status: success
-[20:27:46] Service: test-project/backend, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/backend:latest, Status: failed, Build Output: exit status 1
+Starting parallel builds for 3 services with max_processes=4
+[22:04:59] Service: test-project/frontend, Image: frontend:latest, Status: success
+[22:05:01] Service: test-project/api/microservice, Image: microservice:latest, Status: failed, Build Output: exit status 1
+[22:05:01] Service: test-project/api, Image: api:latest, Status: success
 
 === Build Summary ===
-Total services: 7
+Total services: 3
 Successful builds: 2
-Failed builds: 5
-Duration: 37.552248849s
-Completed at: 2025-11-09 20:27:46
+Failed builds: 1
+Duration: 2.693123366s
+Completed at: 2025-11-22 22:05:01
 
 Failed builds:
-- test-project/backend/sub-service: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/sub-service:latest
-- test-project/shared: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/shared:latest
-- test-project/shared/utils: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/utils:latest
-- test-project/api/microservice: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/microservice:latest
-- test-project/backend: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/backend:latest
-
-Failed pushes:
-- test-project/frontend: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/frontend:latest
-- test-project/api: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/api:latest
-=== Dockerz Build Log ===
-Started at: 2025-11-09 20:29:47
-Services to build: 7
-Max processes: 4
-
-Starting parallel builds for 7 services with max_processes=4
-[20:30:02] Service: test-project/backend/sub-service, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/sub-service:latest, Status: failed, Build Output: exit status 1
-[20:30:02] Service: test-project/shared, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/shared:latest, Status: failed, Build Output: exit status 1
-[20:30:03] Service: test-project/shared/utils, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/utils:latest, Status: failed, Build Output: exit status 2
-[20:30:07] Service: test-project/api, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/api:latest, Status: success
-[20:30:18] Service: test-project/backend, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/backend:latest, Status: failed, Build Output: exit status 1
-[20:30:21] Service: test-project/api/microservice, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/microservice:latest, Status: failed, Build Output: exit status 1
-[20:30:22] Service: test-project/frontend, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/frontend:latest, Status: success
-
-=== Build Summary ===
-Total services: 7
-Successful builds: 2
-Failed builds: 5
-Duration: 35.597023621s
-Completed at: 2025-11-09 20:30:22
-
-Failed builds:
-- test-project/backend/sub-service: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/sub-service:latest
-- test-project/shared: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/shared:latest
-- test-project/shared/utils: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/utils:latest
-- test-project/backend: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/backend:latest
-- test-project/api/microservice: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/microservice:latest
-
-Failed pushes:
-- test-project/api: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/api:latest
-- test-project/frontend: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/frontend:latest
-=== Dockerz Build Log ===
-Started at: 2025-11-09 20:31:58
-Services to build: 7
-Max processes: 4
-
-Starting parallel builds for 7 services with max_processes=4
-[20:32:14] Service: test-project/backend/sub-service, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/sub-service:latest, Status: failed, Build Output: exit status 1
-[20:32:15] Service: test-project/shared, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/shared:latest, Status: failed, Build Output: exit status 1
-[20:32:15] Service: test-project/shared/utils, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/utils:latest, Status: failed, Build Output: exit status 2
-[20:32:20] Service: test-project/frontend, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/frontend:latest, Status: success
-[20:32:29] Service: test-project/backend, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/backend:latest, Status: failed, Build Output: exit status 1
-[20:32:31] Service: test-project/api/microservice, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/microservice:latest, Status: failed, Build Output: exit status 1
-[20:32:37] Service: test-project/api, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/api:latest, Status: success
-
-=== Build Summary ===
-Total services: 7
-Successful builds: 2
-Failed builds: 5
-Duration: 38.706197285s
-Completed at: 2025-11-09 20:32:37
-
-Failed builds:
-- test-project/backend/sub-service: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/sub-service:latest
-- test-project/shared: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/shared:latest
-- test-project/shared/utils: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/utils:latest
-- test-project/backend: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/backend:latest
-- test-project/api/microservice: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/microservice:latest
-
-Failed pushes:
-- test-project/frontend: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/frontend:latest
-- test-project/api: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/api:latest
-=== Dockerz Build Log ===
-Started at: 2025-11-09 20:33:35
-Services to build: 7
-Max processes: 4
-
-Starting parallel builds for 7 services with max_processes=4
-[20:33:48] Service: test-project/backend/sub-service, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/sub-service:latest, Status: failed, Build Output: exit status 1
-[20:33:48] Service: test-project/shared, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/shared:latest, Status: failed, Build Output: exit status 1
-[20:33:53] Service: test-project/frontend, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/frontend:latest, Status: success
-[20:34:03] Service: test-project/shared/utils, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/utils:latest, Status: failed, Build Output: exit status 2
-[20:34:05] Service: test-project/api/microservice, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/microservice:latest, Status: failed, Build Output: exit status 1
-[20:34:07] Service: test-project/backend, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/backend:latest, Status: failed, Build Output: exit status 1
-[20:34:10] Service: test-project/api, Image: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/api:latest, Status: success
-
-=== Build Summary ===
-Total services: 7
-Successful builds: 2
-Failed builds: 5
-Duration: 35.556080397s
-Completed at: 2025-11-09 20:34:10
-
-Failed builds:
-- test-project/backend/sub-service: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/sub-service:latest
-- test-project/shared: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/shared:latest
-- test-project/shared/utils: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/utils:latest
-- test-project/api/microservice: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/microservice:latest
-- test-project/backend: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/backend:latest
-
-Failed pushes:
-- test-project/frontend: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/frontend:latest
-- test-project/api: us-central1-docker.pkg.dev/my-gcp-project/my-artifact-registry/api:latest
+- test-project/api/microservice: microservice:latest
