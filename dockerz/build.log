@@ -1,0 +1,66 @@
+=== Dockerz Build Log ===
+Started at: 2025-11-22 21:44:57
+Services to build: 3
+Max processes: 4
+
+Starting parallel builds for 3 services with max_processes=4
+[21:44:57] Service: test-project/frontend, Image: frontend:latest, Status: success
+[21:44:59] Service: test-project/shared/utils, Image: utils:latest, Status: failed, Build Output: exit status 1
+[21:45:00] Service: test-project/shared, Image: shared:latest, Status: failed, Build Output: exit status 1
+
+=== Build Summary ===
+Total services: 3
+Successful builds: 1
+Failed builds: 2
+Duration: 2.862364208s
+Completed at: 2025-11-22 21:45:00
+
+Failed builds:
+- test-project/shared/utils: utils:latest
+- test-project/shared: shared:latest
+=== Dockerz Build Log ===
+Started at: 2025-11-22 21:53:44
+Services to build: 7
+Max processes: 4
+
+Starting parallel builds for 7 services with max_processes=4
+[21:53:46] Service: test-project/api/microservice, Image: microservice:latest, Status: failed, Build Output: exit status 1
+[21:53:46] Service: test-project/api, Image: api:latest, Status: success
+[21:53:47] Service: test-project/frontend, Image: frontend:latest, Status: success
+[21:53:48] Service: test-project/backend/sub-service, Image: sub-service:latest, Status: failed, Build Output: exit status 1
+[21:53:48] Service: test-project/backend, Image: backend:latest, Status: failed, Build Output: exit status 1
+[21:53:48] Service: test-project/shared, Image: shared:latest, Status: failed, Build Output: exit status 1
+[21:53:49] Service: test-project/shared/utils, Image: utils:latest, Status: failed, Build Output: exit status 1
+
+=== Build Summary ===
+Total services: 7
+Successful builds: 2
+Failed builds: 5
+Duration: 5.362668811s
+Completed at: 2025-11-22 21:53:49
+
+Failed builds:
+- test-project/api/microservice: microservice:latest
+- test-project/backend/sub-service: sub-service:latest
+- test-project/backend: backend:latest
+- test-project/shared: shared:latest
+- test-project/shared/utils: utils:latest
+=== Dockerz Build Log ===
+Started at: 2025-11-22 22:04:59
+Services to build: 3
+Max processes: 4
+
+Starting parallel builds for 3 services with max_processes=4
+[22:04:59] Service: test-project/frontend, Image: frontend:latest, Status: success
+[22:05:01] Service: test-project/api/microservice, Image: microservice:latest, Status: failed, Build Output: exit status 1
+[22:05:01] Service: test-project/api, Image: api:latest, Status: success
+
+=== Build Summary ===
+Total services: 3
+Successful builds: 2
+Failed builds: 1
+Duration: 2.693123366s
+Completed at: 2025-11-22 22:05:01
+
+Failed builds:
+- test-project/api/microservice: microservice:latest

@@ -1,0 +1,13 @@
+# Dockerz Configuration - Scenario 39: Smart Build with Invalid Git Repository
+# This scenario tests graceful handling of corrupted git state
+
+# ===== SMART FEATURES =====
+smart: true
+git_track: true
+cache: false
+force: false
+git_track_depth: 2
+
+# ===== SERVICE DEFINITIONS =====
+services: []
+services_dir: []

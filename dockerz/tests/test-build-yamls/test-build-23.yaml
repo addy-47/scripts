@@ -1,0 +1,12 @@
+# Scenario 23: Smart + Force Rebuild
+# Configuration to test force flag overriding smart logic
+
+services_dir: []
+
+# Smart features enabled
+smart: true
+git_track: true
+cache: false
+force: true
+
+# No explicit services - use auto-discovery

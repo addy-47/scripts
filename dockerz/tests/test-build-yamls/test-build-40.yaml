@@ -1,0 +1,13 @@
+# Dockerz Configuration - Scenario 40: Smart Build with Large File Changes
+# This scenario tests efficient handling of large data files
+
+# ===== SMART FEATURES =====
+smart: true
+git_track: true
+cache: false
+force: false
+git_track_depth: 2
+
+# ===== SERVICE DEFINITIONS =====
+services: []
+services_dir: []

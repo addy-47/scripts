@@ -2,6 +2,8 @@ package git
 
 import (
 	"time"
+
+	"github.com/addy-47/dockerz/internal/logging"
 )
 
 // ChangeType represents the type of change in git
@@ -40,4 +42,5 @@ type DiffResult struct {
 // Tracker handles git change detection
 type Tracker struct {
 	lastCommit string
+	logger     *logging.Logger
 }

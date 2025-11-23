@@ -1,0 +1,34 @@
+# Dockerz v2.5 Configuration - Scenario 47: Smart Build with Git Tag Changes
+# Test tag-based change detection with smart build
+
+# ===== DIRECTORY CONFIGURATION =====
+# Use auto-discovery to test all available services
+services_dir: []
+
+# ===== GOOGLE CLOUD CONFIGURATION =====
+# Use defaults for this scenario
+project: 
+gar: 
+region: 
+
+# ===== BUILD CONFIGURATION =====
+global_tag: latest
+max_processes: 4
+use_gar: false
+push_to_gar: false
+
+# ===== SMART FEATURES =====
+# Enable smart build and git tracking for tag-based detection
+smart: true
+git_track: true
+cache: false
+force: false
+git_track_depth: 3
+
+# ===== CHANGE DETECTION FILES =====
+input_changed_services: 
+output_changed_services: 
+
+# ===== SERVICE DEFINITIONS =====
+# Use auto-discovery to test all services
+services: []

@@ -1,0 +1,6 @@
+# Build configuration for Scenario 29: Smart Build with Git Track Depth 3 (Last 3 Commits)
+# This config uses auto-discovery with empty services and services_dir
+# The actual filtering will be done by smart features with --depth 3
+
+services: []
+services_dir: []

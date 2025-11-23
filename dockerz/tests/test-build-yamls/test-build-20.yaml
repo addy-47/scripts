@@ -1,0 +1,2 @@
+# Smart Build with Git Changes - Empty config for auto-discovery
+# This will test that smart build detects git changes and only builds changed services

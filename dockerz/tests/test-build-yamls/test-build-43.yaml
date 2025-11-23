@@ -1,0 +1,23 @@
+# Dockerz Test Configuration - Scenario 43: Smart Build with Renamed Files
+# Configuration for testing file rename detection in git operations
+
+# Enable smart features for this test
+smart: true
+git_track: true
+git_track_depth: 2
+cache: false
+force: false
+
+# Empty services_dir for auto-discovery
+services_dir: []
+
+# Auto-discover all services
+services: []
+
+# Test-specific configuration
+input_changed_services: ""
+output_changed_services: ""
+
+# Global settings
+global_tag: "scenario-43"
+max_processes: 4

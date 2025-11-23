@@ -1,69 +1,98 @@
 .\" Manpage for dockerz
-.TH dockerz 1 "27 Oct 2025" "2.0.0" "Dockerz Manual"
+.TH dockerz 1 "23 Nov 2025" "2.5.0" "Dockerz Manual"
 .SH NAME
 dockerz \- Smart multi-service Docker builder with change detection
 .SH SYNOPSIS
 .B dockerz
 [\fBinit\fR|\fBbuild\fR] [\fIoptions\fR]
 .SH DESCRIPTION
-Dockerz v2.0 is a powerful CLI tool for building and pushing multiple Docker images in parallel with advanced smart features. It supports intelligent change detection, multi-level caching, and smart build orchestration to significantly improve CI/CD pipeline performance.
+Dockerz v2.5.0 is a powerful CLI tool for building and pushing multiple Docker images in parallel with advanced smart features and comprehensive Git operation support. It supports intelligent change detection, multi-level caching, smart build orchestration, and robust handling of complex Git scenarios including tag-based changes, branch-specific detection, cherry-pick handling, and git reset recovery to significantly improve CI/CD pipeline performance.
 .SH COMMANDS
 .TP
 .B init
-Creates a sample \fBservices.yaml\fR configuration file.
+Creates a sample \fBbuild.yaml\fR configuration file.
 .TP
 .B build
-Builds Docker images based on \fBservices.yaml\fR with smart features. Options:
+Builds Docker images based on \fBbuild.yaml\fR with smart features. Options:
 .RS
 .TP
-.B \-\-config FILE
-Path to \fBservices.yaml\fR (default: \fBservices.yaml\fR).
+.B \-\-config FILE, \-c FILE
+Path to the \fBbuild.yaml\fR configuration file (default: \fBbuild.yaml\fR).
 .TP
-.B \-\-max\-processes NUM
-Maximum number of parallel builds.
+.B \-\-max\-processes NUM, \-m NUM
+Maximum number of parallel build processes (0 = use system default; overrides config file).
 .TP
-.B \-\-smart
-Enable smart build orchestration.
+.B \-\-project ID
+Google Cloud Platform project ID for GAR integration (overrides config file).
 .TP
-.B \-\-git\-track
-Enable git change tracking for smart builds.
+.B \-\-region REGION
+GCP region for GAR (e.g., us-central1, europe-west1; overrides config file).
 .TP
-.B \-\-cache
-Enable build caching.
+.B \-\-gar NAME
+Name of the Google Artifact Registry repository (overrides config file).
 .TP
-.B \-\-force
-Force rebuild all services.
+.B \-\-tag TAG
+Global Docker tag to apply to all built images (overrides config file and git commit ID).
 .TP
-.B \-\-changed\-services\-file FILE
-Path to file containing list of changed services to build.
+.B \-\-services\-dir DIR1,DIR2,...
+Comma-separated list of directories to scan for service definitions (overrides config file).
+.TP
+.B \-\-input\-changed\-services FILE
+Path to a file containing a newline-separated list of service names to build selectively.
 .TP
 .B \-\-output\-changed\-services FILE
-Path to output file for list of changed services.
+Path to output file where the list of changed services will be written for CI/CD integration.
+.TP
+.B \-\-git\-track
+Enable git change tracking to detect modified services for incremental builds.
+.TP
+.B \-\-depth NUM
+Git tracking depth (0 for full history, default 2).
+.TP
+.B \-\-cache
+Enable multi-level build caching (layer, local hash, and registry cache).
+.TP
+.B \-\-force
+Force rebuild of all services, ignoring cache and change detection.
+.TP
+.B \-\-smart
+Enable smart build orchestration with automatic dependency analysis and optimization.
+.TP
+.B \-\-use\-gar
+Use Google Artifact Registry naming convention for image tags (requires GAR authentication).
+.TP
+.B \-\-push\-to\-gar
+Automatically push built images to Google Artifact Registry after successful builds.
 .RE
 .SH FEATURES
 .TP
-.B Smart Change Detection
-Analyzes git history to detect which services have changed and only rebuilds those.
+.B Advanced Git Change Detection
+Analyzes git history to detect which services have changed using sophisticated algorithms that handle tags, branches, cherry-picks, and git reset operations.
 .TP
 .B Multi-Level Caching
 Implements layer, local hash, and registry caching for optimal performance.
 .TP
+.B Smart Build Orchestration
+Automatically analyzes dependencies and optimizes build order for maximum efficiency.
+.TP
+.B Enhanced Logging
+Provides comprehensive transparency into all Git operations and build processes for better debugging and monitoring.
+.TP
 .B CI/CD Integration
 Supports file-based interfaces for external change detection and downstream processing.
-.SH ENVIRONMENT
 .TP
-.B USE_GAR
-Set to \fBtrue\fR or \fBfalse\fR to override GAR naming.
+.B Parallel Processing
+Builds multiple services concurrently with configurable process limits.
 .TP
-.B PUSH_TO_GAR
-Set to \fBtrue\fR or \fBfalse\fR to override GAR pushing.
+.B Google Artifact Registry
+Secure image storage and distribution with GCP integration.
 .SH FILES
 .TP
-.B services.yaml
+.B build.yaml
 Configuration file specifying services, GAR details, and smart features.
 .TP
 .B changed_services.txt
-File containing list of services to build (used with \fB\-\-changed\-services\-file\fR).
+File containing list of services to build (used with \fB\-\-input\-changed\-services\fR).
 .SH SEE ALSO
 .BR docker (1),
 .BR git (1),

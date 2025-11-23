@@ -1,0 +1,13 @@
+# Dockerz Configuration - Scenario 41: Smart Build with Binary File Changes
+# This scenario tests detection and handling of non-text file changes
+
+# ===== SMART FEATURES =====
+smart: true
+git_track: true
+cache: false
+force: false
+git_track_depth: 2
+
+# ===== SERVICE DEFINITIONS =====
+services: []
+services_dir: []

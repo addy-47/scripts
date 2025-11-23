@@ -1,0 +1,12 @@
+# Configuration for Scenario 17: Unified Discovery with Overlapping Services
+# Test unified discovery with services appearing in multiple sources
+
+# Explicit services in YAML: api, frontend
+services:
+  - name: api
+  - name: frontend
+
+# services_dir configured: api (overlaps with explicit service)
+services_dir: [api]
+
+# Testing unified discovery with overlapping services

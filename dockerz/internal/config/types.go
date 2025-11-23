@@ -13,9 +13,9 @@ type Service struct {
 
 // Config represents the main configuration structure
 type Config struct {
-	ServicesDir  string    `yaml:"services_dir" mapstructure:"services_dir"`
-	ProjectID    string    `yaml:"project_id" mapstructure:"project_id"`
-	GARName      string    `yaml:"gar_name" mapstructure:"gar_name"`
+	ServicesDir  []string  `yaml:"services_dir" mapstructure:"services_dir"`
+	Project      string    `yaml:"project" mapstructure:"project"`
+	GAR          string    `yaml:"gar" mapstructure:"gar"`
 	Region       string    `yaml:"region" mapstructure:"region"`
 	GlobalTag    string    `yaml:"global_tag,omitempty" mapstructure:"global_tag"`
 	MaxProcesses int       `yaml:"max_processes,omitempty" mapstructure:"max_processes"`
@@ -24,10 +24,13 @@ type Config struct {
 	Services     []Service `yaml:"services,omitempty" mapstructure:"services"`
 
 	// Smart features configuration
-	SmartEnabled    bool `yaml:"smart_enabled,omitempty" mapstructure:"smart_enabled"`
-	GitTracking     bool `yaml:"git_tracking,omitempty" mapstructure:"git_tracking"`
-	CacheEnabled    bool `yaml:"cache_enabled,omitempty" mapstructure:"cache_enabled"`
-	ForceRebuild    bool `yaml:"force_rebuild,omitempty" mapstructure:"force_rebuild"`
+	Smart         bool   `yaml:"smart" mapstructure:"smart"`
+	GitTrack      bool   `yaml:"git_track" mapstructure:"git_track"`
+	GitTrackDepth int    `yaml:"git_track_depth" mapstructure:"git_track_depth"`
+	Cache         bool   `yaml:"cache" mapstructure:"cache"`
+	Force         bool   `yaml:"force" mapstructure:"force"`
+	InputChangedServices  string `yaml:"input_changed_services" mapstructure:"input_changed_services"`
+	OutputChangedServices string `yaml:"output_changed_services" mapstructure:"output_changed_services"`
 }
 
 // BuildResult represents the result of a build operation

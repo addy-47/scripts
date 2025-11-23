@@ -1,0 +1,10 @@
+# Configuration for Scenario 18: Input File Only (No YAML Config)
+# Test input file discovery with minimal YAML config
+
+# No explicit services configured
+services: []
+
+# Empty services_dir - no directory scanning
+services_dir: []
+
+# Testing input file only discovery

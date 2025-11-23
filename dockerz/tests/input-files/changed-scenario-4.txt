@@ -1,0 +1,7 @@
+api
+api/microservice
+backend
+backend/sub-service
+frontend
+shared
+shared/utils
