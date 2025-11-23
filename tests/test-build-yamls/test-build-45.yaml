@@ -1,1 +1,23 @@
+# Dockerz Test Configuration - Scenario 45: Smart Build Performance with Many Services
+# Configuration for testing performance with multiple services
 
+# Enable smart features for this test
+smart: true
+git_track: true
+git_track_depth: 2
+cache: false
+force: false
+
+# Empty services_dir for auto-discovery
+services_dir: []
+
+# Auto-discover all services
+services: []
+
+# Test-specific configuration
+input_changed_services: ""
+output_changed_services: ""
+
+# Global settings with performance focus
+global_tag: "scenario-45"
+max_processes: 8  # Higher parallelism for performance testing

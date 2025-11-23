@@ -1,12 +1,12 @@
 .\" Manpage for dockerz
-.TH dockerz 1 "31 Oct 2025" "2.5.0" "Dockerz Manual"
+.TH dockerz 1 "23 Nov 2025" "2.5.0" "Dockerz Manual"
 .SH NAME
 dockerz \- Smart multi-service Docker builder with change detection
 .SH SYNOPSIS
 .B dockerz
 [\fBinit\fR|\fBbuild\fR] [\fIoptions\fR]
 .SH DESCRIPTION
-Dockerz v2.0 is a powerful CLI tool for building and pushing multiple Docker images in parallel with advanced smart features. It supports intelligent change detection, multi-level caching, and smart build orchestration to significantly improve CI/CD pipeline performance.
+Dockerz v2.5.0 is a powerful CLI tool for building and pushing multiple Docker images in parallel with advanced smart features and comprehensive Git operation support. It supports intelligent change detection, multi-level caching, smart build orchestration, and robust handling of complex Git scenarios including tag-based changes, branch-specific detection, cherry-pick handling, and git reset recovery to significantly improve CI/CD pipeline performance.
 .SH COMMANDS
 .TP
 .B init
@@ -66,11 +66,17 @@ Automatically push built images to Google Artifact Registry after successful bui
 .RE
 .SH FEATURES
 .TP
-.B Smart Change Detection
-Analyzes git history to detect which services have changed and only rebuilds those.
+.B Advanced Git Change Detection
+Analyzes git history to detect which services have changed using sophisticated algorithms that handle tags, branches, cherry-picks, and git reset operations.
 .TP
 .B Multi-Level Caching
 Implements layer, local hash, and registry caching for optimal performance.
+.TP
+.B Smart Build Orchestration
+Automatically analyzes dependencies and optimizes build order for maximum efficiency.
+.TP
+.B Enhanced Logging
+Provides comprehensive transparency into all Git operations and build processes for better debugging and monitoring.
 .TP
 .B CI/CD Integration
 Supports file-based interfaces for external change detection and downstream processing.

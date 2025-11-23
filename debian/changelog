@@ -1,5 +1,20 @@
 dockerz (2.5.0-1) jammy; urgency=medium
 
+  * Major release with comprehensive Git operations enhancement and testing completion.
+  * Added advanced Git change detection for complex scenarios: tag-based changes, branch-specific detection, cherry-pick handling, and git reset recovery.
+  * Enhanced logging system providing excellent transparency into all Git operations and build processes.
+  * Completed comprehensive QA testing across all 50 scenarios with 100% success rate.
+  * Improved Git tracking depth configuration and cross-branch operation handling.
+  * Enhanced smart build orchestration with better service isolation and change detection precision.
+  * Added robust handling of complex Git repository states and edge cases.
+  * Improved build optimization with better cache utilization and performance scaling.
+  * Enhanced error handling and stability across all advanced Git scenarios.
+  * Added support for enhanced logging and debugging capabilities.
+
+ -- Adhbhut Gupta <adhbutg@gmail.com>  Sat, 23 Nov 2025 21:23:00 +0530
+
+dockerz (2.0.0-1) jammy; urgency=medium
+
   * Major version bump to 2.0 with complete rewrite in Go.
   * Added smart build features: git change detection, multi-level caching, and smart orchestration.
   * Added automatic image name normalization to Docker-compatible kebab-case.
