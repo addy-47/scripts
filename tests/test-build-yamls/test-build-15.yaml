@@ -1,0 +1,14 @@
+# Configuration for Scenario 15: Explicit Service Names in YAML with Non-Dockerfile Paths
+# Test explicit services including non-Dockerfile directories
+
+# Explicit services including valid and invalid paths
+services:
+  - name: api
+  - name: library/math
+  - name: utils/string-processing
+  - name: frontend
+
+# Empty services_dir - no directory scanning
+services_dir: []
+
+# Testing explicit services with mixed valid/invalid paths

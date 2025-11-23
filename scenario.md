@@ -506,28 +506,6 @@ dockerz build --smart --git-track
 **Best Case**: Build only services that have git changes
 **Current Behavior**: ✅ **CORRECT** - Git change detection works
 
-### Scenario 12: Smart with Mixed Changes
-**Setup**: Multiple changes in different services
-```bash
-cd test-project
-echo "# Backend update" >> backend/Dockerfile
-echo "# Frontend change" >> frontend/Dockerfile
-git add .
-git commit -m "Update backend and frontend"
-```
-
-**Command**:
-```bash
-dockerz build --smart --git-track
-```
-
-**Expected Built**: Only changed services
-- `backend`, `frontend`
-
-**Best Case**: Build only services with git changes
-**Current Behavior**: ✅ **CORRECT** - Multiple service change detection works
-
----
 
 ## Combined Smart Features Scenarios
 
@@ -556,6 +534,31 @@ dockerz build --smart --git-track --input-changed-services changed.txt
 
 **Best Case**: Build intersection of input file and git-changed services
 **Current Behavior**: ❌ **UNEXPECTED** - Current implementation order unclear
+
+---
+
+### Scenario 21.5: Smart with Mixed Changes
+**Setup**: Multiple changes in different services
+```bash
+cd test-project
+echo "# Backend update" >> backend/Dockerfile
+echo "# Frontend change" >> frontend/Dockerfile
+git add .
+git commit -m "Update backend and frontend"
+```
+
+**Command**:
+```bash
+dockerz build --smart --git-track
+```
+
+**Expected Built**: Only changed services
+- `backend`, `frontend`
+
+**Best Case**: Build only services with git changes
+**Current Behavior**: ✅ **CORRECT** - Multiple service change detection works
+
+---
 
 ### Scenario 22: Smart + Force Rebuild
 **Setup**: Any git state

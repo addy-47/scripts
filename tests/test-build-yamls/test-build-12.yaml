@@ -1,0 +1,8 @@
+# Configuration for Scenario 12: Invalid Service Path in Input
+# Test mixed valid/invalid service paths in input file
+
+# Empty services and services_dir for pure input file testing
+services: []
+services_dir: []
+
+# Testing with valid and invalid service paths in input

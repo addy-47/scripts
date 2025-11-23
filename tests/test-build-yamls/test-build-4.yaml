@@ -1,0 +1,34 @@
+# Dockerz v2.5 Configuration - Scenario 4: Input File with Auto-Discovery
+# Use input file for service discovery
+
+# ===== DIRECTORY CONFIGURATION =====
+# Empty for auto-discovery
+services_dir: []
+
+# ===== GOOGLE CLOUD CONFIGURATION =====
+# Use defaults for this scenario
+project: 
+gar: 
+region: 
+
+# ===== BUILD CONFIGURATION =====
+global_tag: latest
+max_processes: 4
+use_gar: false
+push_to_gar: false
+
+# ===== SMART FEATURES =====
+smart: false
+git_track: false
+cache: false
+force: false
+git_track_depth: 2
+
+# ===== CHANGE DETECTION FILES =====
+# Use changed.txt input file
+input_changed_services: ../input-files/changed-scenario-4.txt
+output_changed_services: 
+
+# ===== SERVICE DEFINITIONS =====
+# Leave empty for auto-discovery
+services: []

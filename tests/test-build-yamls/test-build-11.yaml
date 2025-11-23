@@ -1,0 +1,8 @@
+# Configuration for Scenario 11: Non-existent Input File
+# Test missing input file handling
+
+# Empty services and services_dir for pure input file testing
+services: []
+services_dir: []
+
+# Testing behavior with non-existent input file

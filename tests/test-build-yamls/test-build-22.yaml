@@ -1,0 +1,2 @@
+# Smart + Force Rebuild - Empty config for auto-discovery
+# This will test that force flag overrides all smart logic and builds all services

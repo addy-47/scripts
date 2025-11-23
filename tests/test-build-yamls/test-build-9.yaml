@@ -1,0 +1,33 @@
+# Dockerz v2.5 Configuration - Scenario 9: Mixed Dockerfile and Non-Dockerfile in services_dir
+# Test services_dir with mix of Dockerfile and non-Dockerfile directories
+
+# ===== DIRECTORY CONFIGURATION =====
+# Mix of Dockerfile and non-Dockerfile directories
+services_dir: [api, library, utils, frontend]
+
+# ===== GOOGLE CLOUD CONFIGURATION =====
+# Use defaults for this scenario
+project: 
+gar: 
+region: 
+
+# ===== BUILD CONFIGURATION =====
+global_tag: latest
+max_processes: 4
+use_gar: false
+push_to_gar: false
+
+# ===== SMART FEATURES =====
+smart: false
+git_track: false
+cache: false
+force: false
+git_track_depth: 2
+
+# ===== CHANGE DETECTION FILES =====
+input_changed_services: 
+output_changed_services: 
+
+# ===== SERVICE DEFINITIONS =====
+# Leave empty for services_dir discovery
+services: []

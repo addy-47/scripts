@@ -1,0 +1,8 @@
+# Configuration for Scenario 14: services_dir Scanning All Directories
+# Test services_dir scanning including non-Dockerfile directories
+
+# Scan all directories including non-Dockerfile ones
+services: []
+services_dir: [api, backend, frontend, shared, library, utils, documentation]
+
+# No explicit services configured - testing services_dir scanning

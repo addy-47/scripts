@@ -1,0 +1,11 @@
+# Configuration for Scenario 16: Unified Discovery - All Sources Combined
+# Test unified discovery with all sources combined
+
+# Explicit services in YAML: api
+services:
+  - name: api
+
+# services_dir configured: backend
+services_dir: [backend]
+
+# Testing unified discovery with all sources combined

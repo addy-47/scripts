@@ -1,0 +1,2 @@
+# Smart with Mixed Changes - Empty config for auto-discovery
+# This will test that smart build detects multiple git changes and only builds changed services

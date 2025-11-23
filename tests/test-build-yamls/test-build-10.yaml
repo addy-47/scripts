@@ -1,0 +1,8 @@
+# Configuration for Scenario 10: Empty Input File
+# Test empty input file handling
+
+# Empty services and services_dir for pure input file testing
+services: []
+services_dir: []
+
+# No explicit services configured - testing empty input file behavior

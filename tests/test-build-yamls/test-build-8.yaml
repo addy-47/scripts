@@ -1,0 +1,33 @@
+# Dockerz v2.5 Configuration - Scenario 8: services_dir Pointing to Non-Dockerfile Directories
+# Test services_dir with only non-Dockerfile directories
+
+# ===== DIRECTORY CONFIGURATION =====
+# Only non-Dockerfile directories
+services_dir: [library, utils, documentation]
+
+# ===== GOOGLE CLOUD CONFIGURATION =====
+# Use defaults for this scenario
+project: 
+gar: 
+region: 
+
+# ===== BUILD CONFIGURATION =====
+global_tag: latest
+max_processes: 4
+use_gar: false
+push_to_gar: false
+
+# ===== SMART FEATURES =====
+smart: false
+git_track: false
+cache: false
+force: false
+git_track_depth: 2
+
+# ===== CHANGE DETECTION FILES =====
+input_changed_services: 
+output_changed_services: 
+
+# ===== SERVICE DEFINITIONS =====
+# Leave empty for services_dir discovery
+services: []

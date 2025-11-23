@@ -1,0 +1,8 @@
+# Configuration for Scenario 13: Input File with Non-Dockerfile Directories
+# Test input file referencing directories without Dockerfiles
+
+# Empty services and services_dir for pure input file testing
+services: []
+services_dir: []
+
+# Testing with input file referencing non-Dockerfile directories
