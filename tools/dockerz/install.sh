@@ -128,13 +128,23 @@ add_apt_repo() {
     # Add repository to sources.list.d
     echo "deb [signed-by=/usr/share/keyrings/devops-toolkit.gpg] $repo_url /" | sudo tee "$sources_list" > /dev/null
 
-    # Download and add GPG key
-    curl -fsSL "$repo_key" | sudo gpg --dearmor -o /usr/share/keyrings/devops-toolkit.gpg
+    # Download and add GPG key (with error handling)
+    if curl -fsSL "$repo_key" | sudo gpg --dearmor -o /usr/share/keyrings/devops-toolkit.gpg 2>/dev/null; then
+        log_info "GPG key added successfully"
+    else
+        log_warning "GPG key download failed, continuing without signature verification"
+        # Remove the signed-by option if GPG key fails
+        echo "deb $repo_url /" | sudo tee "$sources_list" > /dev/null
+    fi
 
-    # Update package list
-    sudo apt update
-
-    log_success "Apt repository added successfully"
+    # Update package list (with error handling)
+    if sudo apt update 2>/dev/null; then
+        log_success "Apt repository added successfully"
+        return 0
+    else
+        log_warning "Apt repository update failed, will fallback to binary installation"
+        return 1
+    fi
 }
 
 # Install via apt
@@ -142,9 +152,13 @@ install_via_apt() {
     log_info "Installing dockerz via apt..."
 
     # Install dockerz
-    sudo apt install -y dockerz
-
-    log_success "dockerz installed via apt"
+    if sudo apt install -y dockerz 2>/dev/null; then
+        log_success "dockerz installed via apt"
+        return 0
+    else
+        log_warning "Apt installation failed, will fallback to binary installation"
+        return 1
+    fi
 }
 
 # Install via binary (fallback)
@@ -164,13 +178,24 @@ main() {
 
         # Check if repository is already added
         if [[ ! -f /etc/apt/sources.list.d/devops-toolkit.list ]]; then
-            add_apt_repo
+            if ! add_apt_repo; then
+                log_info "Repository setup failed, using binary installation instead"
+                install_via_binary
+            else
+                # Repository setup successful, try apt installation
+                if ! install_via_apt; then
+                    log_info "Apt installation failed, using binary installation instead"
+                    install_via_binary
+                fi
+            fi
         else
             log_info "Apt repository already configured"
+            # Try apt installation, fallback to binary if it fails
+            if ! install_via_apt; then
+                log_info "Apt installation failed, using binary installation instead"
+                install_via_binary
+            fi
         fi
-
-        # Install dockerz
-        install_via_apt
     else
         log_info "Non-Debian system detected. Using binary installation."
         install_via_binary
