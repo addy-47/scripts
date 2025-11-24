@@ -6,31 +6,53 @@ set -e
 
 # Source common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/scripts/common.sh"
+# Try to source common.sh from local repository first, then from GitHub
+if [[ -f "$SCRIPT_DIR/scripts/common.sh" ]]; then
+    source "$SCRIPT_DIR/scripts/common.sh"
+    COMMON_SH_AVAILABLE=true
+else
+    # Download common.sh from GitHub if not available locally
+    log_info "Downloading common functions from GitHub..."
+    COMMON_SH_URL="https://raw.githubusercontent.com/addy-47/scripts/install/scripts/common.sh"
+    TEMP_COMMON_SH=$(mktemp)
+    if command_exists curl; then
+        curl -fsSL "$COMMON_SH_URL" -o "$TEMP_COMMON_SH"
+    elif command_exists wget; then
+        wget -q "$COMMON_SH_URL" -O "$TEMP_COMMON_SH"
+    else
+        log_error "Neither curl nor wget found. Cannot download common functions."
+        exit 1
+    fi
+    source "$TEMP_COMMON_SH"
+    COMMON_SH_AVAILABLE=false
+fi
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# If common.sh was downloaded, we need to define logging functions here
+if [[ "$COMMON_SH_AVAILABLE" == "false" ]]; then
+    # Colors for output
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    BLUE='\033[0;34m'
+    NC='\033[0m' # No Color
 
-# Logging functions
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
+    # Logging functions
+    log_info() {
+        echo -e "${BLUE}[INFO]${NC} $1"
+    }
 
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
+    log_success() {
+        echo -e "${GREEN}[SUCCESS]${NC} $1"
+    }
 
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
+    log_warning() {
+        echo -e "${YELLOW}[WARNING]${NC} $1"
+    }
 
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
+    log_error() {
+        echo -e "${RED}[ERROR]${NC} $1"
+    }
+fi
 
 # Detect OS and architecture
 detect_os() {
@@ -198,11 +220,25 @@ main() {
         log_success "DevOps Toolkit installation completed!"
         log_info "You can now use 'dockerz' and 'u-cli' commands."
         log_info "Run 'dockerz --help' or 'u-cli --help' to get started."
+        log_info "Installation locations:"
+        log_info "  dockerz: $(command -v dockerz 2>/dev/null || echo 'not found')"
+        log_info "  u-cli: $(command -v u-cli 2>/dev/null || echo 'not found')"
     else
         log_info "[DRY RUN] Would verify dockerz and u-cli installations"
         log_info "[DRY RUN] Installation simulation completed"
     fi
 }
+
+# Cleanup function
+cleanup() {
+    # Remove temporary common.sh if it was downloaded
+    if [[ "$COMMON_SH_AVAILABLE" == "false" && -n "$TEMP_COMMON_SH" && -f "$TEMP_COMMON_SH" ]]; then
+        rm -f "$TEMP_COMMON_SH"
+    fi
+}
+
+# Set up cleanup trap
+trap cleanup EXIT
 
 # Run main function
 main "$@"
