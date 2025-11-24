@@ -7,15 +7,86 @@ set -e
 
 # Source common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Get OS information
+get_os() {
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        echo "linux"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "darwin"
+    elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+        echo "windows"
+    else
+        echo "unknown"
+    fi
+}
+
+# Get architecture
+get_arch() {
+    local arch=$(uname -m)
+    case $arch in
+        x86_64)
+            echo "amd64"
+            ;;
+        aarch64|arm64)
+            echo "arm64"
+            ;;
+        *)
+            echo "$arch"
+            ;;
+    esac
+}
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Logging functions
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
 # Try to source common.sh from local repository first, then from GitHub
+COMMON_SH_AVAILABLE=false
 if [[ -f "$SCRIPT_DIR/../../scripts/common.sh" ]]; then
+    # Temporarily disable exit on error for the source command
+    set +e
     source "$SCRIPT_DIR/../../scripts/common.sh"
-    COMMON_SH_AVAILABLE=true
-else
-    # Download common.sh from GitHub if not available locally
+    SOURCE_RESULT=$?
+    set -e
+    
+    if [[ $SOURCE_RESULT -eq 0 ]]; then
+        COMMON_SH_AVAILABLE=true
+        log_info "Loaded common functions from local repository"
+    fi
+fi
+
+# If common.sh was not available locally, download it from GitHub
+if [[ "$COMMON_SH_AVAILABLE" == "false" ]]; then
     log_info "Downloading common functions from GitHub..."
     COMMON_SH_URL="https://raw.githubusercontent.com/addy-47/scripts/install/scripts/common.sh"
     TEMP_COMMON_SH=$(mktemp)
+    
     if command_exists curl; then
         curl -fsSL "$COMMON_SH_URL" -o "$TEMP_COMMON_SH"
     elif command_exists wget; then
@@ -24,35 +95,14 @@ else
         log_error "Neither curl nor wget found. Cannot download common functions."
         exit 1
     fi
-    source "$TEMP_COMMON_SH"
-    COMMON_SH_AVAILABLE=false
-fi
-
-# If common.sh was downloaded, we need to define logging functions here
-if [[ "$COMMON_SH_AVAILABLE" == "false" ]]; then
-    # Colors for output
-    RED='\033[0;31m'
-    GREEN='\033[0;32m'
-    YELLOW='\033[1;33m'
-    BLUE='\033[0;34m'
-    NC='\033[0m' # No Color
-
-    # Logging functions
-    log_info() {
-        echo -e "${BLUE}[INFO]${NC} $1"
-    }
-
-    log_success() {
-        echo -e "${GREEN}[SUCCESS]${NC} $1"
-    }
-
-    log_warning() {
-        echo -e "${YELLOW}[WARNING]${NC} $1"
-    }
-
-    log_error() {
-        echo -e "${RED}[ERROR]${NC} $1"
-    }
+    
+    if [[ -f "$TEMP_COMMON_SH" ]]; then
+        source "$TEMP_COMMON_SH"
+        log_info "Loaded common functions from GitHub"
+    else
+        log_error "Failed to download common functions"
+        exit 1
+    fi
 fi
 
 # Check if running on Debian/Ubuntu
