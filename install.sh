@@ -104,7 +104,11 @@ if [[ "$(id -u)" -eq 0 ]]; then
     SUDO=""
 else
     if command -v sudo >/dev/null 2>&1; then
-        SUDO="sudo"
+        if [[ "$CI_MODE" == "true" ]]; then
+            SUDO="sudo -n"
+        else
+            SUDO="sudo"
+        fi
     else
         error "This script requires root privileges. Please run as root or install sudo."
     fi
@@ -112,9 +116,12 @@ fi
 
 # CI Mode overrides
 if [[ "$CI_MODE" == "true" ]]; then
-    # In CI, we usually run as root, but if not, we try sudo without password prompt if possible
-    # But for now, let's assume the user knows what they are doing.
-    :
+    # Verify we can run commands
+    if [[ -n "$SUDO" ]]; then
+        if ! $SUDO true 2>/dev/null; then
+            error "CI mode requires root or passwordless sudo. Sudo requires a password."
+        fi
+    fi
 fi
 
 # --- REMOVAL MODE ---

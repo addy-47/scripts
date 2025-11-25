@@ -30,6 +30,7 @@ curl -fsSL https://addy-47.github.io/scripts/install.sh | bash -s -- --ci
 
 ```bash
 curl -fsSL https://addy-47.github.io/scripts/install.sh | bash -s -- --remove
+curl -fsSL https://addy-47.github.io/scripts/uninstall.sh | bash
 ```
 
 ## Repository Information
