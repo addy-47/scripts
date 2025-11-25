@@ -1,11 +1,36 @@
 #!/bin/bash
-# DevOps Toolkit - Universal Setup Script
-# Installs dockerz and u-cli tools via binaries (fallback for non-apt systems)
+# DevOps Toolkit - CI/CD Installation Script
+# No sudo required, installs to user-space directories
+# Designed for CI/CD environments and automated installations
 
 set -e
 
 # Source common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Logging functions
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
 
 # Check if command exists
 command_exists() {
@@ -39,30 +64,6 @@ get_arch() {
             echo "$arch"
             ;;
     esac
-}
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Logging functions
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
 }
 
 # Try to source common.sh from local repository first, then from GitHub
@@ -130,23 +131,23 @@ detect_os() {
     log_info "Detected OS: $OS, Architecture: $ARCH"
 }
 
-# Install Go if not present
+# Install Go if not present (user-space)
 install_go_if_needed() {
     if ! command -v go &> /dev/null; then
-        log_info "Go not found. Installing Go..."
+        log_info "Go not found. Installing Go to user-space..."
         bash "$SCRIPT_DIR/scripts/install-go.sh"
     else
         log_info "Go is already installed"
     fi
 }
 
-# Download and install tool
+# Download and install tool to user-space
 install_tool() {
     local tool_name=$1
     local version=$2
     local repo="addy-47/scripts"
 
-    log_info "Installing $tool_name..."
+    log_info "Installing $tool_name v$version (CI/CD mode)..."
 
     # Create temp directory
     local temp_dir=$(mktemp -d)
@@ -180,14 +181,14 @@ install_tool() {
         tar -xzf "$archive_name"
     fi
 
-    # Install binary
-    local install_dir="/usr/local/bin"
-    if [[ ! -w "$install_dir" ]]; then
-        install_dir="$HOME/.local/bin"
-        mkdir -p "$install_dir"
-        export PATH="$install_dir:$PATH"
-    fi
-
+    # Install to user-space (no sudo required)
+    local install_dir="$HOME/.local/bin"
+    mkdir -p "$install_dir"
+    
+    # Export PATH for this session and future sessions
+    export PATH="$install_dir:$PATH"
+    echo "export PATH=\"$install_dir:\$PATH\"" >> "$HOME/.bashrc"
+    
     chmod +x "$tool_name"
     mv "$tool_name" "$install_dir/"
 
@@ -195,7 +196,7 @@ install_tool() {
     cd - > /dev/null
     rm -rf "$temp_dir"
 
-    log_success "$tool_name installed successfully"
+    log_success "$tool_name installed successfully to $install_dir"
 }
 
 # Verify installation
@@ -215,11 +216,15 @@ verify_installation() {
 main() {
     # Show help if requested
     if [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
-        echo "DevOps Toolkit Universal Setup Script"
-        echo "====================================="
+        echo "DevOps Toolkit CI/CD Installation Script"
+        echo "========================================="
         echo ""
-        echo "This script installs dockerz and u-cli tools via binaries."
-        echo "It detects your OS and architecture automatically."
+        echo "This script installs dockerz (CI/CD tool) without requiring sudo."
+        echo "Designed for CI/CD environments and automated installations."
+        echo "Installs to ~/.local/bin and updates PATH automatically."
+        echo ""
+        echo "Note: u-cli is a development tool and not installed in CI/CD mode."
+        echo "      For development machines, use the standard installation method."
         echo ""
         echo "Usage: $0 [options]"
         echo ""
@@ -228,7 +233,7 @@ main() {
         echo "  --dry-run     Show what would be installed without actually installing"
         echo ""
         echo "Examples:"
-        echo "  $0              # Install both tools"
+        echo "  $0              # Install dockerz (CI/CD mode)"
         echo "  $0 --dry-run    # Show installation plan"
         echo "  $0 --help       # Show this help"
         return 0
@@ -240,7 +245,8 @@ main() {
         log_info "=================================================="
     fi
 
-    log_info "Starting DevOps Toolkit installation..."
+    log_info "Starting DevOps Toolkit CI/CD installation..."
+    log_info "Installing to user-space directories (no sudo required)"
 
     # Detect OS and architecture
     detect_os
@@ -252,30 +258,30 @@ main() {
         log_info "[DRY RUN] Would install Go if needed"
     fi
 
-    # Install tools
+    # Install tools (dockerz is CI/CD focused tool, u-cli is for development)
     if [[ "${1:-}" != "--dry-run" ]]; then
         install_tool "dockerz" "2.5.0"
-        install_tool "u-cli" "1.0.0"
+        log_info "Note: u-cli is a development tool, not installed in CI/CD mode"
+        log_info "For development machines, use the standard installation method"
     else
-        log_info "[DRY RUN] Would install dockerz v2.5.0"
-        log_info "[DRY RUN] Would install u-cli v1.0.0"
+        log_info "[DRY RUN] Would install dockerz v2.5.0 (CI/CD tool)"
+        log_info "[DRY RUN] u-cli would NOT be installed (development tool only)"
     fi
 
     # Verify installations
     if [[ "${1:-}" != "--dry-run" ]]; then
         log_info "Verifying installations..."
         verify_installation "dockerz"
-        verify_installation "u-cli"
 
-        log_success "DevOps Toolkit installation completed!"
-        log_info "You can now use 'dockerz' and 'u-cli' commands."
-        log_info "Run 'dockerz --help' or 'u-cli --help' to get started."
-        log_info "Installation locations:"
-        log_info "  dockerz: $(command -v dockerz 2>/dev/null || echo 'not found')"
-        log_info "  u-cli: $(command -v u-cli 2>/dev/null || echo 'not found')"
+        log_success "DevOps Toolkit CI/CD installation completed!"
+        log_info "dockerz installed to: $HOME/.local/bin"
+        log_info "PATH updated in: $HOME/.bashrc"
+        log_info "You can now use 'dockerz' commands in CI/CD pipelines."
+        log_info "For development tools like u-cli, use the standard installation method."
+        log_info "Run 'dockerz --help' to get started."
     else
-        log_info "[DRY RUN] Would verify dockerz and u-cli installations"
-        log_info "[DRY RUN] Installation simulation completed"
+        log_info "[DRY RUN] Would verify dockerz installation"
+        log_info "[DRY RUN] CI/CD installation simulation completed"
     fi
 }
 

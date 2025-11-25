@@ -166,7 +166,15 @@ install_via_binary() {
     log_info "Installing dockerz via binary (fallback method)..."
 
     # Source the main setup script for binary installation
-    bash "$SCRIPT_DIR/../setup.sh"
+    # Use absolute path to avoid resolution issues
+    local setup_script="$SCRIPT_DIR/../../setup.sh"
+    if [[ -f "$setup_script" ]]; then
+        bash "$setup_script"
+    else
+        # Fallback: download and run from GitHub if local script not found
+        log_info "Local setup script not found, downloading from GitHub..."
+        curl -fsSL "https://raw.githubusercontent.com/addy-47/scripts/install/setup.sh" | bash
+    fi
 }
 
 # Main installation function

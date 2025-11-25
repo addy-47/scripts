@@ -68,8 +68,8 @@ main() {
         print_status "Usage: bash <package-name>"
         print_status ""
         print_status "Available packages:"
-        print_status "  - dockerz (Smart Multi-Service Docker Builder v2.0)"
-        print_status "  - u-cli (Universal CLI Tool v1.0)"
+        print_status "  - dockerz (Smart Multi-Service Docker Builder v2.5.0)"
+        print_status "  - u-cli (Universal CLI Tool v1.0.0)"
         print_status ""
         print_status "Examples:"
         print_status "  sudo bash dockerz"
@@ -81,7 +81,7 @@ main() {
 
     case $package in
         dockerz)
-            install_package "dockerz" "dockerz_2.0_amd64.deb"
+            install_package "dockerz" "dockerz_2.5.0-1_amd64.deb"
             ;;
         u-cli)
             install_package "u-cli" "u-cli_1.0_amd64.deb"
