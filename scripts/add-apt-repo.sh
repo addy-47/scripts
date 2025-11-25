@@ -73,7 +73,8 @@ main() {
     
     # Construct the sources line
     # Using trusted=yes as per requirement for unsigned repo
-    SOURCES_LINE="deb [arch=$ARCH trusted=yes] $REPO_URL stable main"
+    # We append 'apt/' because the repo root is at https://.../scripts/ but the APT structure starts at apt/
+    SOURCES_LINE="deb [arch=$ARCH trusted=yes] ${REPO_URL}apt/ stable main"
     
     echo "$SOURCES_LINE" > "$REPO_LIST_FILE"
     
