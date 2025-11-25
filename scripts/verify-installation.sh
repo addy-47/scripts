@@ -37,7 +37,11 @@ verify_package() {
     # Check binary if applicable (simple mapping)
     local binary="$pkg"
     # Handle special cases if package name != binary name
-    # e.g. if package is 'dockerz-cli' but binary is 'dockerz'
+    case "$pkg" in
+        u-cli)
+            binary="u"
+            ;;
+    esac
     
     if command -v "$binary" >/dev/null 2>&1; then
         log "Binary '$binary' found at $(command -v "$binary")"

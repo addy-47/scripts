@@ -1,17 +1,23 @@
-Date: Tue, 25 Nov 2025 16:57:32 +0000
+Architectures: amd64
+Codename: stable
+Components: main
+Date: Tue, 25 Nov 2025 17:31:13 +0000
+Label: DevOpsToolkit
+Origin: DevOpsToolkit
+Suite: stable
 MD5Sum:
- 78c00543305f3f8252364f0310fcdaa8               38 Release
+ 553c67ce82d83f8267d1a8bc1e9422bb              150 Release
  c9f60a82450c93768dda8ee1d31f3fea             2228 main/binary-amd64/Packages
- 9a815158d5a5c890609f642fb6918f7b             1153 main/binary-amd64/Packages.gz
+ 7a7e2c5466fec8b8187b3dede1564e94             1153 main/binary-amd64/Packages.gz
 SHA1:
- 2bbe19c6ce64b700e68ce5433537ca71ea3fd5a1               38 Release
+ 42f55d8f78b38fb5217ad3e15ac2def1f824ecd5              150 Release
  1a2b61d56831bf52b7f1327bdefddc0ad831b6a1             2228 main/binary-amd64/Packages
- 1f7dc5c90726ce226a9443aa45f87b639947bbc0             1153 main/binary-amd64/Packages.gz
+ 5b05bb389e5b341490e4e491cf7dd9074fff5aa7             1153 main/binary-amd64/Packages.gz
 SHA256:
- e1a3ef947f72845a2a07acd90cdbcb1f5da7ceebc7131a5ff74e7687e19c58e1               38 Release
+ e464ab20dbe4378714a31aca966598f89f51ea84207bc91f30030aeeffe6ffea              150 Release
  27c743af9fe8ad1940111e46a1190a8f937b41378d48044030c35541aec20f21             2228 main/binary-amd64/Packages
- 9e8cd6984c2feaed4887cec968866926c74daaf18e63502930569d5b8e99edec             1153 main/binary-amd64/Packages.gz
+ 0c17119af6020f90212067802504ff2f315a31492e240b5a3f2d6f0b304f9bd6             1153 main/binary-amd64/Packages.gz
 SHA512:
- 654471573bd8dd842e2ad5f2b3e8f12e570cbd45fb1154799889099be219e76e529f702f213c25f5b58c867a4459b32df12ecfc421a2da710abe32ac150102da               38 Release
+ dbec2ce9925238f300d4e5e1576280412a5daddd72df09a3b39748329ed7a2b3ab808ae2832c1f6fea01e581d9c5da357009801b11a744b52ebb2281ac5f7931              150 Release
  342d75e689ed7ab09f29f2548540cdb9b2df15d633067ae590ada78076700620d98b5ca7a5d5bf6552cdb8a4014f3ab125640cfe4a241fd2e701e720febc2585             2228 main/binary-amd64/Packages
- 76520d748c37527d12170d4293f803e1c737dbfda1eddaf7f819b24d896f8234d66a2878e53b185ab145b97babe3de92efadaa3c307ec1e805fec930124e64cc             1153 main/binary-amd64/Packages.gz
+ 0608e4192d28a6efac76e8682f5055bb4d563adeaecea6569a33834c0331c402395cba7b5c2048a6f21af5e49c3991732f53bd7be61037ac7ff23a96d72999b5             1153 main/binary-amd64/Packages.gz

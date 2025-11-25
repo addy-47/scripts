@@ -179,7 +179,7 @@ $SUDO "$TMP_ADD_REPO"
 
 # 3. Update APT
 log "Updating APT cache..."
-$SUDO apt-get update -qq
+$SUDO apt-get update
 
 # 4. Install Packages
 log "Installing packages: ${TOOLS_TO_INSTALL[*]}"

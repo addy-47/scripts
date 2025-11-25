@@ -39,7 +39,14 @@ echo "Generated Packages and Packages.gz"
 # 2. Generate Release file
 echo "Generating Release file..."
 cd "dists/$DIST_CODENAME"
-apt-ftparchive release . > Release
+apt-ftparchive \
+    -o APT::FTPArchive::Release::Origin="DevOpsToolkit" \
+    -o APT::FTPArchive::Release::Label="DevOpsToolkit" \
+    -o APT::FTPArchive::Release::Suite="$DIST_CODENAME" \
+    -o APT::FTPArchive::Release::Codename="$DIST_CODENAME" \
+    -o APT::FTPArchive::Release::Architectures="$ARCH" \
+    -o APT::FTPArchive::Release::Components="$COMPONENT" \
+    release . > Release
 
 echo "Generated Release file at dists/$DIST_CODENAME/Release"
 
