@@ -1,11 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # OS and architecture detection script
 
-set -e
+set -euo pipefail
 
-# Source common functions
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/common.sh"
+# Source common functions if available
+# SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# if [[ -f "$SCRIPT_DIR/common.sh" ]]; then
+#     source "$SCRIPT_DIR/common.sh"
+# fi
 
 # Detect OS
 detect_os() {
@@ -17,7 +19,7 @@ detect_os() {
     elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
         os="windows"
     else
-        log_error "Unsupported OS: $OSTYPE"
+        echo "Unsupported OS: $OSTYPE" >&2
         exit 1
     fi
     echo "$os"
@@ -37,7 +39,8 @@ detect_arch() {
             arch="386"
             ;;
         *)
-            log_warning "Unknown architecture: $arch"
+            echo "Unknown architecture: $arch" >&2
+            exit 1
             ;;
     esac
     echo "$arch"
@@ -46,6 +49,7 @@ detect_arch() {
 # Detect distribution (for Linux)
 detect_distro() {
     if [[ -f /etc/os-release ]]; then
+        # shellcheck source=/dev/null
         source /etc/os-release
         echo "$ID"
     elif [[ -f /etc/debian_version ]]; then
@@ -63,28 +67,11 @@ is_debian_based() {
     [[ "$distro" == "debian" ]] || [[ "$distro" == "ubuntu" ]] || [[ -f /etc/debian_version ]]
 }
 
-# Check if running on RHEL/CentOS/Fedora
-is_rhel_based() {
-    local distro=$(detect_distro)
-    [[ "$distro" == "rhel" ]] || [[ "$distro" == "centos" ]] || [[ "$distro" == "fedora" ]]
-}
-
-# Get system information
-get_system_info() {
-    local os=$(detect_os)
-    local arch=$(detect_arch)
-    local distro=$(detect_distro)
-
-    echo "OS: $os"
-    echo "Architecture: $arch"
-    echo "Distribution: $distro"
-    echo "Debian-based: $(is_debian_based && echo "yes" || echo "no")"
-    echo "RHEL-based: $(is_rhel_based && echo "yes" || echo "no")"
-}
-
 # Main function
 main() {
-    case "${1:-info}" in
+    local cmd="${1:-info}"
+    
+    case "$cmd" in
         os)
             detect_os
             ;;
@@ -97,11 +84,18 @@ main() {
         debian)
             is_debian_based && echo "true" || echo "false"
             ;;
-        rhel)
-            is_rhel_based && echo "true" || echo "false"
+        info)
+            echo "OS: $(detect_os)"
+            echo "Architecture: $(detect_arch)"
+            echo "Distribution: $(detect_distro)"
+            echo "Debian-based: $(is_debian_based && echo "yes" || echo "no")"
             ;;
-        info|*)
-            get_system_info
+        *)
+            # If sourced, don't exit
+            if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+                echo "Usage: $0 {os|arch|distro|debian|info}"
+                exit 1
+            fi
             ;;
     esac
 }

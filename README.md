@@ -1,89 +1,59 @@
-# DevOps Toolkit
+# Scripts & Tools
 
-**dockerz** - Docker management tool for CI/CD  
-**u-cli** - Development utility tool
+A collection of DevOps scripts and tools.
 
 ## Installation
 
-### Individual Tools
+You can install the tools using our single-line installer:
 
-#### dockerz only
 ```bash
-# CI/CD (no sudo)
-curl -fsSL https://raw.githubusercontent.com/addy-47/scripts/install/setup-cicd.sh | bash
-
-# Individual tool install
-curl -fsSL https://raw.githubusercontent.com/addy-47/scripts/install/tools/dockerz/install.sh | bash
+curl -fsSL https://addy-47.github.io/scripts/install.sh | bash
 ```
 
-#### u-cli only
+This will install `dockerz` and `u-cli` by default.
+
+### Install Specific Tools
+
 ```bash
-# Individual tool install
-curl -fsSL https://raw.githubusercontent.com/addy-47/scripts/install/tools/u-cli/install.sh | bash
+curl -fsSL https://addy-47.github.io/scripts/install.sh | bash -s -- dockerz
 ```
 
-### Complete Installation (Both Tools)
+### CI / Automated Installation
 
-#### Standard Install
+For CI environments (non-interactive, assumes root):
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/addy-47/scripts/install/setup.sh | bash
+curl -fsSL https://addy-47.github.io/scripts/install.sh | bash -s -- --ci
 ```
 
-#### Ubuntu/Debian
+### Uninstall
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/addy-47/scripts/install/scripts/add-apt-repo.sh | sudo bash
-sudo apt update
-sudo apt install dockerz u-cli
+curl -fsSL https://addy-47.github.io/scripts/install.sh | bash -s -- --remove
 ```
 
-### Direct DEB Installation
-```bash
-# dockerz
-sudo bash https://raw.githubusercontent.com/addy-47/scripts/install/apt/setup.sh dockerz
+## Repository Information
 
-# u-cli
-sudo bash https://raw.githubusercontent.com/addy-47/scripts/install/apt/setup.sh u-cli
-```
+The APT repository is hosted via GitHub Pages.
 
-### Windows and macOS
-```bash
-# Download and install manually from GitHub releases
-# Or use the standard installation script
-curl -fsSL https://raw.githubusercontent.com/addy-47/scripts/install/setup.sh | bash
-```
+- **URL**: `https://addy-47.github.io/scripts/`
+- **Public Key**: `https://addy-47.github.io/scripts/public.gpg`
 
-## Uninstall
-```bash
-bash https://raw.githubusercontent.com/addy-47/scripts/install/uninstall.sh
-```
+## Maintenance
 
-## Usage Examples
+### Adding New Packages
 
-### GitHub Actions
-```yaml
-- name: Install dockerz
-  run: curl -fsSL https://raw.githubusercontent.com/addy-47/scripts/install/setup-cicd.sh | bash
-  
-- name: Use dockerz
-  run: dockerz --help
-```
+1. Place `.deb` files in `apt/pool/main/<package>/`.
+2. Run the generation script:
+   ```bash
+   ./scripts/generate-repo.sh
+   ```
+3. Commit and push the changes.
 
-### Docker
-```dockerfile
-RUN curl -fsSL https://raw.githubusercontent.com/addy-47/scripts/install/setup-cicd.sh | bash
-```
+### Local Testing
 
-### Local Development
-```bash
-curl -fsSL https://raw.githubusercontent.com/addy-47/scripts/install/setup.sh | bash
-```
-
-## Tool Selection Guide
-
-- **dockerz** - Use in CI/CD pipelines and development
-- **u-cli** - Use only in development environments (not for CI/CD)
-
-Choose the installation method that fits your needs:
-- CI/CD: `setup-cicd.sh` (dockerz only)
-- Development: `setup.sh` or APT (both tools)
-- Individual tools: Direct DEB or specific installation scripts
+1. Serve the `apt` directory:
+   ```bash
+   python3 -m http.server
+   ```
+2. Run the installer pointing to localhost (requires modifying `install.sh` or manual steps).
