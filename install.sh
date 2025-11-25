@@ -157,6 +157,23 @@ else
     fi
 fi
 
+# 1.1 Install Dependencies
+log "Installing dependencies..."
+# Ensure curl, gpg, and ca-certificates are installed
+DEPS_TO_INSTALL=()
+for dep in curl gpg ca-certificates; do
+    if ! command -v "$dep" >/dev/null 2>&1; then
+        DEPS_TO_INSTALL+=("$dep")
+    fi
+done
+
+if [[ ${#DEPS_TO_INSTALL[@]} -gt 0 ]]; then
+    log "Installing missing dependencies: ${DEPS_TO_INSTALL[*]}"
+    # We need to update apt cache to install these
+    $SUDO apt-get update -qq || true
+    $SUDO apt-get install -y -q "${DEPS_TO_INSTALL[@]}"
+fi
+
 # 2. Add APT Repository
 log "Setting up APT repository..."
 # We download the helper script or run logic inline. 
