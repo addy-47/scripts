@@ -691,3 +691,31 @@ set_system_theme_grey() {
     return 0
 }
 
+set_system_theme_grey_green() {
+    _log_system "Setting up system theme: addy-grey-green"
+    # Using the exact colors from the current 'addy' profile
+    local THEME_COLOR="#B4AEAE"
+    local THEME_COLOR_RGB="180, 174, 174"
+    local YARU_COLOR="grey-green"
+
+    # Install Yaru theme
+    install_yaru_theme "$YARU_COLOR"
+    
+    create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
+    apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
+
+    # Apply system settings with Yaru theme
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface cursor-theme "Yaru"
+    gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
+    gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/grey-green.png"
+    gsettings set org.gnome.desktop.background picture-uri-dark "file:///home/addy/projects/scripts/conf/wallpapers/grey-green.png"
+
+    # Set prefer-dark color scheme for Ubuntu
+    gsettings set org.gnome.shell.ubuntu color-scheme prefer-dark
+
+    _log_system "✅ System theme 'addy-grey-green' applied successfully with custom settings."
+    return 0
+}
+
