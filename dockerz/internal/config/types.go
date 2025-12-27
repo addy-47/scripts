@@ -19,6 +19,12 @@ type Config struct {
 	Region       string    `yaml:"region" mapstructure:"region"`
 	GlobalTag    string    `yaml:"global_tag,omitempty" mapstructure:"global_tag"`
 	MaxProcesses int       `yaml:"max_processes,omitempty" mapstructure:"max_processes"`
+	
+	// Resource-aware scheduling configuration
+	EnableResourceMonitoring bool    `yaml:"enable_resource_monitoring,omitempty" mapstructure:"enable_resource_monitoring"`
+	MaxCPUThreshold         float64 `yaml:"max_cpu_threshold,omitempty" mapstructure:"max_cpu_threshold"`
+	MaxMemoryThreshold      float64 `yaml:"max_memory_threshold,omitempty" mapstructure:"max_memory_threshold"`
+	MaxDiskThreshold        float64 `yaml:"max_disk_threshold,omitempty" mapstructure:"max_disk_threshold"`
 	UseGAR       bool      `yaml:"use_gar,omitempty" mapstructure:"use_gar"`
 	PushToGAR    bool      `yaml:"push_to_gar,omitempty" mapstructure:"push_to_gar"`
 	Services     []Service `yaml:"services,omitempty" mapstructure:"services"`
@@ -31,6 +37,9 @@ type Config struct {
 	Force         bool   `yaml:"force" mapstructure:"force"`
 	InputChangedServices  string `yaml:"input_changed_services" mapstructure:"input_changed_services"`
 	OutputChangedServices string `yaml:"output_changed_services" mapstructure:"output_changed_services"`
+	
+	// BuildKit configuration
+	EnableBuildKit bool `yaml:"enable_buildkit,omitempty" mapstructure:"enable_buildkit"`
 }
 
 // BuildResult represents the result of a build operation

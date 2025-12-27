@@ -1,24 +1,21 @@
-name: Build Dockerz
+name: Build and Deploy Dockerz
 
 on:
   push:
     branches: [ master ]
     paths:
       - 'dockerz/**'
-      - '.github/workflows/build-dockerz.yml'
-  pull_request:
-    branches: [ master ]
-    paths:
-      - 'dockerz/**'
-      - '.github/workflows/build-dockerz.yml'
+      - '.github/workflows/build-dockerz-simplified.yml'
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Install build dependencies
       run: sudo apt-get update && sudo apt-get install -y build-essential debhelper-compat golang-go
@@ -28,24 +25,6 @@ jobs:
       with:
         go-version: '1.23'
 
-    - name: Build Dockerz binary (Linux)
-      run: |
-        cd dockerz
-        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o dockerz-linux-amd64 ./cmd/dockerz
-        tar -czf ../dockerz-linux-amd64.tar.gz dockerz-linux-amd64 README.md
-
-    - name: Build Dockerz binary (macOS)
-      run: |
-        cd dockerz
-        CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o dockerz-darwin-amd64 ./cmd/dockerz
-        tar -czf ../dockerz-darwin-amd64.tar.gz dockerz-darwin-amd64 README.md
-
-    - name: Build Dockerz binary (Windows)
-      run: |
-        cd dockerz
-        CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o dockerz-windows-amd64.exe ./cmd/dockerz
-        zip ../dockerz-windows-amd64.zip dockerz-windows-amd64.exe README.md
-
     - name: Clean previous build artifacts
       run: |
         cd dockerz
@@ -53,7 +32,6 @@ jobs:
         sudo rm -rf debian/.debhelper/
         sudo rm -rf debian/dockerz/
         chmod -R 755 debian/ 2>/dev/null || true
-        # Remove executable bit from debian/install if it exists
         chmod -x debian/install 2>/dev/null || true
 
     - name: Build Debian package
@@ -63,14 +41,53 @@ jobs:
       run: |
         cd dockerz
         dpkg-buildpackage -us -uc -b
-        mv ../dockerz_*.deb ../dockerz_amd64.deb
+        DEB_FILE=$(ls ../dockerz_*.deb)
+        echo "DEB_FILE=$DEB_FILE" >> $GITHUB_ENV
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+    - name: Checkout install branch
+      uses: actions/checkout@v4
       with:
-        name: dockerz-artifacts
-        path: |
-          dockerz-linux-amd64.tar.gz
-          dockerz-darwin-amd64.tar.gz
-          dockerz-windows-amd64.zip
-          dockerz_amd64.deb
+        ref: install
+        path: install-repo
+        token: ${{ secrets.PAT_TOKEN }}
+
+    - name: Update install branch with new package
+      run: |
+        # Create apt directory structure if it doesn't exist
+        mkdir -p install-repo/apt/pool/main/dockerz
+        
+        # Copy the new deb package
+        cp ${{ env.DEB_FILE }} install-repo/apt/pool/main/dockerz/
+        
+        # Update the apt repository
+        cd install-repo/apt
+        
+        # Generate Packages.gz
+        dpkg-scanpackages pool/main/dockerz /dev/null > dists/stable/main/binary-amd64/Packages
+        gzip -9c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
+        
+        # Update Release file with current date
+        cat > dists/stable/Release << EOF
+        Origin: DevOps Toolkit
+        Label: DevOps Toolkit Repository
+        Suite: stable
+        Codename: stable
+        Version: 1.0
+        Architectures: amd64
+        Components: main
+        Description: DevOps Toolkit Debian Repository
+        Date: $(date -R)
+        EOF
+
+    - name: Commit and push changes to install branch
+      run: |
+        cd install-repo
+        git config user.name "GitHub Actions Bot"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update dockerz package "
+          git push origin install
+        fi

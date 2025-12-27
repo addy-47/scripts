@@ -76,6 +76,22 @@ func LoadConfig(configPath string) (*Config, error) {
 	if config.MaxProcesses == 0 {
 		config.MaxProcesses = 4 // Default to 4 parallel processes
 	}
+	
+	// Set defaults for resource-aware scheduling
+	if config.MaxCPUThreshold == 0 {
+		config.MaxCPUThreshold = 80.0 // Default 80% CPU threshold
+	}
+	if config.MaxMemoryThreshold == 0 {
+		config.MaxMemoryThreshold = 85.0 // Default 85% memory threshold
+	}
+	if config.MaxDiskThreshold == 0 {
+		config.MaxDiskThreshold = 90.0 // Default 90% disk threshold
+	}
+	
+	// Set default for BuildKit (enabled by default for better performance)
+	if !config.EnableBuildKit {
+		config.EnableBuildKit = true
+	}
 
 	// Ensure smart features are disabled by default for basic builds
 	if !config.Smart {

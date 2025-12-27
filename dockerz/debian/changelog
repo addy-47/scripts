@@ -1,4 +1,4 @@
-dockerz (2.5.0-1) jammy; urgency=medium
+dockerz (2.75.0-1) jammy; urgency=medium
 
   * Major release with comprehensive Git operations enhancement and testing completion.
   * Added advanced Git change detection for complex scenarios: tag-based changes, branch-specific detection, cherry-pick handling, and git reset recovery.

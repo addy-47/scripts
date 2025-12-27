@@ -11,6 +11,15 @@ import (
 	"github.com/addy-47/dockerz/internal/discovery"
 )
 
+// ResourceAwareConfig holds configuration for resource-aware scheduling
+type ResourceAwareConfig struct {
+	EnableResourceMonitoring bool
+	MaxCPUThreshold         float64
+	MaxMemoryThreshold      float64
+	MaxDiskThreshold        float64
+	MonitorInterval         time.Duration
+}
+
 // BuildImages builds Docker images for discovered services in parallel
 func BuildImages(cfg *config.Config, discoveryResult *discovery.DiscoveryResult, maxProcesses int) ([]BuildResult, Summary) {
 	startTime := time.Now()
@@ -26,6 +35,33 @@ func BuildImages(cfg *config.Config, discoveryResult *discovery.DiscoveryResult,
 		fmt.Fprintf(logFile, "Started at: %s\n", startTime.Format("2006-01-02 15:04:05"))
 		fmt.Fprintf(logFile, "Services to build: %d\n", len(discoveryResult.Services))
 		fmt.Fprintf(logFile, "Max processes: %d\n\n", maxProcesses)
+	}
+
+	// Resource-aware scheduling configuration from config
+	resourceConfig := ResourceAwareConfig{
+		EnableResourceMonitoring: cfg.EnableResourceMonitoring,
+		MaxCPUThreshold:         cfg.MaxCPUThreshold,
+		MaxMemoryThreshold:      cfg.MaxMemoryThreshold,
+		MaxDiskThreshold:        cfg.MaxDiskThreshold,
+		MonitorInterval:         2 * time.Second,
+	}
+
+	// Initialize resource monitor
+	var resourceMonitor *ResourceMonitor
+	if resourceConfig.EnableResourceMonitoring {
+		monitorConfig := ResourceMonitorConfig{
+			MaxCPUThreshold:    resourceConfig.MaxCPUThreshold,
+			MaxMemoryThreshold: resourceConfig.MaxMemoryThreshold,
+			MaxDiskThreshold:   resourceConfig.MaxDiskThreshold,
+			CheckInterval:      resourceConfig.MonitorInterval,
+		}
+		resourceMonitor = NewResourceMonitor(monitorConfig)
+		resourceMonitor.Start()
+		defer resourceMonitor.Stop()
+		
+		log.Printf("Resource-aware scheduling enabled: CPU<%.0f%%, Memory<%.0f%%, Disk<%.0f%%",
+			resourceConfig.MaxCPUThreshold, resourceConfig.MaxMemoryThreshold, resourceConfig.MaxDiskThreshold)
+		log.Printf("System info: %s", GetSystemInfo())
 	}
 
 	// Prepare build tasks
@@ -55,17 +91,41 @@ func BuildImages(cfg *config.Config, discoveryResult *discovery.DiscoveryResult,
 	// WaitGroup to wait for all goroutines to complete
 	var wg sync.WaitGroup
 
-	// Start goroutines
+	// Task queue for resource-aware scheduling
+	taskQueue := make(chan BuildTask, len(tasks))
 	for _, task := range tasks {
-		wg.Add(1)
-		go func(t BuildTask) {
-			defer wg.Done()
-			sem <- struct{}{} // Acquire semaphore
-			defer func() { <-sem }() // Release semaphore
+		taskQueue <- task
+	}
+	close(taskQueue)
 
-			result := BuildDockerImage(t)
-			resultsChan <- result
-		}(task)
+	// Worker pool with resource-aware scheduling
+	for i := 0; i < maxProcesses; i++ {
+		wg.Add(1)
+		go func(workerID int) {
+			defer wg.Done()
+
+			for task := range taskQueue {
+				// Resource-aware scheduling: wait for resources to be available
+				if resourceMonitor != nil {
+					for {
+						if resourceMonitor.CanSchedule() {
+							break
+						}
+						time.Sleep(500 * time.Millisecond) // Wait before retrying
+					}
+				}
+
+				sem <- struct{}{} // Acquire semaphore
+				
+				log.Printf("Worker %d: Starting build for %s", workerID, task.ServicePath)
+				result := BuildDockerImage(task)
+				
+				<-sem // Release semaphore
+				
+				resultsChan <- result
+				log.Printf("Worker %d: Completed build for %s (status: %s)", workerID, task.ServicePath, result.Status)
+			}
+		}(i)
 	}
 
 	// Close results channel when all goroutines are done

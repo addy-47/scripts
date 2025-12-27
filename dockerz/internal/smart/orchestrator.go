@@ -36,8 +36,14 @@ func NewOrchestrator(config *SmartConfig) *Orchestrator {
 			Level:   config.CacheLevel,
 			TTL:     config.CacheTTL,
 		})
+	case cache.DistributedCacheLevel:
+		cacheMgr = cache.NewDistributedCache(&cache.CacheConfig{
+			Enabled: config.CacheEnabled,
+			Level:   config.CacheLevel,
+			TTL:     config.CacheTTL,
+		})
 	default:
-		cacheMgr = cache.NewRegistryCache(&cache.CacheConfig{
+		cacheMgr = cache.NewDistributedCache(&cache.CacheConfig{
 			Enabled: config.CacheEnabled,
 			Level:   config.CacheLevel,
 			TTL:     config.CacheTTL,
@@ -56,8 +62,11 @@ func NewOrchestrator(config *SmartConfig) *Orchestrator {
 func (o *Orchestrator) SetLogger(logger *logging.Logger) {
 	o.logger = logger
 	// Also set logger for cache manager if it supports it
-	if registryCache, ok := o.cacheMgr.(*cache.RegistryCache); ok {
-		registryCache.SetLogger(logger)
+	switch cacheMgr := o.cacheMgr.(type) {
+	case *cache.RegistryCache:
+		cacheMgr.SetLogger(logger)
+	case *cache.DistributedCache:
+		cacheMgr.SetLogger(logger)
 	}
 }
 

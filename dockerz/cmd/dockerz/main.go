@@ -64,7 +64,7 @@ var rootCmd = &cobra.Command{
 	Long:  `Dockerz is a tool for building and pushing multiple Docker images in parallel based on a build.yaml configuration file.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if version {
-			fmt.Println("dockerz version 2.5.0")
+			fmt.Println("dockerz version 2.75.0")
 			return
 		}
 		PrintDockerzBanner()
