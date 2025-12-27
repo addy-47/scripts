@@ -1,0 +1,234 @@
+steps:
+  # ----------------------------------------------------------------------
+  # Step 0: Validate required substitutions
+  # ----------------------------------------------------------------------
+  - name: 'bash'
+    id: 'validate-substitutions'
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        if [ -z "${_REGION}" ] || [ -z "${_PROJECT_ID}" ] || [ -z "${_ARTIFACT_REPO}" ] || \
+           [ -z "${_GKE_CLUSTER}" ] || [ -z "${_GKE_LOCATION}" ] || [ -z "${_NS}" ] || \
+           [ -z "${SHORT_SHA}" ] || [ -z "${BRANCH_NAME}" ]; then
+          echo "Error: One or more required substitutions are missing."
+          exit 1
+        fi
+        echo "All substitutions validated successfully."
+
+  # ----------------------------------------------------------------------
+  # Step 0.5: SSH setup for Git authentication
+  # ----------------------------------------------------------------------
+  - name: 'gcr.io/cloud-builders/git'
+    secretEnv: ['SSH_KEY']
+    id: 'ssh-setup'
+    waitFor: ['validate-substitutions']
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        echo "Setting up SSH for Git authentication..."
+        mkdir -p /root/.ssh
+        echo "$$SSH_KEY" > /root/.ssh/id_rsa
+        chmod 400 /root/.ssh/id_rsa
+        ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
+        echo "SSH setup complete."
+    volumes:
+      - name: 'ssh'
+        path: /root/.ssh
+
+  # ----------------------------------------------------------------------
+  # Step 1: Clone repository
+  # ----------------------------------------------------------------------
+  - name: 'gcr.io/cloud-builders/git'
+    id: 'clone-repo'
+    waitFor: ['ssh-setup']
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        echo "Cloning repository..."
+        git clone --recurse-submodules git@github.com:HYPR4/unicommerce.git
+        cd unicommerce
+        git checkout $BRANCH_NAME
+        echo "Repository cloned and checked out to branch: $BRANCH_NAME"
+    volumes:
+      - name: 'ssh'
+        path: /root/.ssh
+
+  # ----------------------------------------------------------------------
+  # Step 2: Run Dockerz for smart build, push and change detection using custom image from artifact repo 
+  # ----------------------------------------------------------------------
+  - name: 'asia-south1-docker.pkg.dev/unicommerce-477809/unicommerce-dev/dockerz/dockerz:2.5'
+    id: 'run-dockerz'
+    waitFor: ['clone-repo']
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        export DOCKER_API_VERSION=1.41
+        cd unicommerce
+        echo "--- Verifying Dockerz --- "
+        dockerz --version && dockerz --help 
+        echo "--- Initilaising dockerz build.yaml ---"
+        dockerz init
+        echo "--- Running dockerz ---"
+        dockerz build \
+          --smart \
+          --git-track \
+          --cache \
+          --use-gar \
+          --push-to-gar \
+          --project=${_PROJECT_ID} \
+          --region=${_REGION} \
+          --gar=${_ARTIFACT_REPO} \
+          --global-tag=${SHORT_SHA} \
+          --services-dir=backend,frontend \
+          --output-changed-services=/workspace/changed_services.txt
+
+        if [ ! -s /workspace/changed_services.txt ] || [ "$(cat /workspace/changed_services.txt | tr -d '[:space:]')" = "" ]; then
+          echo "dockerz found no changed services. Exiting cleanly with status code 1 ."
+          exit 1   
+        else
+          echo "dockerz found changed services. Proceeding with build and deployment."
+          cat /workspace/changed_services.txt
+        fi
+    volumes:
+      - name: 'ssh'
+        path: /root/.ssh
+
+  # ----------------------------------------------------------------------
+  # Step 3: Update Kubernetes Manifests
+  # ----------------------------------------------------------------------
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'update-manifests'
+    waitFor: ['run-dockerz']
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+
+        cd /workspace/unicommerce/infra/kubernetes
+        changed_services=$(cat /workspace/changed_services.txt)
+
+        for svc in $changed_services; do
+          svc_basename=$(basename "$svc")
+          svc_name=$(echo "$svc_basename" | tr '[:upper:]' '[:lower:]' | sed 's|_|-|g')
+          img="${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_ARTIFACT_REPO}/$svc_name:$SHORT_SHA"
+
+          if [ "$svc_name" = "export-data" ]; then
+            echo "=== Updating export-data (Job Template + CronJobs) ==="
+            # Update job-template.yaml and all cronjobs
+            find . -type f \
+              \( -path "./jobs/job-template.yaml" -o -path "./cron-job-configuration/*.yaml" \) \
+              -exec sed -i "s|image:[[:space:]]*.*|image: $img|g" {} \;
+            echo "Updated export-data manifests."
+          else
+            manifest="deployments/${svc_name}-deployment.yaml"
+            if [ ! -f "$manifest" ]; then
+              echo "ERROR: Manifest not found: $manifest"
+              exit 1
+            fi
+            echo "=== Updating $manifest ==="
+            sed -i "s|image:[[:space:]]*.*|image: $img|g" "$manifest"
+            echo "Updated $svc_name manifest."
+          fi
+        done
+
+        echo "All manifests updated."
+
+  # ----------------------------------------------------------------------
+  # Step 4 : Commit & Push Manifest Changes
+  # ----------------------------------------------------------------------
+  - name: 'gcr.io/cloud-builders/git'
+    id: 'commit-manifests'
+    waitFor: ['update-manifests']
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+
+        cd /workspace/unicommerce
+        git config user.email "h4-cicd@h4-infra.iam.gserviceaccount.com"
+        git config user.name "Cloud Build CI/CD"
+
+        git add infra/kubernetes
+        if git diff --cached --quiet; then
+          echo "No manifest changes to commit."
+          exit 0
+        fi
+
+        git commit -m "chore: update image tags to $SHORT_SHA [skip ci]"
+        git push origin HEAD:$BRANCH_NAME
+        echo "Manifest changes committed and pushed."
+
+    volumes:
+      - name: 'ssh'
+        path: /root/.ssh
+
+  # ----------------------------------------------------------------------
+  # Step 5 : Deploy to GKE
+  # ----------------------------------------------------------------------
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-to-gke'
+    waitFor: ['commit-manifests']
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+
+        cd /workspace/unicommerce/infra/kubernetes
+        gcloud container clusters get-credentials ${_GKE_CLUSTER} \
+          --region ${_GKE_LOCATION} --project ${_PROJECT_ID} --dns-endpoint
+
+        changed_services=$(cat /workspace/changed_services.txt)
+
+        for svc in $changed_services; do
+          svc_basename=$(basename "$svc")
+          svc_name=$(echo "$svc_basename" | tr '[:upper:]' '[:lower:]' | sed 's|_|-|g')
+
+          if [ "$svc_name" = "export-data" ]; then
+            echo "=== Deploying export-data CronJobs ==="
+            kubectl apply -f cron-job-configuration/ -n ${_NS}
+            echo "Applied export-data CronJobs."
+          else
+            dep_name="${svc_name}-deployment"
+            manifest="deployments/${svc_name}-deployment.yaml"
+            echo "=== Deploying $dep_name ==="
+            kubectl apply -f "$manifest" -n ${_NS}
+            kubectl rollout status deployment/"$dep_name" -n ${_NS} --timeout=5m || \
+              echo "Rollout warning: $dep_name may still be progressing."
+          fi
+        done
+
+        echo "=== Deployment Summary ==="
+        kubectl get deployments -n ${_NS}
+        kubectl get cronjobs -n ${_NS}
+        kubectl get pods -n ${_NS} --sort-by=.metadata.creationTimestamp
+
+# ----------------------------------------------------------------------
+# Secrets & Config
+# ----------------------------------------------------------------------
+availableSecrets:
+  secretManager:
+    - versionName: projects/h4-infra/secrets/praneeth_git/versions/latest
+      env: 'SSH_KEY'
+
+serviceAccount: 'h4-cicd@h4-infra.iam.gserviceaccount.com'
+
+substitutions:
+  _REGION: "asia-south1"
+  _PROJECT_ID: "unicommerce-477809"
+  _ARTIFACT_REPO: "unicommerce-dev"
+  _GKE_CLUSTER: "unicom-cluster"
+  _GKE_LOCATION: "asia-south1-a"
+  _NS: "dev"
+
+logsBucket: "gs://h4-cloudbuild-logs"
+
+options:
+  substitutionOption: "ALLOW_LOOSE"
+  dynamicSubstitutions: true
+  logging: GCS_ONLY
+
+timeout: 7200s
