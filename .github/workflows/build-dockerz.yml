@@ -41,8 +41,12 @@ jobs:
       run: |
         cd dockerz
         dpkg-buildpackage -us -uc -b
-        DEB_FILE=$(ls ../dockerz_*.deb)
+        # The deb file is built in the parent directory
+        cd ..
+        DEB_FILE=$(ls dockerz_*.deb)
         echo "DEB_FILE=$DEB_FILE" >> $GITHUB_ENV
+        echo "Deb file path: $DEB_FILE"
+        ls -la *.deb || echo "No deb files found in current directory"
 
     - name: Checkout install branch
       uses: actions/checkout@v4
@@ -55,6 +59,7 @@ jobs:
       run: |
         # Create apt directory structure if it doesn't exist
         mkdir -p install-repo/apt/pool/main/dockerz
+        mkdir -p install-repo/apt/dists/stable/main/binary-amd64
         
         # Copy the new deb package
         cp ${{ env.DEB_FILE }} install-repo/apt/pool/main/dockerz/
