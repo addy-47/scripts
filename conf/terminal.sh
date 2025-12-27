@@ -208,10 +208,10 @@ set_terminal_theme_grey() {
     # Apply tmux colors for grey theme
     apply_tmux_theme "grey"
 }
-set_terminal_theme_grey_green() {
+set_terminal_theme_grey_yellow() {
     # Colors from the current 'addy' profile (converted from RGB to hex)
     # Original RGB values: rgb(31,30,30), rgb(188,180,185), rgb(204,238,242), etc.
-    local colors=('#000000' '#B4AEAE' '#B3ACAC' '#B4A68E' '#7A818A' '#8FAB9D' '#88A99E' '#95BEB3' '#B1C5C1' '#7EA2A7' '#121312' '#9FA7C4' '#9987BC' '#86AF9A' '#C4C4C4' '#91BBAC')
+    local colors=('#000000' '#B4AEAE' '#B3ACAC' '#B4A68E' '#7A818A' '#9BAB8F' '#ABB28E' '#B3BE95' '#C4C5B1' '#A4A77E' '#121312' '#9FA7C4' '#9987BC' '#98AF86' '#C4C4C4' '#A7BB91')
     local PALETTE_ARRAY=()
     for color in "${colors[@]}"; do
         PALETTE_ARRAY+=("'$(hex_to_rgb "$color")'")
@@ -222,14 +222,14 @@ set_terminal_theme_grey_green() {
     # Use the exact colors from the current 'addy' profile
     local FG_COLOR="'rgb(255,255,255)'"
     local BOLD_COLOR="'rgb(255,255,255)'"
-    apply_terminal_theme "addy-grey-green" "$PALETTE" "$FG_COLOR" "$BOLD_COLOR"
+    apply_terminal_theme "addy-grey-yellow" "$PALETTE" "$FG_COLOR" "$BOLD_COLOR"
     
     # Set as default and restart terminal safely
-    set_default_profile_by_name "addy-grey-green"
+    set_default_profile_by_name "addy-grey-yellow"
     restart_gnome_terminal
     
-    # Apply tmux colors for grey-green theme
-    apply_tmux_theme "grey-green"
+    # Apply tmux colors for grey-yellow theme
+    apply_tmux_theme "grey-yellow"
 }
 
 # -----------------------------------------------------------------------------------
@@ -254,7 +254,7 @@ apply_tmux_theme() {
         "grey")
             sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#808080' "$tmux_conf"
             ;;
-        "grey-green")
+        "grey-yellow")
             sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#53635b' "$tmux_conf"
             ;;    
     esac
@@ -287,8 +287,8 @@ set_tmux_theme_grey() {
     apply_tmux_theme "grey"
 }
 
-set_tmux_theme_grey_green() {
-    apply_tmux_theme "grey-green"
+set_tmux_theme_grey_yellow() {
+    apply_tmux_theme "grey-yellow"
 }
 
 # -----------------------------------------------------------------------------------
