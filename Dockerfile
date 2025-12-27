@@ -1,36 +1,48 @@
-FROM google/cloud-sdk:latest
+# Use a smaller base image with just the essentials
+FROM alpine:latest as builder
 
-# Install necessary dependencies and Docker CLI
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    apt-transport-https \
+# Install Go and build dependencies
+RUN apk add --no-cache \
     ca-certificates \
     curl \
-    gnupg \
-    lsb-release \
-    && mkdir -p /etc/apt/keyrings \
-    && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends docker-ce-cli
+    git \
+    go \
+    make \
+    gcc \
+    musl-dev \
+    && update-ca-certificates
 
-# Install Go
-ENV GO_VERSION=1.21.0
-RUN curl -fsSL "https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz" -o go.tar.gz && \
-    tar -C /usr/local -xzf go.tar.gz && \
-    rm go.tar.gz
-ENV PATH="/usr/local/go/bin:${PATH}"
+# Set Go environment
+ENV GO111MODULE=on \
+    GOPROXY=https://proxy.golang.org,direct \
+    CGO_ENABLED=0
 
 # Build dockerz from source
-COPY . /app/dockerz
-WORKDIR /app/dockerz
+WORKDIR /build
+COPY . .
 RUN go mod tidy && \
-    go build -o dockerz ./cmd/dockerz && \
-    mv dockerz /usr/local/bin/
+    go build -ldflags="-s -w" -o dockerz ./cmd/dockerz
 
-# Set the working directory for the final image
+# Create a minimal runtime image
+FROM alpine:latest
+
+# Install only runtime dependencies
+RUN apk add --no-cache \
+    ca-certificates \
+    bash \
+    curl \
+    docker-cli \
+    git \
+    && update-ca-certificates
+
+# Copy the built binary from builder stage
+COPY --from=builder /build/dockerz /usr/local/bin/dockerz
+
+# Set working directory
 WORKDIR /workspace
 
 # Verify installations
-RUN gcloud --version && docker --version && git --version && dockerz --version
+RUN dockerz --version
 
-ENTRYPOINT ["/bin/bash"]
+# Use dockerz as the default entrypoint
+ENTRYPOINT ["dockerz"]

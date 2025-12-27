@@ -55,7 +55,18 @@ func BuildDockerImage(task BuildTask) BuildResult {
 	log.Printf("Building image for %s: %s", task.ServicePath, imageFullName)
 
 	// Build the image
-	buildCmd := exec.Command("docker", "build", "-t", imageFullName, ".")
+	var buildCmd *exec.Cmd
+	if task.Config.EnableBuildKit {
+		// Use BuildKit for better caching and performance
+		buildCmd = exec.Command("docker", "build", "--progress=plain", "--cache-from=type=registry,ref="+imageFullName, "-t", imageFullName, ".")
+		buildCmd.Env = append(os.Environ(), "DOCKER_BUILDKIT=1", "BUILDKIT_PROGRESS=plain")
+		log.Printf("Building %s with BuildKit enabled", imageFullName)
+	} else {
+		// Use traditional docker build
+		buildCmd = exec.Command("docker", "build", "-t", imageFullName, ".")
+		log.Printf("Building %s with traditional docker build", imageFullName)
+	}
+	
 	buildCmd.Dir = task.ServicePath
 	buildCmd.Stdout = os.Stdout
 	buildCmd.Stderr = os.Stderr
@@ -74,20 +85,8 @@ func BuildDockerImage(task BuildTask) BuildResult {
 
 	// Push to GAR if enabled and build was successful
 	if task.Config.UseGAR && task.Config.PushToGAR && result.Status == "success" {
-		log.Printf("Pushing image to GAR: %s", imageFullName)
-
-		pushCmd := exec.Command("docker", "push", imageFullName)
-		pushCmd.Stdout = os.Stdout
-		pushCmd.Stderr = os.Stderr
-
-		if err := pushCmd.Run(); err != nil {
-			log.Printf("Failed to push %s", imageFullName)
-			result.PushStatus = "failed"
-			result.PushOutput = err.Error()
-		} else {
-			log.Printf("Successfully pushed %s", imageFullName)
-			result.PushStatus = "success"
-		}
+		log.Printf("Queueing push to GAR: %s", imageFullName)
+		result.PushStatus = "queued"
 	}
 
 	return result

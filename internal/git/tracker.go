@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/addy-47/dockerz/internal/logging"
 )
@@ -12,12 +13,16 @@ import (
 func NewTracker() *Tracker {
 	return &Tracker{
 		logger: nil, // Will be set by caller
+		cache:  NewGitCache(),
 	}
 }
 
 // SetLogger sets the logger for the tracker
 func (t *Tracker) SetLogger(logger *logging.Logger) {
 	t.logger = logger
+	if t.cache != nil {
+		t.cache.SetLogger(logger)
+	}
 }
 
 // getGitRoot finds the root directory of the git repository
@@ -39,39 +44,117 @@ func (t *Tracker) GetChangedFiles(servicePath string, depth int) ([]string, erro
 		t.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("Analyzing git changes for %s (depth: %d)", servicePath, depth))
 	}
 
-	// Check 1: Get uncommitted changes (git status --porcelain)
-	statusFiles, err := t.getUncommittedChanges(servicePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get uncommitted changes for %s: %w", servicePath, err)
-	}
+	// Check cache first for git status
+	if t.cache != nil {
+		if cachedStatus, found := t.cache.GetCachedStatus(servicePath, depth); found {
+			statusFiles := cachedStatus
+			if t.logger != nil {
+				t.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("Using cached git status for %s: %d files", servicePath, len(statusFiles)))
+			}
 
-	if t.logger != nil {
-		t.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("Found %d uncommitted changes in %s", len(statusFiles), servicePath))
-	}
+			// Add status files to result
+			for _, file := range statusFiles {
+				if !fileSet[file] {
+					fileSet[file] = true
+					allChangedFiles = append(allChangedFiles, file)
+				}
+			}
+		} else {
+			// Cache miss - get uncommitted changes (git status --porcelain)
+			statusFiles, err := t.getUncommittedChanges(servicePath)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get uncommitted changes for %s: %w", servicePath, err)
+			}
 
-	// Add status files to result
-	for _, file := range statusFiles {
-		if !fileSet[file] {
-			fileSet[file] = true
-			allChangedFiles = append(allChangedFiles, file)
+			if t.logger != nil {
+				t.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("Found %d uncommitted changes in %s", len(statusFiles), servicePath))
+			}
+
+			// Cache the result
+			t.cache.CacheStatus(servicePath, depth, statusFiles, 5*time.Minute)
+
+			// Add status files to result
+			for _, file := range statusFiles {
+				if !fileSet[file] {
+					fileSet[file] = true
+					allChangedFiles = append(allChangedFiles, file)
+				}
+			}
+		}
+	} else {
+		// No cache - get uncommitted changes (git status --porcelain)
+		statusFiles, err := t.getUncommittedChanges(servicePath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get uncommitted changes for %s: %w", servicePath, err)
+		}
+
+		if t.logger != nil {
+			t.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("Found %d uncommitted changes in %s", len(statusFiles), servicePath))
+		}
+
+		// Add status files to result
+		for _, file := range statusFiles {
+			if !fileSet[file] {
+				fileSet[file] = true
+				allChangedFiles = append(allChangedFiles, file)
+			}
 		}
 	}
 
-	// Check 2: Get changes from recent commits (git diff HEAD~N HEAD)
-	commitFiles, err := t.getCommitChanges(servicePath, depth)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get commit changes for %s: %w", servicePath, err)
-	}
+	// Check cache first for git diff
+	if t.cache != nil {
+		if cachedDiff, found := t.cache.GetCachedDiff(servicePath, depth); found {
+			commitFiles := cachedDiff
+			if t.logger != nil {
+				t.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("Using cached git diff for %s: %d files", servicePath, len(commitFiles)))
+			}
 
-	if t.logger != nil {
-		t.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("Found %d commit changes in %s", len(commitFiles), servicePath))
-	}
+			// Add commit files to result (deduplicated)
+			for _, file := range commitFiles {
+				if !fileSet[file] {
+					fileSet[file] = true
+					allChangedFiles = append(allChangedFiles, file)
+				}
+			}
+		} else {
+			// Cache miss - get changes from recent commits (git diff HEAD~N HEAD)
+			commitFiles, err := t.getCommitChanges(servicePath, depth)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get commit changes for %s: %w", servicePath, err)
+			}
 
-	// Add commit files to result (deduplicated)
-	for _, file := range commitFiles {
-		if !fileSet[file] {
-			fileSet[file] = true
-			allChangedFiles = append(allChangedFiles, file)
+			if t.logger != nil {
+				t.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("Found %d commit changes in %s", len(commitFiles), servicePath))
+			}
+
+			// Cache the result
+			t.cache.CacheDiff(servicePath, depth, commitFiles, 5*time.Minute)
+
+			// Add commit files to result (deduplicated)
+			for _, file := range commitFiles {
+				if !fileSet[file] {
+					fileSet[file] = true
+					allChangedFiles = append(allChangedFiles, file)
+				}
+			}
+		}
+	} else {
+		// No cache - get changes from recent commits (git diff HEAD~N HEAD)
+		commitFiles, err := t.getCommitChanges(servicePath, depth)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get commit changes for %s: %w", servicePath, err)
+		}
+
+		if t.logger != nil {
+			t.logger.Debug(logging.CATEGORY_GIT, fmt.Sprintf("Found %d commit changes in %s", len(commitFiles), servicePath))
+		}
+
+		// Add commit files to result (deduplicated)
+		for _, file := range commitFiles {
+			if !fileSet[file] {
+				fileSet[file] = true
+				allChangedFiles = append(allChangedFiles, file)
+			}
 		}
 	}
 

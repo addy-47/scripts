@@ -1,5 +1,5 @@
 Package: dockerz
-Version: 2.5.0-1
+Version: 2.75.0-1
 Architecture: amd64
 Maintainer: Adhbhut Gupta <adhbutg@gmail.com>
 Installed-Size: 4964
@@ -9,7 +9,7 @@ Section: utils
 Priority: optional
 Homepage: https://github.com/addy-47/dockerz
 Description: Smart multi-service Docker builder with advanced Git change detection
-  Dockerz v2.5.0 is a powerful CLI tool for building and pushing multiple Docker
+  Dockerz v2.75.0 is a powerful CLI tool for building and pushing multiple Docker
   images in parallel with advanced smart features and comprehensive Git operation
   support. It supports intelligent change detection, multi-level caching, smart
   build orchestration, and robust handling of complex Git scenarios to significantly

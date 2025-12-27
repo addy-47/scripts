@@ -43,4 +43,5 @@ type DiffResult struct {
 type Tracker struct {
 	lastCommit string
 	logger     *logging.Logger
+	cache      *GitCache
 }

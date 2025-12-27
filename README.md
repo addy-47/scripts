@@ -1,4 +1,4 @@
-# Dockerz v2.5.0 - The Ultimate Docker Companion Tool
+# Dockerz v2.75.0 - The Ultimate Docker Companion Tool
 
 ```
      _            _                    
@@ -22,7 +22,7 @@ Dockerz is a powerful CLI tool for building and pushing multiple Docker images i
 - **Flexible Configuration**: YAML-based configuration with comprehensive CLI flag overrides
 - **Cross-Platform**: Works on Linux, macOS, and Windows (WSL2)
 
-### 🧠 Smart Features (v2.5)
+### 🧠 Smart Features (v2.75)
 - **Git Change Detection**: Automatically detect which services have changed using git diff analysis
 - **Multi-Level Caching**: Layer, local hash, and registry-based caching for optimal performance
 - **Smart Build Orchestration**: Intelligently skip unchanged services, only rebuild what needs rebuilding
@@ -141,7 +141,7 @@ dockerz build
 dockerz build --max-processes 8
 
 # Build with custom configuration
-dockerz build --project my-project --region us-west1 --gar my-registry --global-tag v2.5.0
+dockerz build --project my-project --region us-west1 --gar my-registry --global-tag v2.75.0
 ```
 
 ### Smart Features Usage
@@ -218,7 +218,7 @@ dockerz init
 ### Example `build.yaml`
 
 ```yaml
-# Dockerz v2.5 Configuration
+# Dockerz v2.75 Configuration
 # This file configures how Dockerz builds and manages your microservices.
 
 # ===== DIRECTORY CONFIGURATION =====
@@ -236,7 +236,7 @@ max_processes: 4                 # Max parallel builds
 use_gar: false                   # Use GAR naming
 push_to_gar: false               # Push to GAR after building
 
-# ===== SMART FEATURES (v2.5) =====
+# ===== SMART FEATURES (v2.75) =====
 smart: false                     # Enable smart build orchestration
 git_track: false                 # Enable git change detection
 cache: false                     # Enable build caching
@@ -276,7 +276,7 @@ services: []
 ## Smart Features Deep Dive
 
 ### Automatic Service Discovery
-Dockerz v2.5 intelligently discovers services by:
+Dockerz v2.75 intelligently discovers services by:
 - Scanning for `Dockerfile` files recursively
 - Excluding build directories (`debian/`, `build/`, `dist/`)
 - Excluding dependency directories (`node_modules/`, `vendor/`, `__pycache__/`)
@@ -461,4 +461,4 @@ GOOS=windows GOARCH=amd64 go build -o dockerz-windows-amd64.exe ./cmd/dockerz
 
 ---
 
-**Dockerz v2.5.0** - Making container build orchestration intelligent, fast, and developer-friendly.
+**Dockerz v2.75.0** - Making container build orchestration intelligent, fast, and developer-friendly.
