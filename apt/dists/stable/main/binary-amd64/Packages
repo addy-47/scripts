@@ -6,10 +6,10 @@ Installed-Size: 5065
 Depends: docker (>= 20.10) | docker.io | docker-ce, git, libc6 (>= 2.34)
 Recommends: google-cloud-sdk
 Filename: pool/main/dockerz/dockerz_2.75.0-1_amd64.deb
-Size: 1891980
-MD5sum: 97a4d46bd5cb3aaec8101f0dc642fa1c
-SHA1: 03cb28733f340dd3f119894973fb485aeb7b34cb
-SHA256: 627318cb3b0cfb106bd7c817e5c4bbecfabe89cc8915479a0c505463e859507c
+Size: 1892006
+MD5sum: 844a9efe8077dc6db817a690a32e4e1b
+SHA1: 1d62374a547b4db3530a16936639f6af0dbcd79a
+SHA256: 17879de77564bebbef655d397564a50e8e0016a80638c5ef1807e0ff3d605d29
 Section: utils
 Priority: optional
 Homepage: https://github.com/addy-47/dockerz
