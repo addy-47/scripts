@@ -59,15 +59,20 @@ steps:
   # ----------------------------------------------------------------------
   # Step 2: Run Dockerz for smart build, push and change detection using custom image from artifact repo 
   # ----------------------------------------------------------------------
-  - name: 'asia-south1-docker.pkg.dev/unicommerce-477809/unicommerce-dev/dockerz/dockerz:2.75'
+  - name: 'addyo07/dockerz:2.5.0'
     id: 'run-dockerz'
     waitFor: ['clone-repo']
     entrypoint: 'bash'
+    privileged: true
     args:
       - -c
       - |
         export DOCKER_API_VERSION=1.41
         cd unicommerce
+        echo "--- Ensure gcloud exists ---"
+        gcloud --version
+        echo "--- Configuring docker for gcloud ---"
+        gcloud auth configure-docker ${_REGION}-docker.pkg.dev --quiet
         echo "--- Verifying Dockerz --- "
         dockerz --version && dockerz --help 
         echo "--- Initilaising dockerz build.yaml ---"

@@ -5,7 +5,7 @@
 # Directory to scan for services (leave empty for auto-discovery of all subdirectories)
 # Can be overridden with --services-dir flag (supports comma-separated paths)
 # Example: --services-dir=backend,frontend/src,api/services
-# Note: Auto-discovery excludes common build/dependency directories like debian/, node_modules/, .git/, etc.
+# Note: Auto-discovery excludes common build/dependency directories like debian/, node_modules/, .git/, etc...
 services_dir:
 
 # ===== GOOGLE CLOUD CONFIGURATION =====

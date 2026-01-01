@@ -1,4 +1,4 @@
-# Use a smaller base image with just the essentials
+# Use a smaller base image with just the essentials for building
 FROM alpine:latest as builder
 
 # Install Go and build dependencies
@@ -19,23 +19,41 @@ ENV GO111MODULE=on \
 
 # Build dockerz from source
 WORKDIR /build
+COPY go.mod go.sum .
 COPY . .
 RUN go mod tidy && \
     go build -ldflags="-s -w" -o dockerz ./cmd/dockerz
 
-# Create a minimal runtime image
-FROM alpine:latest
+# Use the official Docker image as the base
+FROM docker:latest
 
-# Install only runtime dependencies
+# Install additional dependencies
 RUN apk add --no-cache \
     ca-certificates \
     bash \
     curl \
-    docker-cli \
     git \
+    python3 \
+    py3-pip \
     && update-ca-certificates
 
-# Copy the built binary from builder stage
+# Install gcloud CLI
+RUN curl -sSL https://sdk.cloud.google.com | bash -s -- --disable-prompts \
+    && /root/google-cloud-sdk/bin/gcloud --quiet components update
+
+# Ensure gcloud and docker buildx are on PATH and configured
+ENV PATH="/root/google-cloud-sdk/bin:${PATH}" \
+    DOCKER_BUILDKIT=1
+
+RUN ln -s /root/google-cloud-sdk/bin/gcloud /usr/local/bin/gcloud || true
+
+# Install docker-buildx plugin
+RUN mkdir -p /usr/libexec/docker/cli-plugins \
+    && curl -sSL -o /usr/libexec/docker/cli-plugins/docker-buildx \
+       "https://github.com/docker/buildx/releases/latest/download/buildx-linux-amd64" \
+    && chmod +x /usr/libexec/docker/cli-plugins/docker-buildx
+
+# Copy the built binary from the builder stage
 COPY --from=builder /build/dockerz /usr/local/bin/dockerz
 
 # Set working directory

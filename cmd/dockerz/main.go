@@ -140,9 +140,14 @@ All flags can override corresponding settings in the configuration file.`,
 		}
 
 		// Get default tag (short Git commit ID) if global_tag is not specified
-		defaultTag := cfg.GlobalTag
-		if defaultTag == "" {
+		// Check if global tag was explicitly provided via CLI flag
+		var defaultTag string
+		if cmd.Flags().Changed("global-tag") {
+			defaultTag = cfg.GlobalTag
+		} else if cfg.GlobalTag == "" {
 			defaultTag = builder.GetGitCommitID()
+		} else {
+			defaultTag = cfg.GlobalTag
 		}
 
 		// Override config with CLI flags if provided
