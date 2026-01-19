@@ -2,14 +2,14 @@ Package: dockerz
 Version: 2.75.0-1
 Architecture: amd64
 Maintainer: Adhbhut Gupta <adhbutg@gmail.com>
-Installed-Size: 5065
+Installed-Size: 5073
 Depends: docker (>= 20.10) | docker.io | docker-ce, git, libc6 (>= 2.34)
 Recommends: google-cloud-sdk
 Filename: pool/main/dockerz/dockerz_2.75.0-1_amd64.deb
-Size: 1892006
-MD5sum: 844a9efe8077dc6db817a690a32e4e1b
-SHA1: 1d62374a547b4db3530a16936639f6af0dbcd79a
-SHA256: 17879de77564bebbef655d397564a50e8e0016a80638c5ef1807e0ff3d605d29
+Size: 1896250
+MD5sum: 8ebebbb8880b4bcdfd25f46bc3b18ca5
+SHA1: d576530896153c6b388b64ab19d1a9425b38522f
+SHA256: c0a1bbe1a19d1eaab94443d1d31abc3135f50516aac5f761955e01c58f151133
 Section: utils
 Priority: optional
 Homepage: https://github.com/addy-47/dockerz
