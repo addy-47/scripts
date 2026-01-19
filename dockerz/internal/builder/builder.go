@@ -83,11 +83,5 @@ func BuildDockerImage(task BuildTask) BuildResult {
 	result.Status = "success"
 	result.EndTime = time.Now()
 
-	// Push to GAR if enabled and build was successful
-	if task.Config.UseGAR && task.Config.PushToGAR && result.Status == "success" {
-		log.Printf("Queueing push to GAR: %s", imageFullName)
-		result.PushStatus = "queued"
-	}
-
 	return result
 }

@@ -694,8 +694,8 @@ set_system_theme_grey() {
 set_system_theme_grey_yellow() {
     _log_system "Setting up system theme: addy-grey-yellow"
     # Using the exact colors from the current 'addy' profile
-    local THEME_COLOR="#B4AEAE"
-    local THEME_COLOR_RGB="180, 174, 174"
+    local THEME_COLOR="#F1EEDA" 
+    local THEME_COLOR_RGB="241, 238, 218"
     local YARU_COLOR="grey-yellow"
 
     # Install Yaru theme

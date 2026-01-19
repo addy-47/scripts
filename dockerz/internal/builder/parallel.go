@@ -58,10 +58,18 @@ func BuildImages(cfg *config.Config, discoveryResult *discovery.DiscoveryResult,
 		resourceMonitor = NewResourceMonitor(monitorConfig)
 		resourceMonitor.Start()
 		defer resourceMonitor.Stop()
-		
+
 		log.Printf("Resource-aware scheduling enabled: CPU<%.0f%%, Memory<%.0f%%, Disk<%.0f%%",
 			resourceConfig.MaxCPUThreshold, resourceConfig.MaxMemoryThreshold, resourceConfig.MaxDiskThreshold)
 		log.Printf("System info: %s", GetSystemInfo())
+	}
+
+	// Initialize PushManager if push to GAR is enabled
+	var pushManager *PushManager
+	if cfg.UseGAR && cfg.PushToGAR {
+		pushManager = NewPushManager(cfg, maxProcesses/2) // Use half the processes for pushes
+		pushManager.Start()
+		defer pushManager.Stop()
 	}
 
 	// Prepare build tasks
@@ -116,12 +124,29 @@ func BuildImages(cfg *config.Config, discoveryResult *discovery.DiscoveryResult,
 				}
 
 				sem <- struct{}{} // Acquire semaphore
-				
+
 				log.Printf("Worker %d: Starting build for %s", workerID, task.ServicePath)
 				result := BuildDockerImage(task)
-				
+
+				// If push to GAR is enabled and build was successful, queue the push
+				if pushManager != nil && result.Status == "success" {
+					log.Printf("Queueing push to GAR: %s", result.Image)
+					resultChan := pushManager.QueuePush(result.Image, task.ServicePath)
+
+					// Wait for push result and update result status
+					pushResult := <-resultChan
+					if pushResult.Status == "success" {
+						result.PushStatus = "success"
+						log.Printf("Successfully pushed %s", result.Image)
+					} else {
+						result.PushStatus = "failed"
+						result.PushOutput = pushResult.Output
+						log.Printf("Failed to push %s: %v", result.Image, pushResult.Output)
+					}
+				}
+
 				<-sem // Release semaphore
-				
+
 				resultsChan <- result
 				log.Printf("Worker %d: Completed build for %s (status: %s)", workerID, task.ServicePath, result.Status)
 			}
@@ -143,6 +168,12 @@ func BuildImages(cfg *config.Config, discoveryResult *discovery.DiscoveryResult,
 			fmt.Fprintf(logFile, "[%s] Service: %s, Image: %s, Status: %s", time.Now().Format("15:04:05"), result.Service, result.Image, result.Status)
 			if result.Status == "failed" {
 				fmt.Fprintf(logFile, ", Build Output: %s", result.BuildOutput)
+			}
+			if result.PushStatus != "" && result.PushStatus != "success" {
+				fmt.Fprintf(logFile, ", Push Status: %s", result.PushStatus)
+				if result.PushOutput != "" {
+					fmt.Fprintf(logFile, ", Push Output: %s", result.PushOutput)
+				}
 			}
 			fmt.Fprintf(logFile, "\n")
 		}
