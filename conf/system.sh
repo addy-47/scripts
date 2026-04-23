@@ -719,3 +719,57 @@ set_system_theme_grey_yellow() {
     return 0
 }
 
+set_system_theme_orange() {
+    _log_system "Setting up system theme: addy-orange"
+    local THEME_COLOR="#ea9189"
+    local THEME_COLOR_RGB="234, 145, 137"
+    local YARU_COLOR="orange"
+
+    # Install Yaru theme
+    install_yaru_theme "$YARU_COLOR"
+    
+    create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
+    apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
+
+    # Apply system settings with Yaru theme
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface cursor-theme "Yaru"
+    gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
+    gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/orange.png"
+    gsettings set org.gnome.desktop.background picture-uri-dark "file:///home/addy/projects/scripts/conf/wallpapers/orange.png"
+    
+    # Set prefer-dark color scheme for Ubuntu
+    gsettings set org.gnome.shell.ubuntu color-scheme prefer-dark
+    
+    _log_system "✅ System theme 'addy-orange' applied successfully."
+    return 0
+}
+
+set_system_theme_brown() {
+    _log_system "Setting up system theme: addy-brown"
+    local THEME_COLOR="#E8D4CC"
+    local THEME_COLOR_RGB="232, 212, 204"
+    local YARU_COLOR="bark"
+
+    # Install Yaru theme
+    install_yaru_theme "$YARU_COLOR"
+    
+    create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
+    apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
+
+    # Apply system settings with Yaru theme
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR-dark"
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface cursor-theme "Yaru"
+    gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
+    gsettings set org.gnome.desktop.background picture-uri "file:///home/addy/projects/scripts/conf/wallpapers/brown.png"
+    gsettings set org.gnome.desktop.background picture-uri-dark "file:///home/addy/projects/scripts/conf/wallpapers/brown.png"
+    
+    # Set prefer-dark color scheme for Ubuntu
+    gsettings set org.gnome.shell.ubuntu color-scheme prefer-dark
+    
+    _log_system "✅ System theme 'addy-brown' applied successfully."
+    return 0
+}
+

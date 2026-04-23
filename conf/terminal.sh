@@ -232,6 +232,48 @@ set_terminal_theme_grey_yellow() {
     apply_tmux_theme "grey-yellow"
 }
 
+set_terminal_theme_orange() {
+    local colors=('#000000' '#b4aeae' '#968b8b' '#b48eb0' '#7a818a' '#ab8f8f' '#b28e8e' '#be9595' '#d7b2aa' '#947ea7' '#ffd8d8' '#9fa7c4' '#9987bc' '#98af86' '#c4c4c4' '#bba091')
+    local PALETTE_ARRAY=()
+    for color in "${colors[@]}"; do
+        PALETTE_ARRAY+=("'$(hex_to_rgb "$color")'")
+    done
+    local PALETTE_STRING=$(IFS=,; echo "${PALETTE_ARRAY[*]}")
+    local PALETTE="[$PALETTE_STRING]"
+
+    local FG_COLOR="'$(hex_to_rgb "#ea9189")'"
+    local BOLD_COLOR="'$(hex_to_rgb "#ffffff")'"
+    apply_terminal_theme "addy-orange" "$PALETTE" "$FG_COLOR" "$BOLD_COLOR"
+    
+    # Set as default and restart terminal safely
+    set_default_profile_by_name "addy-orange"
+    restart_gnome_terminal
+    
+    # Apply tmux colors for orange theme
+    apply_tmux_theme "orange"
+}
+
+set_terminal_theme_brown() {
+    local colors=('#111111' '#CFCAC2' '#999CAF' '#9C8F84' '#D9D5D1' '#AA9696' '#8F8E8C' '#EEDFD5' '#8EADCA' '#ADACA3' '#B5B8B5' '#96BAD6' '#8C787E' '#BDB3B2' '#665656' '#9AC2FF')
+    local PALETTE_ARRAY=()
+    for color in "${colors[@]}"; do
+        PALETTE_ARRAY+=("'$(hex_to_rgb "$color")'")
+    done
+    local PALETTE_STRING=$(IFS=,; echo "${PALETTE_ARRAY[*]}")
+    local PALETTE="[$PALETTE_STRING]"
+
+    local FG_COLOR="'$(hex_to_rgb "#E8D4CC")'"
+    local BOLD_COLOR="'$(hex_to_rgb "#CAC8C8")'"
+    apply_terminal_theme "addy-brown" "$PALETTE" "$FG_COLOR" "$BOLD_COLOR"
+    
+    # Set as default and restart terminal safely
+    set_default_profile_by_name "addy-brown"
+    restart_gnome_terminal
+    
+    # Apply tmux colors for brown theme
+    apply_tmux_theme "brown"
+}
+
 # -----------------------------------------------------------------------------------
 # SECTION 3: TMUX THEME FUNCTIONS USING SED
 # -----------------------------------------------------------------------------------
@@ -257,6 +299,12 @@ apply_tmux_theme() {
         "grey-yellow")
             sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#53635b' "$tmux_conf"
             ;;    
+        "orange")
+            sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#ea9189' "$tmux_conf"
+            ;;
+        "brown")
+            sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#E8D4CC' "$tmux_conf"
+            ;;
     esac
     
     reload_tmux
@@ -289,6 +337,14 @@ set_tmux_theme_grey() {
 
 set_tmux_theme_grey_yellow() {
     apply_tmux_theme "grey-yellow"
+}
+
+set_tmux_theme_orange() {
+    apply_tmux_theme "orange"
+}
+
+set_tmux_theme_brown() {
+    apply_tmux_theme "brown"
 }
 
 # -----------------------------------------------------------------------------------

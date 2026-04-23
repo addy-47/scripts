@@ -110,6 +110,8 @@ select_theme() {
     [ -f "$SCRIPT_DIR/wallpapers/yellow.png" ] && available_themes+=("addy-yellow" "Yellow Theme")
     [ -f "$SCRIPT_DIR/wallpapers/grey.png" ] && available_themes+=("addy-grey" "Grey Theme")
     [ -f "$SCRIPT_DIR/wallpapers/grey-yellow.png" ] && available_themes+=("addy-grey-yellow" "grey-yellow Theme")
+    [ -f "$SCRIPT_DIR/wallpapers/orange.png" ] && available_themes+=("addy-orange" "Orange Theme")
+    [ -f "$SCRIPT_DIR/wallpapers/brown.png" ] && available_themes+=("addy-brown" "Brown Theme")
     available_themes+=("Skip" "Skip theme application")
     
     if [ ${#available_themes[@]} -eq 2 ]; then
@@ -193,6 +195,14 @@ apply_theme() {
             required_functions=("set_system_theme_grey_yellow" 
             "set_terminal_theme_grey_yellow" "set_tmux_theme_grey_yellow")
             ;;     
+        "addy-orange")
+            required_functions=("set_system_theme_orange" 
+            "set_terminal_theme_orange" "set_tmux_theme_orange")
+            ;;
+        "addy-brown")
+            required_functions=("set_system_theme_brown" 
+            "set_terminal_theme_brown" "set_tmux_theme_brown")
+            ;;
         *)
             print_error "Unknown theme: $theme_name"
             return 1
@@ -279,6 +289,30 @@ apply_theme() {
                 system_success=true
             fi
             ;; 
+        "addy-orange")
+            print_debug "Calling set_system_theme_orange..."
+            SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
+            if set_system_theme_orange 2>&1 | tee "$SYSTEM_LOG_FILE"; then
+                system_success=true
+                print_debug "System theme orange succeeded"
+            else
+                print_warning "System theme application encountered issues, but continuing..."
+                print_debug "System theme orange failed. Check $SYSTEM_LOG_FILE"
+                system_success=true
+            fi
+            ;;
+        "addy-brown")
+            print_debug "Calling set_system_theme_brown..."
+            SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
+            if set_system_theme_brown 2>&1 | tee "$SYSTEM_LOG_FILE"; then
+                system_success=true
+                print_debug "System theme brown succeeded"
+            else
+                print_warning "System theme application encountered issues, but continuing..."
+                print_debug "System theme brown failed. Check $SYSTEM_LOG_FILE"
+                system_success=true
+            fi
+            ;;
     esac
     
     # Apply terminal theme
@@ -404,7 +438,54 @@ apply_theme() {
                 print_warning "set_tmux_theme_grey_yellow function not found"
             fi
             ;; 
-
+        "addy-orange")
+            print_debug "Calling set_terminal_theme_orange..."
+            TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
+            if set_terminal_theme_orange 2>&1 | tee "$TERMINAL_LOG_FILE"; then
+                terminal_success=true
+                print_debug "Terminal theme orange succeeded"
+            else
+                print_warning "Terminal theme application encountered issues."
+                print_debug "Terminal theme orange failed. Check $TERMINAL_LOG_FILE"
+                terminal_success=false
+            fi
+            
+            # Apply tmux theme
+            print_info "Applying tmux colors for orange theme..."
+            if declare -f set_tmux_theme_orange &>/dev/null; then
+                if set_tmux_theme_orange 2>/dev/null; then
+                    print_debug "Tmux theme orange applied successfully"
+                else
+                    print_warning "Tmux theme application encountered issues, but continuing..."
+                fi
+            else
+                print_warning "set_tmux_theme_orange function not found"
+            fi
+            ;;
+        "addy-brown")
+            print_debug "Calling set_terminal_theme_brown..."
+            TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
+            if set_terminal_theme_brown 2>&1 | tee "$TERMINAL_LOG_FILE"; then
+                terminal_success=true
+                print_debug "Terminal theme brown succeeded"
+            else
+                print_warning "Terminal theme application encountered issues."
+                print_debug "Terminal theme brown failed. Check $TERMINAL_LOG_FILE"
+                terminal_success=false
+            fi
+            
+            # Apply tmux theme
+            print_info "Applying tmux colors for brown theme..."
+            if declare -f set_tmux_theme_brown &>/dev/null; then
+                if set_tmux_theme_brown 2>/dev/null; then
+                    print_debug "Tmux theme brown applied successfully"
+                else
+                    print_warning "Tmux theme application encountered issues, but continuing..."
+                fi
+            else
+                print_warning "set_tmux_theme_brown function not found"
+            fi
+            ;;
     esac
     
     # Report results
