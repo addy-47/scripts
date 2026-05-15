@@ -773,3 +773,25 @@ set_system_theme_brown() {
     return 0
 }
 
+
+set_system_theme_aqua_dark() {
+    _log_system "Setting up system theme: addy-aqua-dark"
+    local THEME_COLOR="#c4f8f5"
+    local THEME_COLOR_RGB="196, 248, 245"
+    local YARU_COLOR="-prussiangreen-dark"
+
+    install_yaru_theme "$YARU_COLOR"
+    create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
+    apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
+
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR-dark"
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface cursor-theme "Yaru"
+    gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
+    gsettings set org.gnome.desktop.background picture-uri "file://$SCRIPT_DIR/wallpapers/aqua-dark.png"
+    gsettings set org.gnome.desktop.background picture-uri-dark "file://$SCRIPT_DIR/wallpapers/aqua-dark.png"
+    gsettings set org.gnome.shell.ubuntu color-scheme prefer-dark
+    
+    _log_system "✅ System theme 'addy-aqua-dark' applied successfully."
+    return 0
+}

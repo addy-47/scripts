@@ -200,7 +200,6 @@ print_success ".zshrc created."
 
 print_info "Writing custom aliases..."
 cat << 'EOF' > ~/.oh-my-zsh/custom/aliases.zsh
-alias mongo-migrate="$HOME/projects/scripts/mongo-migrate/mongo-migrate.sh"
 alias c='clear'
 # classic ls helpers (keep if you still want them)
 alias ll='ls -alF'
@@ -213,6 +212,7 @@ alias dcd='docker compose down'
 alias dl='docker logs'
 alias dip='docker image prune'
 alias de='docker exec -it'
+alias dcubf='docker compose up -d --build --force-recreate'
 
 #git alisa
 alias g='git add .'

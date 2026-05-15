@@ -105,16 +105,18 @@ select_theme() {
     # Check if wallpaper files exist
     local available_themes=()
     
-    [ -f "$SCRIPT_DIR/wallpapers/red.png" ] && available_themes+=("addy-red" "Red Theme")
-    [ -f "$SCRIPT_DIR/wallpapers/green.png" ] && available_themes+=("addy-green" "Green Theme")
-    [ -f "$SCRIPT_DIR/wallpapers/yellow.png" ] && available_themes+=("addy-yellow" "Yellow Theme")
-    [ -f "$SCRIPT_DIR/wallpapers/grey.png" ] && available_themes+=("addy-grey" "Grey Theme")
-    [ -f "$SCRIPT_DIR/wallpapers/grey-yellow.png" ] && available_themes+=("addy-grey-yellow" "grey-yellow Theme")
-    [ -f "$SCRIPT_DIR/wallpapers/orange.png" ] && available_themes+=("addy-orange" "Orange Theme")
-    [ -f "$SCRIPT_DIR/wallpapers/brown.png" ] && available_themes+=("addy-brown" "Brown Theme")
+    if [ -d "$SCRIPT_DIR/wallpapers" ]; then
+        for wp in "$SCRIPT_DIR/wallpapers/"*.png; do
+            [ -e "$wp" ] || continue
+            local base_name=$(basename "$wp" .png)
+            # Capitalize for display
+            local display_name="$(tr '[:lower:]' '[:upper:]' <<< ${base_name:0:1})${base_name:1} Theme"
+            available_themes+=("addy-$base_name" "$display_name")
+        done
+    fi
     available_themes+=("Skip" "Skip theme application")
     
-    if [ ${#available_themes[@]} -eq 2 ]; then
+    if [ ${#available_themes[@]} -le 2 ]; then
         print_warning "No theme wallpapers found. Please check wallpapers directory."
         return 1
     fi
@@ -162,7 +164,7 @@ select_theme() {
     done
 }
 
-# Apply theme function with comprehensive error handling
+# Apply theme function with dynamic function discovery
 apply_theme() {
     local theme_name="$1"
     print_debug "Starting apply_theme with: $theme_name"
@@ -174,40 +176,15 @@ apply_theme() {
     
     print_info "Applying theme: $theme_name"
     
-    # Validate that required functions exist
-    local required_functions=()
-    case $theme_name in
-        "addy-red")
-            required_functions=("set_system_theme_red" 
-            "set_terminal_theme_red" "set_tmux_theme_red")
-            ;; 
-        "addy-green")
-            required_functions=("set_system_theme_green" "set_terminal_theme_green" "set_tmux_theme_green")
-            ;; 
-        "addy-yellow")
-            required_functions=("set_system_theme_yellow" "set_terminal_theme_yellow" "set_tmux_theme_yellow")
-            ;; 
-        "addy-grey")
-            required_functions=("set_system_theme_grey" 
-            "set_terminal_theme_grey" "set_tmux_theme_grey")
-            ;; 
-        "addy-grey-yellow")
-            required_functions=("set_system_theme_grey_yellow" 
-            "set_terminal_theme_grey_yellow" "set_tmux_theme_grey_yellow")
-            ;;     
-        "addy-orange")
-            required_functions=("set_system_theme_orange" 
-            "set_terminal_theme_orange" "set_tmux_theme_orange")
-            ;;
-        "addy-brown")
-            required_functions=("set_system_theme_brown" 
-            "set_terminal_theme_brown" "set_tmux_theme_brown")
-            ;;
-        *)
-            print_error "Unknown theme: $theme_name"
-            return 1
-            ;; 
-    esac
+    local suffix="${theme_name#addy-}"
+    local func_suffix="${suffix//-/_}"
+    
+    # Build expected function names
+    local system_func="set_system_theme_${func_suffix}"
+    local terminal_func="set_terminal_theme_${func_suffix}"
+    local tmux_func="set_tmux_theme_${func_suffix}"
+    
+    local required_functions=("$system_func" "$terminal_func" "$tmux_func")
     
     print_debug "Checking for required functions: ${required_functions[*]}"
     
@@ -228,265 +205,35 @@ apply_theme() {
     
     # Apply system theme
     print_info "Applying system theme..."
-    case $theme_name in
-        "addy-red")
-            print_debug "Calling set_system_theme_red..."
-            SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
-            if set_system_theme_red 2>&1 | tee "$SYSTEM_LOG_FILE"; then
-                system_success=true
-                print_debug "System theme red succeeded"
-            else
-                print_warning "System theme application encountered issues, but continuing..."
-                print_debug "System theme red failed. Check $SYSTEM_LOG_FILE"
-                system_success=true  # Don't fail completely
-            fi
-            ;; 
-        "addy-green")
-            print_debug "Calling set_system_theme_green..."
-            SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
-            if set_system_theme_green 2>&1 | tee "$SYSTEM_LOG_FILE"; then
-                system_success=true
-                print_debug "System theme green succeeded"
-            else
-                print_warning "System theme application encountered issues, but continuing..."
-                print_debug "System theme green failed. Check $SYSTEM_LOG_FILE"
-                system_success=true
-            fi
-            ;; 
-        "addy-grey")
-            print_debug "Calling set_system_theme_grey..."
-            SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
-            if set_system_theme_grey 2>&1 | tee "$SYSTEM_LOG_FILE"; then
-                system_success=true
-                print_debug "System theme grey succeeded"
-            else
-                print_warning "System theme application encountered issues, but continuing..."
-                print_debug "System theme grey failed. Check $SYSTEM_LOG_FILE"
-                system_success=true
-            fi
-            ;; 
-        "addy-grey-yellow")
-            print_debug "Calling set_system_theme_grey_yellow..."
-            SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
-            if set_system_theme_grey_yellow 2>&1 | tee "$SYSTEM_LOG_FILE"; then
-                system_success=true
-                print_debug "System theme grey-yellow succeeded"
-            else
-                print_warning "System theme application encountered issues, but continuing..."
-                print_debug "System theme grey-yellow failed. Check $SYSTEM_LOG_FILE"
-                system_success=true
-            fi
-            ;;     
-        "addy-yellow")
-            print_debug "Calling set_system_theme_yellow..."
-            SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
-            if set_system_theme_yellow 2>&1 | tee "$SYSTEM_LOG_FILE"; then
-                system_success=true
-                print_debug "System theme yellow succeeded"
-            else
-                print_warning "System theme application encountered issues, but continuing..."
-                print_debug "System theme yellow failed. Check $SYSTEM_LOG_FILE"
-                system_success=true
-            fi
-            ;; 
-        "addy-orange")
-            print_debug "Calling set_system_theme_orange..."
-            SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
-            if set_system_theme_orange 2>&1 | tee "$SYSTEM_LOG_FILE"; then
-                system_success=true
-                print_debug "System theme orange succeeded"
-            else
-                print_warning "System theme application encountered issues, but continuing..."
-                print_debug "System theme orange failed. Check $SYSTEM_LOG_FILE"
-                system_success=true
-            fi
-            ;;
-        "addy-brown")
-            print_debug "Calling set_system_theme_brown..."
-            SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
-            if set_system_theme_brown 2>&1 | tee "$SYSTEM_LOG_FILE"; then
-                system_success=true
-                print_debug "System theme brown succeeded"
-            else
-                print_warning "System theme application encountered issues, but continuing..."
-                print_debug "System theme brown failed. Check $SYSTEM_LOG_FILE"
-                system_success=true
-            fi
-            ;;
-    esac
+    SYSTEM_LOG_FILE=$(mktemp /tmp/system_theme.XXXXXX)
+    if "$system_func" 2>&1 | tee "$SYSTEM_LOG_FILE"; then
+        system_success=true
+        print_debug "System theme $suffix succeeded"
+    else
+        print_warning "System theme application encountered issues, but continuing..."
+        print_debug "System theme $suffix failed. Check $SYSTEM_LOG_FILE"
+        system_success=true  # Don't fail completely
+    fi
     
     # Apply terminal theme
     print_info "Applying terminal theme..."
-    case $theme_name in
-        "addy-red")
-            print_debug "Calling set_terminal_theme_red..."
-            TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
-            if set_terminal_theme_red 2>&1 | tee "$TERMINAL_LOG_FILE"; then
-                terminal_success=true
-                print_debug "Terminal theme red succeeded"
-            else
-                print_warning "Terminal theme application encountered issues."
-                print_debug "Terminal theme red failed. Check $TERMINAL_LOG_FILE"
-                terminal_success=false
-            fi
-            
-            # Apply tmux theme
-            print_info "Applying tmux colors for red theme..."
-            if declare -f set_tmux_theme_red &>/dev/null; then
-                if set_tmux_theme_red 2>/dev/null; then
-                    print_debug "Tmux theme red applied successfully"
-                else
-                    print_warning "Tmux theme application encountered issues, but continuing..."
-                fi
-            else
-                print_warning "set_tmux_theme_red function not found"
-            fi
-            ;; 
-        "addy-green")
-            print_debug "Calling set_terminal_theme_green..."
-            TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
-            if set_terminal_theme_green 2>&1 | tee "$TERMINAL_LOG_FILE"; then
-                terminal_success=true
-                print_debug "Terminal theme green succeeded"
-            else
-                print_warning "Terminal theme application encountered issues."
-                print_debug "Terminal theme green failed. Check $TERMINAL_LOG_FILE"
-                terminal_success=false
-            fi
-            
-            # Apply tmux theme
-            print_info "Applying tmux colors for green theme..."
-            if declare -f set_tmux_theme_green &>/dev/null; then
-                if set_tmux_theme_green 2>/dev/null; then
-                    print_debug "Tmux theme green applied successfully"
-                else
-                    print_warning "Tmux theme application encountered issues, but continuing..."
-                fi
-            else
-                print_warning "set_tmux_theme_green function not found"
-            fi
-            ;; 
-        "addy-yellow")
-            print_debug "Calling set_terminal_theme_yellow..."
-            TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
-            if set_terminal_theme_yellow 2>&1 | tee "$TERMINAL_LOG_FILE"; then
-                terminal_success=true
-                print_debug "Terminal theme yellow succeeded"
-            else
-                print_warning "Terminal theme application encountered issues."
-                print_debug "Terminal theme yellow failed. Check $TERMINAL_LOG_FILE"
-                terminal_success=false
-            fi
-            
-            # Apply tmux theme
-            print_info "Applying tmux colors for yellow theme..."
-            if declare -f set_tmux_theme_yellow &>/dev/null; then
-                if set_tmux_theme_yellow 2>/dev/null; then
-                    print_debug "Tmux theme yellow applied successfully"
-                else
-                    print_warning "Tmux theme application encountered issues, but continuing..."
-                fi
-            else
-                print_warning "set_tmux_theme_yellow function not found"
-            fi
-            ;; 
-        "addy-grey")
-            print_debug "Calling set_terminal_theme_grey..."
-            TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
-            if set_terminal_theme_grey 2>&1 | tee "$TERMINAL_LOG_FILE"; then
-                terminal_success=true
-                print_debug "Terminal theme grey succeeded"
-            else
-                print_warning "Terminal theme application encountered issues."
-                print_debug "Terminal theme grey failed. Check $TERMINAL_LOG_FILE"
-                terminal_success=false
-            fi
-            
-            # Apply tmux theme
-            print_info "Applying tmux colors for grey theme..."
-            if declare -f set_tmux_theme_grey &>/dev/null; then
-                if set_tmux_theme_grey 2>/dev/null; then
-                    print_debug "Tmux theme grey applied successfully"
-                else
-                    print_warning "Tmux theme application encountered issues, but continuing..."
-                fi
-            else
-                print_warning "set_tmux_theme_grey function not found"
-            fi
-            ;;
-        "addy-grey-yellow")
-            print_debug "Calling set_terminal_theme_grey_yellow..."
-            TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
-            if set_terminal_theme_grey_yellow 2>&1 | tee "$TERMINAL_LOG_FILE"; then
-                terminal_success=true
-                print_debug "Terminal theme grey-yellow succeeded"
-            else
-                print_warning "Terminal theme application encountered issues."
-                print_debug "Terminal theme grey-yellow failed. Check $TERMINAL_LOG_FILE"
-                terminal_success=false
-            fi
-            
-            # Apply tmux theme
-            print_info "Applying tmux colors for grey-yellow theme..."
-            if declare -f set_tmux_theme_grey_yellow &>/dev/null; then
-                if set_tmux_theme_grey_yellow 2>/dev/null; then
-                    print_debug "Tmux theme grey-yellow applied successfully"
-                else
-                    print_warning "Tmux theme application encountered issues, but continuing..."
-                fi
-            else
-                print_warning "set_tmux_theme_grey_yellow function not found"
-            fi
-            ;; 
-        "addy-orange")
-            print_debug "Calling set_terminal_theme_orange..."
-            TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
-            if set_terminal_theme_orange 2>&1 | tee "$TERMINAL_LOG_FILE"; then
-                terminal_success=true
-                print_debug "Terminal theme orange succeeded"
-            else
-                print_warning "Terminal theme application encountered issues."
-                print_debug "Terminal theme orange failed. Check $TERMINAL_LOG_FILE"
-                terminal_success=false
-            fi
-            
-            # Apply tmux theme
-            print_info "Applying tmux colors for orange theme..."
-            if declare -f set_tmux_theme_orange &>/dev/null; then
-                if set_tmux_theme_orange 2>/dev/null; then
-                    print_debug "Tmux theme orange applied successfully"
-                else
-                    print_warning "Tmux theme application encountered issues, but continuing..."
-                fi
-            else
-                print_warning "set_tmux_theme_orange function not found"
-            fi
-            ;;
-        "addy-brown")
-            print_debug "Calling set_terminal_theme_brown..."
-            TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
-            if set_terminal_theme_brown 2>&1 | tee "$TERMINAL_LOG_FILE"; then
-                terminal_success=true
-                print_debug "Terminal theme brown succeeded"
-            else
-                print_warning "Terminal theme application encountered issues."
-                print_debug "Terminal theme brown failed. Check $TERMINAL_LOG_FILE"
-                terminal_success=false
-            fi
-            
-            # Apply tmux theme
-            print_info "Applying tmux colors for brown theme..."
-            if declare -f set_tmux_theme_brown &>/dev/null; then
-                if set_tmux_theme_brown 2>/dev/null; then
-                    print_debug "Tmux theme brown applied successfully"
-                else
-                    print_warning "Tmux theme application encountered issues, but continuing..."
-                fi
-            else
-                print_warning "set_tmux_theme_brown function not found"
-            fi
-            ;;
-    esac
+    TERMINAL_LOG_FILE=$(mktemp /tmp/terminal_theme.XXXXXX)
+    if "$terminal_func" 2>&1 | tee "$TERMINAL_LOG_FILE"; then
+        terminal_success=true
+        print_debug "Terminal theme $suffix succeeded"
+    else
+        print_warning "Terminal theme application encountered issues."
+        print_debug "Terminal theme $suffix failed. Check $TERMINAL_LOG_FILE"
+        terminal_success=false
+    fi
+    
+    # Apply tmux theme
+    print_info "Applying tmux colors for $suffix theme..."
+    if "$tmux_func" 2>/dev/null; then
+        print_debug "Tmux theme $suffix applied successfully"
+    else
+        print_warning "Tmux theme application encountered issues, but continuing..."
+    fi
     
     # Report results
     print_debug "System success: $system_success, Terminal success: $terminal_success"
@@ -700,21 +447,6 @@ save_current_theme() {
     fi
 }
 
-# Option 6: Restore saved theme
-restore_saved_theme() {
-    print_banner "Restoring Saved Theme"
-    local script_path="$SCRIPT_DIR/restore_theme.sh"
-    if validate_script_exists "$script_path"; then
-        if bash "$script_path"; then
-            print_success "Saved theme restored successfully."
-        else
-            print_error "Failed to restore saved theme."
-        fi
-    else
-        print_warning "restore_theme.sh not found."
-    fi
-}
-
 # Main menu function
 show_main_menu() {
     print_banner "Adhbhut System Setup - Interactive Menu"
@@ -726,8 +458,7 @@ show_main_menu() {
     echo "3) Install packages and setup terminals"
     echo "4) Apply themes only"
     echo "5) Save current theme"
-    echo "6) Restore saved theme"
-    echo "7) Exit"
+    echo "6) Exit"
     echo ""
 }
 
@@ -744,7 +475,7 @@ main() {
     # Check if running in interactive terminal
     if [ ! -t 0 ] && [ $# -eq 0 ]; then
         print_error "This script must be run in an interactive terminal or with command line arguments."
-        print_info "Usage: $0 [0-7] (for non-interactive mode)"
+        print_info "Usage: $0 [0-6] (for non-interactive mode)"
         exit 1
     fi
     
@@ -767,7 +498,7 @@ main() {
         
         if [ $# -eq 0 ]; then
             # Interactive mode
-            echo -n "Enter your choice (0-7): "
+            echo -n "Enter your choice (0-6): "
             read -r choice
         else
             # Command line argument mode
@@ -801,15 +532,11 @@ main() {
                 break
                 ;; 
             6)
-                restore_saved_theme
-                break
-                ;; 
-            7)
                 print_info "Exiting setup script."
                 exit 0
                 ;; 
             *)
-                print_error "Invalid option '$choice'. Please choose 0-7."
+                print_error "Invalid option '$choice'. Please choose 0-6."
                 if [ $# -eq 0 ]; then
                     echo ""
                     sleep 1

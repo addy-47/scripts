@@ -391,3 +391,23 @@ set_default_profile_by_name() {
         _log_terminal "Set '$profile_name' as default profile"
     fi
 }
+
+set_terminal_theme_aqua_dark() {
+    local PALETTE="['rgb(28,27,27)', 'rgb(155,164,164)', 'rgb(210,211,218)', 'rgb(132,156,152)', 'rgb(219,220,220)', 'rgb(150,170,169)', 'rgb(168,190,186)', 'rgb(213,238,236)', 'rgb(142,173,202)', 'rgb(163,173,171)', 'rgb(181,182,184)', 'rgb(150,186,220)', 'rgb(79,137,139)', 'rgb(211,221,220)', 'rgb(44,82,77)', 'rgb(154,194,255)']"
+    local FG_COLOR="'rgb(196,248,245)'"
+    local BOLD_COLOR="'rgb(255,255,255)'"
+    apply_terminal_theme "addy-aqua-dark" "$PALETTE" "$FG_COLOR" "$BOLD_COLOR"
+    
+    set_default_profile_by_name "addy-aqua-dark"
+    restart_gnome_terminal
+    
+    set_tmux_theme_aqua_dark
+}
+
+set_tmux_theme_aqua_dark() {
+    local tmux_conf="$HOME/.tmux.conf"
+    if command -v sed &> /dev/null; then
+        sed -i -E 's/fg=#[0-9A-Fa-f]{6}/fg=#c4f8f5/g' "$tmux_conf"
+    fi
+    tmux source-file "$tmux_conf" 2>/dev/null || true
+}
