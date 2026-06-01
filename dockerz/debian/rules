@@ -1,9 +1,0 @@
-#!/usr/bin/make -f
-
-export DH_VERBOSE=1
-
-override_dh_dwz:
-	# Skip dwz compression to avoid issues with Go binaries
-
-%:
-	dh $@ --buildsystem=makefile --no-parallel

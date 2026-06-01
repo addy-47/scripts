@@ -795,3 +795,47 @@ set_system_theme_aqua_dark() {
     _log_system "✅ System theme 'addy-aqua-dark' applied successfully."
     return 0
 }
+
+set_system_theme_white_green() {
+    _log_system "Setting up system theme: addy-white-green"
+    local THEME_COLOR="#edfff3"
+    local THEME_COLOR_RGB="237, 255, 243"
+    local YARU_COLOR="-viridian-dark"
+
+    install_yaru_theme "$YARU_COLOR"
+    create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
+    apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
+
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR-dark"
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface cursor-theme "Yaru"
+    gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
+    gsettings set org.gnome.desktop.background picture-uri "file://$SCRIPT_DIR/wallpapers/white-green.png"
+    gsettings set org.gnome.desktop.background picture-uri-dark "file://$SCRIPT_DIR/wallpapers/white-green.png"
+    gsettings set org.gnome.shell.ubuntu color-scheme prefer-dark
+    
+    _log_system "✅ System theme 'addy-white-green' applied successfully."
+    return 0
+}
+
+set_system_theme_dusty_red() {
+    _log_system "Setting up system theme: addy-dusty-red"
+    local THEME_COLOR="#ffffff"
+    local THEME_COLOR_RGB="255, 255, 255"
+    local YARU_COLOR="-red-dark"
+
+    install_yaru_theme "$YARU_COLOR"
+    create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
+    apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
+
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR-dark"
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface cursor-theme "Yaru"
+    gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
+    gsettings set org.gnome.desktop.background picture-uri "file://$SCRIPT_DIR/wallpapers/dusty-red.png"
+    gsettings set org.gnome.desktop.background picture-uri-dark "file://$SCRIPT_DIR/wallpapers/dusty-red.png"
+    gsettings set org.gnome.shell.ubuntu color-scheme prefer-dark
+    
+    _log_system "✅ System theme 'addy-dusty-red' applied successfully."
+    return 0
+}

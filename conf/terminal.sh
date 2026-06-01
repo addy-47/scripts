@@ -411,3 +411,43 @@ set_tmux_theme_aqua_dark() {
     fi
     tmux source-file "$tmux_conf" 2>/dev/null || true
 }
+
+set_terminal_theme_white_green() {
+    local PALETTE="['rgb(28,27,27)', 'rgb(255,255,255)', 'rgb(235,215,255)', 'rgb(255,255,255)', 'rgb(196,170,203)', 'rgb(150,170,169)', 'rgb(142,131,145)', 'rgb(197,218,217)', 'rgb(211,199,210)', 'rgb(166,131,190)', 'rgb(153,179,164)', 'rgb(209,236,219)', 'rgb(79,137,139)', 'rgb(211,221,220)', 'rgb(51,94,89)', 'rgb(199,249,215)']"
+    local FG_COLOR="'rgb(237,255,243)'"
+    local BOLD_COLOR="'rgb(255,255,255)'"
+    apply_terminal_theme "addy-white-green" "$PALETTE" "$FG_COLOR" "$BOLD_COLOR"
+    
+    set_default_profile_by_name "addy-white-green"
+    restart_gnome_terminal
+    
+    set_tmux_theme_white_green
+}
+
+set_tmux_theme_white_green() {
+    local tmux_conf="$HOME/.tmux.conf"
+    if command -v sed &> /dev/null; then
+        sed -i -E 's/fg=#[0-9A-Fa-f]{6}/fg=#edfff3/g' "$tmux_conf"
+    fi
+    tmux source-file "$tmux_conf" 2>/dev/null || true
+}
+
+set_terminal_theme_dusty_red() {
+    local PALETTE="['rgb(0,0,0)', 'rgb(180,157,161)', 'rgb(158,141,141)', 'rgb(154,141,165)', 'rgb(174,139,140)', 'rgb(208,151,161)', 'rgb(180,139,139)', 'rgb(238,213,213)', 'rgb(157,165,167)', 'rgb(176,187,182)', 'rgb(230,214,214)', 'rgb(199,211,216)', 'rgb(131,148,150)', 'rgb(197,188,194)', 'rgb(251,192,208)', 'rgb(168,168,168)']"
+    local FG_COLOR="'rgb(255,255,255)'"
+    local BOLD_COLOR="'rgb(207,158,167)'"
+    apply_terminal_theme "addy-dusty-red" "$PALETTE" "$FG_COLOR" "$BOLD_COLOR"
+    
+    set_default_profile_by_name "addy-dusty-red"
+    restart_gnome_terminal
+    
+    set_tmux_theme_dusty_red
+}
+
+set_tmux_theme_dusty_red() {
+    local tmux_conf="$HOME/.tmux.conf"
+    if command -v sed &> /dev/null; then
+        sed -i -E 's/fg=#[0-9A-Fa-f]{6}/fg=#ffffff/g' "$tmux_conf"
+    fi
+    tmux source-file "$tmux_conf" 2>/dev/null || true
+}

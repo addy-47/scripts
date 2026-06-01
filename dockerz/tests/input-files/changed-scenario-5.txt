@@ -1,3 +1,0 @@
-backend
-shared
-shared/utils
