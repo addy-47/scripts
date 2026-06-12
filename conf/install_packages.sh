@@ -17,7 +17,7 @@ sudo apt-get update -y
 
 # --- Core packages list ---
 CORE_PACKAGES=(
-  aircrack-ng ansible antigravity apt-transport-https bandit base-passwd bat bsdutils
+  aircrack-ng ansible apt-transport-https bandit base-passwd bat bsdutils
   build-essential ca-certificates cabextract code coturn curl dash dconf-cli dbus-x11 debhelper
   devscripts dh-make dh-python diffutils dpkg-dev efibootmgr fakeroot
   fd-find ffmpeg findutils flow-app fonts-indic forticlient fzf genisoimage
@@ -34,7 +34,15 @@ CORE_PACKAGES=(
   python3-pip python3-pytest python3-setuptools python3-venv python3-yaml redis-tools ripgrep
   sd shim-signed software-properties-common thunderbird-locale-en thunderbird-locale-en-us tmux
   trivy ubuntu-desktop ubuntu-desktop-minimal ubuntu-minimal ubuntu-restricted-addons ubuntu-standard
-  ubuntu-wallpapers uvicorn vault vlc warp-terminal wget wrk xclip zsh
+  ubuntu-wallpapers uvicorn vault vlc wget wrk xclip zsh
+  autokey-gtk cargo clang cmake
+  fonts-firacode fonts-cascadia-code fonts-noto fonts-noto-color-emoji fonts-noto-cjk
+  git-lfs flatpak file pv
+  libasound2-dev libayatana-appindicator3-dev libc++-dev libc++abi-dev
+  libclang-dev librsvg2-dev libssl-dev libtesseract-dev
+  libwebkit2gtk-4.1-dev libxdo-dev
+  mingw-w64 picom postgresql-client putty qpdf sassc sshfs tesseract-ocr timg
+  webp wmctrl xfonts-base xfonts-terminus yt-dlp
 )
 
 # --- Install each package separately ---
@@ -70,29 +78,59 @@ add_google_chrome() {
 }
 
 
-# dockerz (your custom tool)
+# dockerz (your custom tool) + Docker engine
 add_dockerz() {
   print_info "Installing dockerz from your repo..."
   curl -fsSL https://addy-47.github.io/scripts/apt/setup.sh | sudo bash
   sudo apt-get update
   sudo apt-get install -y dockerz
+  # Also install full Docker engine
+  sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin 2>/dev/null || true
 }
 
-# MongoDB
+# MongoDB (engine + tools)
 add_mongodb() {
   print_info "Adding MongoDB repo..."
   wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-6.0.gpg
   echo "deb [signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg] https://repo.mongodb.org/apt/ubuntu $(lsb_release -sc)/mongodb-org/6.0 multiverse" \
     | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
   sudo apt-get update
-  sudo apt-get install -y mongodb-org
+  sudo apt-get install -y mongodb-org mongodb-mongosh mongodb-org-shell 2>/dev/null || true
 }
 
-# --- Call whichever extra repos you want ---
+# Tailscale VPN
+add_tailscale() {
+  print_info "Adding Tailscale repo..."
+  curl -fsSL https://tailscale.com/install.sh | sudo sh
+}
+
+# Google Cloud CLI
+add_google_cloud_cli() {
+  print_info "Adding Google Cloud CLI repo..."
+  echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" \
+    | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
+  curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+  sudo apt-get update
+  sudo apt-get install -y google-cloud-cli 2>/dev/null || true
+}
+
+# opencode (AI coding assistant)
+add_opencode() {
+  print_info "Installing opencode..."
+  # opencode is a Go binary distributed via GitHub
+  if ! command -v opencode &>/dev/null; then
+    print_info "opencode not found. Install manually from https://github.com/addy-47/opencode/releases"
+  fi
+}
+
+# --- Call third-party installers ---
 add_brave
 add_google_chrome
 add_dockerz
 add_mongodb
+add_tailscale
+add_google_cloud_cli
+add_opencode
 
 # --- Cleanup ---
 print_info "Cleaning up..."

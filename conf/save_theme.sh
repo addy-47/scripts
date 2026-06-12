@@ -33,28 +33,73 @@ if [[ -z "$YARU_COLOR" || "$YARU_COLOR" == "$GTK_THEME" ]]; then
 fi
 _log "Detected base Yaru color: $YARU_COLOR"
 
-# 2. Capture Terminal Colors and derive Accent
-DEFAULT_PROFILE=$(dconf read /org/gnome/terminal/legacy/profiles:/default | tr -d "'")
-if [[ -n "$DEFAULT_PROFILE" ]]; then
-    PROFILE_PATH="/org/gnome/terminal/legacy/profiles:/:$DEFAULT_PROFILE"
-    PALETTE=$(dconf read "$PROFILE_PATH/palette")
-    FG_COLOR=$(dconf read "$PROFILE_PATH/foreground-color")
-    BOLD_COLOR=$(dconf read "$PROFILE_PATH/bold-color")
+# 2. Capture Terminal Colors from Kitty (preferred) or GNOME Terminal
+KITTY_THEME_DIR="$HOME/.config/kitty/themes"
+KITTY_CURRENT_THEME=$(ls -t "$KITTY_THEME_DIR" 2>/dev/null | head -1)
+
+if [[ -n "$KITTY_CURRENT_THEME" && -f "$KITTY_THEME_DIR/$KITTY_CURRENT_THEME" ]]; then
+    _log "Reading colors from Kitty theme: $KITTY_CURRENT_THEME"
     
-    # Derrive HEX Accent from Terminal Foreground
-    # Strip quotes and 'rgb()'
+    # Read foreground color from Kitty theme file
+    FG_HEX=$(grep -E '^foreground ' "$KITTY_THEME_DIR/$KITTY_CURRENT_THEME" | awk '{print $2}')
+    BG_HEX=$(grep -E '^background ' "$KITTY_THEME_DIR/$KITTY_CURRENT_THEME" | awk '{print $2}')
+    
+    # Read 16 ANSI colors from Kitty theme
+    PALETTE_HEX=()
+    for i in {0..15}; do
+        c=$(grep -E "^color$i " "$KITTY_THEME_DIR/$KITTY_CURRENT_THEME" | awk '{print $2}')
+        PALETTE_HEX+=("$c")
+    done
+    
+    # Convert Kitty hex colors to GNOME Terminal rgb format
+    kitty_hex_to_gnome_rgb() {
+        local hex=$(echo "$1" | sed 's/#//')
+        local r=$((16#${hex:0:2}))
+        local g=$((16#${hex:2:2}))
+        local b=$((16#${hex:4:2}))
+        echo "'rgb($r,$g,$b)'"
+    }
+    
+    PALETTE="["
+    for ((i=0; i<${#PALETTE_HEX[@]}; i++)); do
+        if [ $i -gt 0 ]; then PALETTE+=", "; fi
+        PALETTE+=$(kitty_hex_to_gnome_rgb "${PALETTE_HEX[$i]}")
+    done
+    PALETTE+="]"
+    
+    FG_COLOR=$(kitty_hex_to_gnome_rgb "$FG_HEX")
+    BG_COLOR=$(kitty_hex_to_gnome_rgb "$BG_HEX")
+    BOLD_COLOR="$FG_COLOR"  # Use foreground as bold in Kitty
+    
+    # Derive accent from foreground
     CLEAN_RGB=$(echo "$FG_COLOR" | tr -d "'rgb()")
     IFS=',' read -r r g b <<< "$CLEAN_RGB"
     ACCENT_HEX=$(printf "#%02x%02x%02x" $r $g $b)
     ACCENT_RGB="$r, $g, $b"
-    _log "Derived accent color from terminal: $ACCENT_HEX"
+    _log "Derived accent color from Kitty foreground: $ACCENT_HEX"
 else
-    _err "Could not detect terminal profile. Using fallbacks."
-    PALETTE="['rgb(0,0,0)', 'rgb(205,0,0)', 'rgb(0,205,0)', 'rgb(205,205,0)', 'rgb(0,0,238)', 'rgb(205,0,205)', 'rgb(0,205,205)', 'rgb(229,229,229)', 'rgb(127,127,127)', 'rgb(255,0,0)', 'rgb(0,255,0)', 'rgb(255,255,0)', 'rgb(92,108,232)', 'rgb(255,0,255)', 'rgb(0,255,255)', 'rgb(255,255,255)']"
-    FG_COLOR="'rgb(255,255,255)'"
-    BOLD_COLOR="'rgb(255,255,255)'"
-    ACCENT_HEX="#FFFFFF"
-    ACCENT_RGB="255, 255, 255"
+    _log "No Kitty theme found. Trying GNOME Terminal..."
+    DEFAULT_PROFILE=$(dconf read /org/gnome/terminal/legacy/profiles:/default | tr -d "'")
+    if [[ -n "$DEFAULT_PROFILE" ]]; then
+        PROFILE_PATH="/org/gnome/terminal/legacy/profiles:/:$DEFAULT_PROFILE"
+        PALETTE=$(dconf read "$PROFILE_PATH/palette")
+        FG_COLOR=$(dconf read "$PROFILE_PATH/foreground-color")
+        BOLD_COLOR=$(dconf read "$PROFILE_PATH/bold-color")
+        
+        # Derrive HEX Accent from Terminal Foreground
+        CLEAN_RGB=$(echo "$FG_COLOR" | tr -d "'rgb()")
+        IFS=',' read -r r g b <<< "$CLEAN_RGB"
+        ACCENT_HEX=$(printf "#%02x%02x%02x" $r $g $b)
+        ACCENT_RGB="$r, $g, $b"
+        _log "Derived accent color from terminal: $ACCENT_HEX"
+    else
+        _err "Could not detect terminal profile. Using fallbacks."
+        PALETTE="['rgb(0,0,0)', 'rgb(205,0,0)', 'rgb(0,205,0)', 'rgb(205,205,0)', 'rgb(0,0,238)', 'rgb(205,0,205)', 'rgb(0,205,205)', 'rgb(229,229,229)', 'rgb(127,127,127)', 'rgb(255,0,0)', 'rgb(0,255,0)', 'rgb(255,255,0)', 'rgb(92,108,232)', 'rgb(255,0,255)', 'rgb(0,255,255)', 'rgb(255,255,255)']"
+        FG_COLOR="'rgb(255,255,255)'"
+        BOLD_COLOR="'rgb(255,255,255)'"
+        ACCENT_HEX="#FFFFFF"
+        ACCENT_RGB="255, 255, 255"
+    fi
 fi
 
 # 3. Capture Wallpaper

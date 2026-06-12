@@ -1,7 +1,7 @@
 ---
 description: Emergency fix for something broken in a working system. Abbreviated path — no full planning cycle. Surgical only. Always includes rollback plan.
+agent: build
 ---
-
 This is not a feature. This is not a refactor.
 The only goal is to restore correct behavior with minimum surface area change.
 
@@ -23,7 +23,7 @@ If rollback path is unclear — stop and establish it before proceeding. Never h
 
 Confidence check:
 - 100% confident this is the right change with no regressions? → proceed
-- Any doubt? → state it explicitly, present options, wait for decision
+- Any doubt? — state it explicitly, present options, wait for decision
 
 Stop here. Wait for approval.
 
@@ -53,4 +53,3 @@ If verification fails → revert immediately, report, restart from Step 1 with n
 Update delta-log.md or implementation plan if this occurred during an active implementation.
 
 Do not close the hotfix until the report is reviewed.
-

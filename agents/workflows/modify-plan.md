@@ -1,11 +1,7 @@
 ---
 description: Modify the current implementation plan in response to new input, architecture changes, or additional requirements. Does not create a new plan. Use mid-thread only.
+agent: plan
 ---
-
----
-
-## description: Modify the current implementation plan in response to new input, architecture changes, or additional requirements. Does not create a new plan. Use mid-thread only.
-
 Read everything in context:
 
 - The existing implementation plan is the baseline
@@ -13,7 +9,7 @@ Read everything in context:
 
 Do NOT proceed to modify anything yet.
 
-## Step 1 — Impact Report ( similar to this )
+## Step 1 — Impact Report
 
 Before touching the plan, report back:
 
@@ -41,7 +37,7 @@ Explicitly list phases/steps that remain untouched.
 
 - What could break as a result of this modification
 - Any ordering constraints that shift
-- Flag high-uncertainty changes with ⚠️
+- Flag high-uncertainty changes with warning
 
 ### Assumptions Made
 
@@ -50,7 +46,7 @@ If none: state "None". If any: flag explicitly.
 ---
 
 Stop here. Present this report and wait for explicit approval before modifying the plan.
-Use the "Modification Trigger" , "What Changes in the Plan", "What Does NOT Change"," Risks & Regressions\* and "Assumptions Made" naturally as a extension of the report to user , they are not strict ouput formats they are more for yout internal thought process structuring .
+Use the "Modification Trigger" , "What Changes in the Plan", "What Does NOT Change"," Risks & Regressions" and "Assumptions Made" naturally as a extension of the report to user , they are not strict ouput formats they are more for your internal thought process structuring.
 
 ---
 

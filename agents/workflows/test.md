@@ -1,7 +1,7 @@
 ---
 description: Test the just-completed phase or step before proceeding. Updates the implementation plan with test details. Loops until passing. Use after each phase report.
+agent: build
 ---
-
 Read from context:
 
 - The implementation plan — what this phase was supposed to deliver
@@ -49,7 +49,7 @@ Report back:
 
 For each issue:
 
-| #   | Issue | Affected File | Likely Cause | Proposed Fix |
+| # | Issue | Affected File | Likely Cause | Proposed Fix |
 | --- | ----- | ------------- | ------------ | ------------ |
 
 ---
@@ -74,7 +74,7 @@ Do not batch multiple fixes. One fix → test → report → approval.
 
 ## Step 4 — Final Report
 
-### Phase Validation: [Phase Name] ✅
+### Phase Validation: [Phase Name]
 
 - What was tested
 - What passed

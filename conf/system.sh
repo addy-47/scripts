@@ -120,7 +120,7 @@ headerbar,
 .titlebar,
 windowcontrols,
 dialog > headerbar {
-    background: rgba(0, 0, 0, 0.54);
+    background: rgba(0, 0, 0, 0.35);
     color: $THEME_COLOR;
     border: none;
     box-shadow: none;

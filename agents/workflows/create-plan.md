@@ -1,9 +1,7 @@
 ---
 description: Create a detailed "how" implementation plan from the architecture plan provided in context. Use only at the start of a new thread before any implementation begins.
+agent: plan
 ---
-
----
-
 Read everything in context:
 
 - ROLE defines your constraints and behavior
@@ -65,7 +63,7 @@ _(repeat for each phase)_
 **Risks & Regressions**
 
 - What could break and in which system
-- Any step with high uncertainty — flag with ⚠️
+- Any step with high uncertainty — flag with warning
 
 **Out of Scope**
 

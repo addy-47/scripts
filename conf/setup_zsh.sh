@@ -195,6 +195,11 @@ export KUBECTX_IGNORE_FZF=true
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export PATH="$HOME/bin:$PATH"
+
+# Kitty terminal integration (if running in Kitty)
+if [ "$TERM" = "xterm-kitty" ]; then
+  alias ssh="kitty +kitten ssh"
+fi
 EOF
 print_success ".zshrc created."
 
