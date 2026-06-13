@@ -109,6 +109,9 @@ select_theme() {
         for wp in "$SCRIPT_DIR/wallpapers/"*.png; do
             [ -e "$wp" ] || continue
             local base_name=$(basename "$wp" .png)
+            # Skip non-theme wallpapers
+            [[ "$base_name" == *Screenshot* || "$base_name" == *screenshot* ]] && continue
+            [[ "$base_name" == "anycolor" ]] && continue
             # Capitalize for display
             local display_name="$(tr '[:lower:]' '[:upper:]' <<< ${base_name:0:1})${base_name:1} Theme"
             available_themes+=("addy-$base_name" "$display_name")
@@ -184,6 +187,28 @@ apply_theme() {
     local terminal_func="set_terminal_theme_${func_suffix}"
     local tmux_func="set_tmux_theme_${func_suffix}"
     
+    # If exact function not found, try common suffixes
+    if ! declare -f "$system_func" &>/dev/null; then
+        local resolved=false
+        for try_suffix in "_dark" "_light"; do
+            local try_func="set_system_theme_${func_suffix}${try_suffix}"
+            if declare -f "$try_func" &>/dev/null; then
+                print_debug "Function '$system_func' not found, using '$try_func' instead"
+                func_suffix="${func_suffix}${try_suffix}"
+                system_func="$try_func"
+                terminal_func="set_terminal_theme_${func_suffix}"
+                tmux_func="set_tmux_theme_${func_suffix}"
+                resolved=true
+                break
+            fi
+        done
+        if [ "$resolved" = false ]; then
+            print_error "Required function '$system_func' not found. Theme functions may not be loaded properly."
+            print_debug "Available functions: $(declare -F | cut -d' ' -f3 | grep set_system_theme)"
+            return 1
+        fi
+    fi
+    
     local required_functions=("$system_func" "$terminal_func" "$tmux_func")
     
     print_debug "Checking for required functions: ${required_functions[*]}"
@@ -192,7 +217,7 @@ apply_theme() {
     for func in "${required_functions[@]}"; do
         if ! declare -f "$func" &>/dev/null; then
             print_error "Required function '$func' not found. Theme functions may not be loaded properly."
-            print_debug "Available functions: $(declare -F | cut -d' ' -f3 | grep theme)"
+            print_debug "Available functions: $(declare -F | cut -d' ' -f3 | grep set_system_theme)"
             return 1
         fi
     done
@@ -233,6 +258,18 @@ apply_theme() {
         print_debug "Tmux theme $suffix applied successfully"
     else
         print_warning "Tmux theme application encountered issues, but continuing..."
+    fi
+    
+    # Apply OpenCode theme (if terminal theme succeeded)
+    if [ "$terminal_success" = true ]; then
+        # Reconstruct the actual theme name from the resolved func_suffix
+        local opencode_theme_name="addy-${func_suffix//_/-}"
+        print_info "Applying OpenCode theme: $opencode_theme_name..."
+        if declare -f "apply_opencode_theme" &>/dev/null; then
+            apply_opencode_theme "$opencode_theme_name"
+        else
+            print_warning "apply_opencode_theme function not found. Skipping OpenCode theme."
+        fi
     fi
     
     # Report results
