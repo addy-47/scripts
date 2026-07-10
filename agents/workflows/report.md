@@ -1,7 +1,9 @@
 ---
 description: Give a full detailed answer or logical flow analysis of what is actually happening. No code, no plans, no implementation. Answer only what was asked.
-agent: ask
 ---
+
+---
+
 ## Rules
 
 - Answer only the question asked

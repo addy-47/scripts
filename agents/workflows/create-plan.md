@@ -1,75 +1,85 @@
 ---
-description: Create a detailed "how" implementation plan from the architecture plan provided in context. Use only at the start of a new thread before any implementation begins.
-agent: plan
+description: Create a "how" implementation plan from the architecture plan in context. Only Phase 1 is planned in detail. All subsequent phases are high-level intent only. Use only at the start of a new thread before implementation begins.
 ---
-Read everything in context:
 
+Read everything in context:
 - ROLE defines your constraints and behavior
 - CONTEXT tells you current project state and source of truth
 - PLAN is the architecture/"what" plan — your primary input
 - TASK defines the scope
 
-Your job is to produce a detailed "how" implementation plan.
+Your job is to produce an implementation plan where only the immediate phase is detailed.
+The rest is intentionally high-level — it will be detailed after each phase completes via /modify-plan.
 
 ## Rules
-
 - Plan only. No code. No implementation.
 - No assumptions — if something is not in the provided docs or plan, flag it explicitly.
-- If anything is ambiguous and would block planning, stop and ask before continuing.
+- If anything is ambiguous and would block Phase 1, stop and ask before continuing.
 - Do not invent architecture, infer file structures, or guess at behavior.
+- Do NOT plan later phases in detail — their reality depends on what Phase 1 actually produces.
+
+---
 
 ## Output
 
 ### Implementation Plan: [Task/Phase Name]
 
 **Objective**
-One sentence. What this plan delivers when complete.
+One sentence. What this entire task delivers when complete.
 
 **Source of Truth Used**
-List every doc/file you referenced from context to build this plan.
+Every doc/file referenced from context to build this plan.
 
 **Assumptions Made**
-If none: state "None". If any: flag each one explicitly — do not bury them.
+None — or flag each one explicitly.
 
 ---
 
-**Phases**
+### Phase 1 — [Name]
+*(Fully detailed — this is the only phase planned in depth)*
 
-#### Phase N — [Name]
+**Goal:** What this phase delivers in isolation.
 
-**Goal:** What this phase achieves in isolation.
-
-Steps:
-
+**Steps:**
 1. [File or system] — [exactly what changes and why]
 2. ...
 
-Validation before proceeding to Phase N+1:
-
+**Validation before proceeding:**
 - [ ] [specific check: build / test / manual / lint]
 - [ ] ...
 
+**On completion:**
+Run `/review` to evaluate what was actually done in this phase.
+Then run `/modify-plan` to update Phase 2 into full detail based on reality.
+Do not proceed to Phase 2 without this step.
+
 ---
 
-_(repeat for each phase)_
+### Phase 2 — [Name]
+*(Intent only — will be detailed after Phase 1 completes)*
+
+- Goal: [one sentence]
+- Expected inputs from Phase 1: [what this phase depends on]
+- Success looks like: [observable outcome]
 
 ---
 
-**Ordering Constraints**
+### Phase N — [Name]
+*(Intent only)*
 
-- Dependencies between phases that cannot be parallelized
-- Anything that must be true before a later phase can start
+- Goal: [one sentence]
+- Success looks like: [observable outcome]
 
-**Risks & Regressions**
+---
 
-- What could break and in which system
-- Any step with high uncertainty — flag with warning
+*(Repeat intent block for each subsequent phase)*
 
-**Out of Scope**
+---
 
-- Explicitly list what this plan does NOT touch
+**Ordering Constraints, Risks, and Scope**
+Surface these naturally — not as rigid sections but as what the human needs to know before approving this plan. Flag anything with ⚠️ that has high uncertainty or could cascade if wrong.
 
 ---
 
 Do not begin implementation.
-Present this plan to user , use the **Ordering Constraints** , **Risks & Regressions** and **Out of Scope** naturally as a extension of the report to user , they are not strict ouput formats they are structure fo your thought process
+Present this plan and wait for explicit approval.

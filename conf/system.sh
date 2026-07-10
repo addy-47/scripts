@@ -582,8 +582,8 @@ GTK4EOF
 
 set_system_theme_red() {
     _log_system "Setting up system theme: addy-red"
-    local THEME_COLOR="#E95420"
-    local THEME_COLOR_RGB="233, 84, 32"
+    local THEME_COLOR="#c94d24"
+    local THEME_COLOR_RGB="201, 77, 36"
     local YARU_COLOR="red"
 
     # Install Yaru theme
@@ -859,5 +859,27 @@ set_system_theme_dusty_red() {
     gsettings set org.gnome.shell.ubuntu color-scheme prefer-dark
     
     _log_system "✅ System theme 'addy-dusty-red' applied successfully."
+    return 0
+}
+
+set_system_theme_black() {
+    _log_system "Setting up system theme: addy-black"
+    local THEME_COLOR="#cccccc"
+    local THEME_COLOR_RGB="204, 204, 204"
+    local YARU_COLOR="-grey-dark"
+
+    install_yaru_theme "$YARU_COLOR"
+    create_shell_theme "$THEME_COLOR" "$THEME_COLOR_RGB"
+    apply_custom_css "$THEME_COLOR" "$THEME_COLOR_RGB"
+
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru$YARU_COLOR-dark"
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru$YARU_COLOR"
+    gsettings set org.gnome.desktop.interface cursor-theme "Yaru"
+    gsettings set org.gnome.shell.extensions.user-theme name "Adhbhut-Transparent"
+    gsettings set org.gnome.desktop.background picture-uri "file://$SCRIPT_DIR/wallpapers/black.png"
+    gsettings set org.gnome.desktop.background picture-uri-dark "file://$SCRIPT_DIR/wallpapers/black.png"
+    gsettings set org.gnome.shell.ubuntu color-scheme prefer-dark
+    
+    _log_system "✅ System theme 'addy-black' applied successfully."
     return 0
 }

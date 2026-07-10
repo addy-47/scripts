@@ -7,7 +7,7 @@
   vars:
     # Docker configuration variables
     docker_users:
-      - "{{ default('addy') }}"
+      - "{{ ansible_user | default('addy') }}"
     docker_timeout: 300
 
   tasks:
@@ -54,12 +54,297 @@
           - telnet
           - ncdu
           - tmux
+          - fzf
+          - ripgrep
+          - bat
+          - fd-find
+          - nano
+          - build-essential
+
         state: present
         lock_timeout: 120
       register: tools_result
       retries: 3
       delay: 5
       until: tools_result is succeeded
+
+    - name: Install GitHub CLI (gh)
+      block:
+        - name: Add GitHub CLI GPG key
+          get_url:
+            url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
+            dest: /etc/apt/keyrings/githubcli-archive-keyring.gpg
+            mode: '0644'
+
+        - name: Add GitHub CLI repository
+          apt_repository:
+            repo: "deb [arch={{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }} signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
+            state: present
+            filename: github-cli
+
+        - name: Install gh package
+          apt:
+            name: gh
+            state: present
+            update_cache: yes
+            lock_timeout: 120
+      rescue:
+        - name: Log gh installation failure
+          debug:
+            msg: "Failed to install GitHub CLI, skipping..."
+      when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+
+    - name: Download and install sd (search & replace) CLI tool
+      block:
+        - name: Download sd binary archive from GitHub
+          get_url:
+            url: "https://github.com/chmln/sd/releases/download/v1.0.0/sd-v1.0.0-x86_64-unknown-linux-musl.tar.gz"
+            dest: "/tmp/sd.tar.gz"
+            mode: '0644'
+            
+        - name: Create temporary directory for extraction
+          file:
+            path: "/tmp/sd_extracted"
+            state: directory
+            mode: '0755'
+            
+        - name: Extract sd binary archive
+          unarchive:
+            src: "/tmp/sd.tar.gz"
+            dest: "/tmp/sd_extracted"
+            remote_src: yes
+            
+        - name: Install sd binary to /usr/local/bin
+          copy:
+            src: "/tmp/sd_extracted/sd-v1.0.0-x86_64-unknown-linux-musl/sd"
+            dest: "/usr/local/bin/sd"
+            owner: root
+            group: root
+            mode: '0755'
+            remote_src: yes
+            
+        - name: Clean up sd temporary installation files
+          file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - "/tmp/sd.tar.gz"
+            - "/tmp/sd_extracted"
+      rescue:
+        - name: Log failure to install sd tool
+          debug:
+            msg: "Failed to install precompiled sd binary, skipping..."
+
+    # Git, Tmux, and Aliases Configuration
+    - name: Ensure SSH directory exists for addy
+      file:
+        path: /home/addy/.ssh
+        state: directory
+        owner: addy
+        group: addy
+        mode: '0700'
+
+    - name: Generate SSH key for GitHub
+      openssh_keypair:
+        path: /home/addy/.ssh/id_ed25519
+        type: ed25519
+        comment: "adhbhut.gupta@hypr4.io"
+        owner: addy
+        group: addy
+        mode: '0600'
+      register: ssh_key_gen
+
+    - name: Create SSH config for GitHub
+      copy:
+        content: |
+          Host github.com
+            HostName github.com
+            User git
+            IdentityFile /home/addy/.ssh/id_ed25519
+            IdentitiesOnly yes
+        dest: /home/addy/.ssh/config
+        owner: addy
+        group: addy
+        mode: '0600'
+
+    - name: Copy SSH key to root for GitHub access
+      copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: "{{ item.mode }}"
+        remote_src: yes
+      loop:
+        - src: /home/addy/.ssh/id_ed25519
+          dest: /root/.ssh/id_ed25519
+          mode: '0600'
+        - src: /home/addy/.ssh/id_ed25519.pub
+          dest: /root/.ssh/id_ed25519.pub
+          mode: '0644'
+      register: root_ssh_copy
+
+    - name: Ensure SSH directory exists for root
+      file:
+        path: /root/.ssh
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+      when: root_ssh_copy is changed
+
+    - name: Create SSH config for GitHub (root)
+      copy:
+        content: |
+          Host github.com
+            HostName github.com
+            User git
+            IdentityFile /root/.ssh/id_ed25519
+            IdentitiesOnly yes
+        dest: /root/.ssh/config
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Read generated public key
+      slurp:
+        src: /home/addy/.ssh/id_ed25519.pub
+      register: public_key_b64
+
+    - name: Set public key fact
+      set_fact:
+        public_key_content: "{{ public_key_b64.content | b64decode | trim }}"
+
+    - name: Check for GitHub Personal Access Token
+      set_fact:
+        github_token: "{{ lookup('env', 'GITHUB_TOKEN') | default(lookup('ini', 'GITHUB_TOKEN type=properties file=.env'), true) | default('', true) }}"
+
+    - name: Automatically add SSH key to GitHub (if GITHUB_TOKEN is set)
+      uri:
+        url: "https://api.github.com/user/keys"
+        method: POST
+        headers:
+          Authorization: "token {{ github_token }}"
+          Accept: "application/vnd.github+json"
+        body_format: json
+        body:
+          title: "VM-{{ ansible_host }}-{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+          key: "{{ public_key_content }}"
+        status_code: 201
+      register: github_api_response
+      ignore_errors: yes
+      when: github_token != ""
+
+    - name: Display SSH Key Instructions
+      debug:
+        msg: |
+          ==================================================================
+          GITHUB SSH KEY REGISTRATION
+          ==================================================================
+          {% if github_token != "" and github_api_response is succeeded %}
+          SUCCESS: Your SSH key was automatically added to GitHub!
+          {% else %}
+          ACTION REQUIRED: Please add the following public key to your GitHub account:
+          URL: https://github.com/settings/keys
+          
+          {{ public_key_content }}
+          {% endif %}
+          ==================================================================
+
+    - name: Copy tmux configuration globally to /etc/tmux.conf
+      copy:
+        src: /home/addy/.tmux.conf.bash
+        dest: /etc/tmux.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Copy tmux configuration to /etc/.tmux.conf as requested
+      copy:
+        src: /home/addy/.tmux.conf.bash
+        dest: /etc/.tmux.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Ensure Oh-My-Zsh custom directory exists
+      file:
+        path: /home/addy/.oh-my-zsh/custom
+        state: directory
+        owner: addy
+        group: addy
+        mode: '0755'
+
+    - name: Copy zsh aliases to Oh-My-Zsh custom directory
+      copy:
+        src: /home/addy/.oh-my-zsh/custom/aliases.zsh
+        dest: /home/addy/.oh-my-zsh/custom/aliases.zsh
+        owner: addy
+        group: addy
+        mode: '0644'
+
+    - name: Append custom aliases to ~/.bashrc for Bash compatibility
+      blockinfile:
+        path: /home/addy/.bashrc
+        block: "{{ lookup('file', '/home/addy/.oh-my-zsh/custom/aliases.zsh') }}"
+        marker: "# {mark} ANSIBLE MANAGED ALIASES"
+        owner: addy
+        group: addy
+        mode: '0644'
+
+    # Root aliases configuration
+    - name: Ensure Oh-My-Zsh custom directory exists for root
+      file:
+        path: /root/.oh-my-zsh/custom
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Copy zsh aliases to root's Oh-My-Zsh custom directory
+      copy:
+        src: /home/addy/.oh-my-zsh/custom/aliases.zsh
+        dest: /root/.oh-my-zsh/custom/aliases.zsh
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Append custom aliases to root's ~/.bashrc
+      blockinfile:
+        path: /root/.bashrc
+        block: "{{ lookup('file', '/home/addy/.oh-my-zsh/custom/aliases.zsh') }}"
+        marker: "# {mark} ANSIBLE MANAGED ALIASES"
+        owner: root
+        group: root
+        mode: '0644'
+
+    # Git configuration for addy
+    - name: Ensure .gitconfig for addy user
+      copy:
+        content: |
+          [user]
+          	name = addy-hypr4
+          	email = adhbhut.gupta@hypr4.io
+          [push]
+          	autoSetupRemote = true
+        dest: /home/addy/.gitconfig
+        owner: addy
+        group: addy
+        mode: '0644'
+
+    # Git configuration for root
+    - name: Ensure .gitconfig for root
+      copy:
+        content: |
+          [user]
+          	name = addy-hypr4
+          	email = adhbhut.gupta@hypr4.io
+          [push]
+          	autoSetupRemote = true
+        dest: /root/.gitconfig
+        owner: root
+        group: root
+        mode: '0644'
 
     # Docker installation
     - name: Create Docker keyring directory
@@ -299,7 +584,7 @@
           register: docker_status
           
         - name: Verify Docker group membership
-          command: groups {{default('addy') }}
+          command: "groups {{ ansible_user | default('addy') }}"
           register: user_groups
           changed_when: false
           

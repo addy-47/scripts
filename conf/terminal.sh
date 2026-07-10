@@ -96,7 +96,7 @@ KITTYEOF
     _log_terminal "✅ Kitty theme '$THEME_NAME' written to $THEME_FILE"
     
     # Reload Kitty config if running in Kitty
-    if [ -n "$KITTY_PID" ] || [ "$TERM" = "xterm-kitty" ]; then
+    if [ -n "${KITTY_PID:-}" ] || [ "${TERM:-}" = "xterm-kitty" ]; then
         kitty @ set-colors --all "$THEME_FILE" 2>/dev/null || true
         _log_terminal "Kitty colors reloaded (live)"
     fi
@@ -113,33 +113,45 @@ apply_terminal_theme() {
     # Check if profile already exists
     _log_terminal "Checking for existing terminal profile: $THEME_NAME"
     local PROFILE_ID=""
+    local PROFILE_IDS=()
     
     # Get all profile IDs and find the one with matching name
     local PROFILES_LIST=$(dconf read /org/gnome/terminal/legacy/profiles:/list)
     if [[ "$PROFILES_LIST" != "[]" && "$PROFILES_LIST" != "@as []" ]]; then
-        # Extract profile IDs
-        echo "$PROFILES_LIST" | tr -d "[]'" | tr ',' '\n' | while read -r pid; do
-            if [[ -n "$pid" ]]; then
-                local profile_name=$(dconf read "/org/gnome/terminal/legacy/profiles:/:$pid/visible-name" 2>/dev/null | tr -d "'")
-                if [[ "$profile_name" == "$THEME_NAME" ]]; then
-                    PROFILE_ID="$pid"
-                    break
-                fi
+        # Parse IDs properly (no subshell - use mapfile)
+        local cleaned
+        cleaned=$(echo "$PROFILES_LIST" | tr -d "[]'" | tr ',' '\n')
+        while IFS= read -r pid; do
+            pid="${pid// /}"  # trim whitespace
+            [[ -z "$pid" ]] && continue
+            PROFILE_IDS+=("$pid")
+            local pname
+            pname=$(dconf read "/org/gnome/terminal/legacy/profiles:/:$pid/visible-name" 2>/dev/null | tr -d "'")
+            if [[ "$pname" == "$THEME_NAME" ]]; then
+                PROFILE_ID="$pid"
             fi
-        done
+        done < <(echo "$cleaned")
     fi
     
     if [[ -z "$PROFILE_ID" ]]; then
         # Create new profile if it doesn't exist
         _log_terminal "Creating new terminal profile: $THEME_NAME"
         PROFILE_ID=$(uuidgen)
+        PROFILE_IDS+=("$PROFILE_ID")
         
-        # Add new profile to list
-        if [[ "$PROFILES_LIST" == "[]" || "$PROFILES_LIST" == "@as []" ]]; then
-            dconf write /org/gnome/terminal/legacy/profiles:/list "['$PROFILE_ID']"
-        else
-            dconf write /org/gnome/terminal/legacy/profiles:/list "$PROFILES_LIST, '$PROFILE_ID'"
-        fi
+        # Build proper GVariant array
+        local new_list="["
+        local first=true
+        for pid in "${PROFILE_IDS[@]}"; do
+            if [ "$first" = true ]; then
+                new_list+="'$pid'"
+                first=false
+            else
+                new_list+=", '$pid'"
+            fi
+        done
+        new_list+="]"
+        dconf write /org/gnome/terminal/legacy/profiles:/list "$new_list"
     else
         # Update existing profile
         _log_terminal "Updating existing terminal profile: $THEME_NAME"
@@ -176,17 +188,6 @@ apply_terminal_theme() {
     dconf write "$PROFILE_PATH/use-theme-transparency" "false"
     dconf write "$PROFILE_PATH/use-transparent-background" "true"
 
-    _log_terminal "Adding new profile to the list..."
-    local PROFILES_LIST=$(dconf read /org/gnome/terminal/legacy/profiles:/list)
-    
-    if [[ "$PROFILES_LIST" == "[]" || "$PROFILES_LIST" == "@as []" ]]; then
-        PROFILES_LIST="['$PROFILE_ID']"
-    else
-        PROFILES_LIST=$(echo "$PROFILES_LIST" | sed "s/]$/, '$PROFILE_ID']/")
-    fi
-    
-    dconf write /org/gnome/terminal/legacy/profiles:/list "$PROFILES_LIST"
-    
     _log_terminal "Setting '$THEME_NAME' as default profile."
     dconf write /org/gnome/terminal/legacy/profiles:/default "'$PROFILE_ID'"
 
@@ -219,7 +220,7 @@ apply_terminal_theme() {
 # -----------------------------------------------------------------------------------
 
 set_terminal_theme_red() {
-    local colors=('#1f1e1e' '#bcb4b9' '#cceef2' '#c484c1' '#87ceff' '#e9d1ed' '#a7b3f3' '#eee8d5' '#c38eca' '#adacb3' '#cf9bf1' '#dc96d5' '#efafaf' '#d8239a' '#764176' '#ff9acb')
+    local colors=('#1f1e1e' '#b8a8ac' '#b8d8dc' '#c080b8' '#7ab5d9' '#d5bdd9' '#a3aee0' '#d5cfbe' '#b88abd' '#a8a3a8' '#b891d9' '#cc8ec5' '#d49a9a' '#b82e7e' '#764176' '#da8aaa')
     local PALETTE_ARRAY=()
     for color in "${colors[@]}"; do
         PALETTE_ARRAY+=("'$(hex_to_rgb "$color")'")
@@ -387,7 +388,7 @@ apply_tmux_theme() {
     
     case $theme in
         "red")
-            sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#DC143C' "$tmux_conf"
+            sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#E37E9E' "$tmux_conf"
             ;;
         "green")
             sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#32CD32' "$tmux_conf"
@@ -406,6 +407,21 @@ apply_tmux_theme() {
             ;;
         "brown")
             sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#E8D4CC' "$tmux_conf"
+            ;;
+        "dusty_red")
+            sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#E37E9E' "$tmux_conf"
+            ;;
+        "black")
+            sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#cccccc' "$tmux_conf"
+            ;;
+        "aqua")
+            sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#c4f8f5' "$tmux_conf"
+            ;;
+        "aqua-dark")
+            sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#c4f8f5' "$tmux_conf"
+            ;;
+        "white-green")
+            sd 'fg=#[0-9A-Fa-f]{6}' 'fg=#edfff3' "$tmux_conf"
             ;;
     esac
     
@@ -447,6 +463,14 @@ set_tmux_theme_orange() {
 
 set_tmux_theme_brown() {
     apply_tmux_theme "brown"
+}
+
+set_tmux_theme_dusty_red() {
+    apply_tmux_theme "dusty_red"
+}
+
+set_tmux_theme_black() {
+    apply_tmux_theme "black"
 }
 
 # -----------------------------------------------------------------------------------
@@ -566,12 +590,16 @@ set_terminal_theme_dusty_red() {
     set_tmux_theme_dusty_red
 }
 
-set_tmux_theme_dusty_red() {
-    local tmux_conf="$HOME/.tmux.conf"
-    if command -v sed &> /dev/null; then
-        sed -i -E 's/fg=#[0-9A-Fa-f]{6}/fg=#ffffff/g' "$tmux_conf"
-    fi
-    tmux source-file "$tmux_conf" 2>/dev/null || true
+set_terminal_theme_black() {
+    local PALETTE="['rgb(10,10,10)', 'rgb(120,120,120)', 'rgb(90,90,90)', 'rgb(160,160,160)', 'rgb(100,100,100)', 'rgb(140,140,140)', 'rgb(110,110,110)', 'rgb(200,200,200)', 'rgb(60,60,60)', 'rgb(130,130,130)', 'rgb(100,100,100)', 'rgb(170,170,170)', 'rgb(80,80,80)', 'rgb(150,150,150)', 'rgb(120,120,120)', 'rgb(220,220,220)']"
+    local FG_COLOR="'rgb(200,200,200)'"
+    local BOLD_COLOR="'rgb(255,255,255)'"
+    apply_terminal_theme "addy-black" "$PALETTE" "$FG_COLOR" "$BOLD_COLOR"
+    
+    set_default_profile_by_name "addy-black"
+    restart_gnome_terminal
+    
+    set_tmux_theme_black
 }
 
 # -----------------------------------------------------------------------------------

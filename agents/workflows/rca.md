@@ -1,7 +1,7 @@
 ---
 description: Root cause analysis for a bug, regression, or unexpected behavior. Investigative and retrospective.
-agent: ask
 ---
+
 Read everything in context:
 - What broke or regressed
 - Any error output, logs, or symptoms provided

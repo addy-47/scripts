@@ -61,11 +61,11 @@ set -g @plugin 'tmux-plugins/tmux-resurrect'
 run '~/.tmux/plugins/tpm/tpm'
 
 # footer custom ui 
-set -g status-style bg=default,fg=#E67CA0
+set -g status-style bg=default,fg=#E37E9E
 set -g window-status-current-format "#[fg=white,bold]#I:#W#F"
-set -g window-status-format "#[fg=#E67CA0]#I:#W#F"
-set -g status-left "#[fg=#E67CA0] #S "
-set -g status-right "#[fg=#E67CA0] %H:%M %d-%b-%y "
+set -g window-status-format "#[fg=#E37E9E]#I:#W#F"
+set -g status-left "#[fg=#E37E9E] #S "
+set -g status-right "#[fg=#E37E9E] %H:%M %d-%b-%y "
 
 # Remove status line separators for cleaner look
 set -g status-left-length 100
