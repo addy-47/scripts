@@ -1,0 +1,44 @@
+{
+  "displayName": "<APP_PREFIX>-domain-downtime",
+  "userLabels": {
+    "app": "<APP_PREFIX>",
+    "component": "domain-uptime"
+  },
+  "conditions": [
+    {
+      "displayName": "domain-uptime-failure",
+      "conditionThreshold": {
+        "filter": "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.check_id=\"<UPTIME_CHECK_ID>\" AND resource.type=\"uptime_url\"",
+        "aggregations": [
+          {
+            "alignmentPeriod": "60s",
+            "perSeriesAligner": "ALIGN_FRACTION_TRUE",
+            "crossSeriesReducer": "REDUCE_MEAN"
+          }
+        ],
+        "comparison": "COMPARISON_LT",
+        "duration": "180s",
+        "thresholdValue": 0.5,
+        "trigger": {
+          "count": 1
+        }
+      }
+    }
+  ],
+  "alertStrategy": {
+    "notificationPrompts": [
+      "OPENED"
+    ],
+    "autoClose": "1800s"
+  },
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": [
+    <NOTIFICATION_CHANNELS>
+  ],
+  "severity": "CRITICAL",
+  "documentation": {
+    "content": "Domain <DOMAIN_HOST> overall check pass rate dropped below 50% across global checkers for **3 minutes**.",
+    "mimeType": "text/markdown"
+  }
+}

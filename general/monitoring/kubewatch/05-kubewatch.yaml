@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubewatch
+  namespace: kubewatch
+  labels:
+    app.kubernetes.io/name: kubewatch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kubewatch
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kubewatch
+    spec:
+      serviceAccountName: kubewatch
+      containers:
+      - name: kubewatch
+        image: robustadev/kubewatch:v2.9.0
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+        volumeMounts:
+        - mountPath: /opt/bitnami/kubewatch/.kubewatch.yaml
+          name: configuration
+          subPath: .kubewatch.yaml
+      volumes:
+      - name: configuration
+        configMap:
+          name: kubewatch-config

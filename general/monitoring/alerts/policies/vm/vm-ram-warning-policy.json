@@ -1,0 +1,44 @@
+{
+  "displayName": "<APP_PREFIX>-vm-ram-warning",
+  "userLabels": {
+    "app": "<APP_PREFIX>",
+    "metric": "vm-ram",
+    "tier": "warning"
+  },
+  "conditions": [
+    {
+      "displayName": "vm-ram-utilization-gt-90pct-10m",
+      "conditionThreshold": {
+        "filter": "metric.type=\"agent.googleapis.com/memory/percent_used\" AND resource.type=\"gce_instance\" AND resource.labels.project_id=\"<PROJECT_ID>\" AND metric.labels.state=\"used\"",
+        "aggregations": [
+          {
+            "alignmentPeriod": "60s",
+            "perSeriesAligner": "ALIGN_MEAN"
+          }
+        ],
+        "comparison": "COMPARISON_GT",
+        "duration": "600s",
+        "thresholdValue": 90.0,
+        "trigger": {
+          "count": 1
+        }
+      }
+    }
+  ],
+  "alertStrategy": {
+    "notificationPrompts": [
+      "OPENED"
+    ],
+    "autoClose": "1800s"
+  },
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": [
+    "<GCHAT_CHANNEL_ID>"
+  ],
+  "severity": "WARNING",
+  "documentation": {
+    "content": "VM Memory (RAM) usage in project <PROJECT_ID> exceeded **90%** for **10 minutes**.",
+    "mime_type": "text/markdown"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "displayName": "<APP_PREFIX>-vm-cpu-warning",
+  "userLabels": {
+    "app": "<APP_PREFIX>",
+    "metric": "vm-cpu",
+    "tier": "warning"
+  },
+  "conditions": [
+    {
+      "displayName": "vm-cpu-utilization-gt-85pct-15m",
+      "conditionThreshold": {
+        "filter": "metric.type=\"compute.googleapis.com/instance/cpu/utilization\" AND resource.type=\"gce_instance\" AND resource.labels.project_id=\"<PROJECT_ID>\"",
+        "aggregations": [
+          {
+            "alignmentPeriod": "60s",
+            "perSeriesAligner": "ALIGN_MEAN"
+          }
+        ],
+        "comparison": "COMPARISON_GT",
+        "duration": "900s",
+        "thresholdValue": 0.85,
+        "trigger": {
+          "count": 1
+        }
+      }
+    }
+  ],
+  "alertStrategy": {
+    "notificationPrompts": [
+      "OPENED"
+    ],
+    "autoClose": "1800s"
+  },
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": [
+    "<GCHAT_CHANNEL_ID>"
+  ],
+  "severity": "WARNING",
+  "documentation": {
+    "content": "VM CPU utilization in project <PROJECT_ID> exceeded **85%** for **15 minutes**.",
+    "mime_type": "text/markdown"
+  }
+}

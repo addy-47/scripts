@@ -1,0 +1,38 @@
+{
+  "displayName": "<APP_PREFIX>-gke-disk-warning",
+  "userLabels": {
+    "app": "<APP_PREFIX>",
+    "metric": "gke-disk",
+    "tier": "warning"
+  },
+  "conditions": [
+    {
+      "displayName": "gke-disk-utilization-warning-80pct-15min",
+      "conditionPrometheusQueryLanguage": {
+        "query": "(sum by (pod, namespace) (container_fs_usage_bytes{cluster=\"<CLUSTER_NAME>\", namespace=\"<K8S_NAMESPACE>\", container!=\"\", container!=\"POD\"}) / sum by (pod, namespace) (container_fs_limit_bytes{cluster=\"<CLUSTER_NAME>\", namespace=\"<K8S_NAMESPACE>\", container!=\"\", container!=\"POD\"})) * 100 > 80",
+        "duration": "900s",
+        "evaluationInterval": "60s",
+        "labels": {
+          "severity": "warning",
+          "action_required": "true"
+        }
+      }
+    }
+  ],
+  "alertStrategy": {
+    "notificationPrompts": [
+      "OPENED"
+    ],
+    "autoClose": "3600s"
+  },
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": [
+    "<GCHAT_CHANNEL_ID>"
+  ],
+  "severity": "WARNING",
+  "documentation": {
+    "content": "## GKE Disk Utilization Warning (80%)\n\nDisk utilization in namespace (<K8S_NAMESPACE>) on GKE cluster (<CLUSTER_NAME>) has exceeded **80%** for **15 minutes**.",
+    "mime_type": "text/markdown"
+  }
+}

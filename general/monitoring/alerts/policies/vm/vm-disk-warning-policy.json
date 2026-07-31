@@ -1,0 +1,44 @@
+{
+  "displayName": "<APP_PREFIX>-vm-disk-warning",
+  "userLabels": {
+    "app": "<APP_PREFIX>",
+    "metric": "vm-disk",
+    "tier": "warning"
+  },
+  "conditions": [
+    {
+      "displayName": "vm-disk-utilization-gt-85pct-5m",
+      "conditionThreshold": {
+        "filter": "metric.type=\"agent.googleapis.com/disk/percent_used\" AND resource.type=\"gce_instance\" AND resource.labels.project_id=\"<PROJECT_ID>\" AND metric.labels.state=\"used\" AND metric.labels.device != monitoring.regex.full_match(\".*loop.*\")",
+        "aggregations": [
+          {
+            "alignmentPeriod": "300s",
+            "perSeriesAligner": "ALIGN_MEAN"
+          }
+        ],
+        "comparison": "COMPARISON_GT",
+        "duration": "300s",
+        "thresholdValue": 85.0,
+        "trigger": {
+          "count": 1
+        }
+      }
+    }
+  ],
+  "alertStrategy": {
+    "notificationPrompts": [
+      "OPENED"
+    ],
+    "autoClose": "1800s"
+  },
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": [
+    "<GCHAT_CHANNEL_ID>"
+  ],
+  "severity": "WARNING",
+  "documentation": {
+    "content": "VM Disk utilization on instance in project <PROJECT_ID> (excluding read-only snap loop devices) exceeded **85%** for **5 minutes**.",
+    "mime_type": "text/markdown"
+  }
+}

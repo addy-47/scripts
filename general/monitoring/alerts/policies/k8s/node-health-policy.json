@@ -1,0 +1,32 @@
+{
+  "displayName": "<APP_PREFIX>-gke-node-health",
+  "userLabels": {
+    "app": "<APP_PREFIX>"
+  },
+  "conditions": [
+    {
+      "displayName": "gke-node-health-check",
+      "conditionPrometheusQueryLanguage": {
+        "query": "count(kube_node_status_condition{cluster=\"<CLUSTER_NAME>\", condition=\"Ready\", status=\"false\"} > 0) > 0",
+        "duration": "300s",
+        "evaluationInterval": "60s",
+        "labels": {
+          "severity": "critical",
+          "action_required": "true"
+        }
+      }
+    }
+  ],
+  "alertStrategy": {
+    "notificationPrompts": [
+      "OPENED"
+    ],
+    "autoClose": "1800s"
+  },
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": [
+    "<GCHAT_CHANNEL_ID>"
+  ],
+  "severity": "CRITICAL"
+}

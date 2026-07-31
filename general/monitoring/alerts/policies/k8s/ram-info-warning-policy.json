@@ -1,0 +1,62 @@
+{
+  "displayName": "<APP_PREFIX>-gke-ram-info-warning",
+  "userLabels": {
+    "app": "<APP_PREFIX>",
+    "metric": "gke-ram",
+    "tier": "info-warning"
+  },
+  "conditions": [
+    {
+      "displayName": "gke-ram-utilization-info-60pct-10min",
+      "conditionThreshold": {
+        "filter": "metric.type=\"kubernetes.io/container/memory/limit_utilization\" AND resource.type=\"k8s_container\" AND resource.labels.cluster_name=\"<CLUSTER_NAME>\" AND resource.labels.location=\"<CLUSTER_LOCATION>\" AND resource.labels.namespace_name=\"<K8S_NAMESPACE>\" AND resource.labels.project_id=\"<PROJECT_ID>\"",
+        "aggregations": [
+          {
+            "alignmentPeriod": "60s",
+            "perSeriesAligner": "ALIGN_MEAN"
+          }
+        ],
+        "comparison": "COMPARISON_GT",
+        "duration": "600s",
+        "thresholdValue": 0.6,
+        "trigger": {
+          "count": 1
+        }
+      }
+    },
+    {
+      "displayName": "gke-ram-utilization-warning-80pct-5min",
+      "conditionThreshold": {
+        "filter": "metric.type=\"kubernetes.io/container/memory/limit_utilization\" AND resource.type=\"k8s_container\" AND resource.labels.cluster_name=\"<CLUSTER_NAME>\" AND resource.labels.location=\"<CLUSTER_LOCATION>\" AND resource.labels.namespace_name=\"<K8S_NAMESPACE>\" AND resource.labels.project_id=\"<PROJECT_ID>\"",
+        "aggregations": [
+          {
+            "alignmentPeriod": "60s",
+            "perSeriesAligner": "ALIGN_MEAN"
+          }
+        ],
+        "comparison": "COMPARISON_GT",
+        "duration": "300s",
+        "thresholdValue": 0.8,
+        "trigger": {
+          "count": 1
+        }
+      }
+    }
+  ],
+  "alertStrategy": {
+    "notificationPrompts": [
+      "OPENED"
+    ],
+    "autoClose": "1800s"
+  },
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": [
+    "<GCHAT_CHANNEL_ID>"
+  ],
+  "severity": "WARNING",
+  "documentation": {
+    "content": "## GKE RAM Utilization Alert (Info/Warning)\n\nMemory limit utilization in namespace (<K8S_NAMESPACE>) on GKE cluster (<CLUSTER_NAME>) has exceeded thresholds:\n- **Info** (> 60% of memory limit for 10 minutes)\n- **Warning** (> 80% of memory limit for 5 minutes)",
+    "mime_type": "text/markdown"
+  }
+}

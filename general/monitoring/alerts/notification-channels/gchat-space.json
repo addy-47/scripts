@@ -1,0 +1,7 @@
+{
+  "displayName": "gchat-alerts-space",
+  "type": "google_chat",
+  "labels": {
+    "space": "<GCHAT_SPACE_NAME>"
+  }
+}

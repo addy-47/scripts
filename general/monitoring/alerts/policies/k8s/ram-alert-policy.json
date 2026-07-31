@@ -1,0 +1,44 @@
+{
+  "displayName": "<APP_PREFIX>-gke-ram-alert",
+  "userLabels": {
+    "app": "<APP_PREFIX>",
+    "metric": "gke-ram",
+    "tier": "alert"
+  },
+  "conditions": [
+    {
+      "displayName": "gke-ram-utilization-alert-90pct-2min",
+      "conditionThreshold": {
+        "filter": "metric.type=\"kubernetes.io/container/memory/limit_utilization\" AND resource.type=\"k8s_container\" AND resource.labels.cluster_name=\"<CLUSTER_NAME>\" AND resource.labels.location=\"<CLUSTER_LOCATION>\" AND resource.labels.namespace_name=\"<K8S_NAMESPACE>\" AND resource.labels.project_id=\"<PROJECT_ID>\"",
+        "aggregations": [
+          {
+            "alignmentPeriod": "60s",
+            "perSeriesAligner": "ALIGN_MEAN"
+          }
+        ],
+        "comparison": "COMPARISON_GT",
+        "duration": "120s",
+        "thresholdValue": 0.9,
+        "trigger": {
+          "count": 1
+        }
+      }
+    }
+  ],
+  "alertStrategy": {
+    "notificationPrompts": [
+      "OPENED"
+    ],
+    "autoClose": "1800s"
+  },
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": [
+    "<GCHAT_CHANNEL_ID>"
+  ],
+  "severity": "CRITICAL",
+  "documentation": {
+    "content": "## GKE RAM Alert (90%)\n\nMemory limit utilization in namespace (<K8S_NAMESPACE>) on GKE cluster (<CLUSTER_NAME>) has exceeded **90%** for **2 minutes**.\n\n**Actions Required:**\n1. Check pod memory usage: `kubectl top pod -n <K8S_NAMESPACE>`\n2. Check for OOMKilled pods: `kubectl get pods -n <K8S_NAMESPACE> | grep -i oom`",
+    "mime_type": "text/markdown"
+  }
+}

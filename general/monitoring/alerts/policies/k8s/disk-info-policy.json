@@ -1,0 +1,38 @@
+{
+  "displayName": "<APP_PREFIX>-gke-disk-info",
+  "userLabels": {
+    "app": "<APP_PREFIX>",
+    "metric": "gke-disk",
+    "tier": "info"
+  },
+  "conditions": [
+    {
+      "displayName": "gke-disk-utilization-info-60pct-30min",
+      "conditionPrometheusQueryLanguage": {
+        "query": "(sum by (pod, namespace) (container_fs_usage_bytes{cluster=\"<CLUSTER_NAME>\", namespace=\"<K8S_NAMESPACE>\", container!=\"\", container!=\"POD\"}) / sum by (pod, namespace) (container_fs_limit_bytes{cluster=\"<CLUSTER_NAME>\", namespace=\"<K8S_NAMESPACE>\", container!=\"\", container!=\"POD\"})) * 100 > 60",
+        "duration": "1800s",
+        "evaluationInterval": "60s",
+        "labels": {
+          "severity": "info",
+          "action_required": "false"
+        }
+      }
+    }
+  ],
+  "alertStrategy": {
+    "notificationPrompts": [
+      "OPENED"
+    ],
+    "autoClose": "3600s"
+  },
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": [
+    "<GCHAT_CHANNEL_ID>"
+  ],
+  "severity": "WARNING",
+  "documentation": {
+    "content": "## GKE Disk Utilization Info (60%)\n\nDisk utilization in namespace (<K8S_NAMESPACE>) on GKE cluster (<CLUSTER_NAME>) has exceeded **60%** for **30 minutes**.",
+    "mime_type": "text/markdown"
+  }
+}
