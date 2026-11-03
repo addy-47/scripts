@@ -1,0 +1,24 @@
+# Test-environment config. Change project_id/location for a client project.
+project_id: h4-internal
+location: asia-south1
+
+auth:
+  credentials: adc
+  browser_profile_dir: /opt/sandobx/looker-agent-feasibility/profiles/chrome
+  browser_channel: chrome
+  headless: true
+
+# Writes enabled for ticket 04/05 feasibility run (approved). Turn off after verification.
+writes:
+  enabled: true
+  dry_run: false
+
+query:
+  max_rows: 500
+  max_bytes_billed: 1000000000
+
+ui:
+  step_timeout_ms: 30000
+
+logging:
+  level: info

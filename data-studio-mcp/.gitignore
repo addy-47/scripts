@@ -1,0 +1,18 @@
+# Local toolchain
+tools/node20/
+
+# Vendored MCP build artifacts
+mcp/looker-studio-mcp/node_modules/
+mcp/looker-studio-mcp/build/
+mcp/looker-studio-mcp/coverage/
+
+# Runtime secrets and session state
+.env
+.env.*
+profiles/
+*.ndjson
+*.log
+
+# Scratch
+tmp/
+.DS_Store

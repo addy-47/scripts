@@ -1,0 +1,190 @@
+{
+  "version": 1,
+  "name": "h4-billing-feasibility",
+  "theme": {
+    "preset": "Default",
+    "canvas": {
+      "width": 1200,
+      "height": 900
+    }
+  },
+  "data_sources": [
+    {
+      "name": "billing_raw",
+      "project_id": "h4-internal",
+      "sql": "SELECT usage_start_time, DATE(usage_start_time) AS usage_date, project.id AS project_id, project.name AS project_name, service.description AS service, sku.description AS sku, location.location AS location, cost AS gross, (SELECT IFNULL(SUM(c.amount), 0) FROM UNNEST(credits) c) AS credits, cost + (SELECT IFNULL(SUM(c.amount), 0) FROM UNNEST(credits) c) AS net, currency FROM `h4-internal.billing_export.gcp_billing_export_v1_014AD3_14A442_FD0334`"
+    }
+  ],
+  "report_settings": {
+    "data_source": "billing_raw",
+    "date_range_dimension": "usage_date",
+    "date_range": "Last 7 days"
+  },
+  "pages": [
+    {
+      "name": "Overview",
+      "settings": {
+        "data_source": "billing_raw",
+        "date_range_dimension": "usage_date",
+        "date_range": "Last 7 days"
+      },
+      "components": [
+        {
+          "component": "text",
+          "text": "GCP billing overview",
+          "font_size": 24,
+          "bold": true,
+          "layout": { "x": 40, "y": 20, "width": 500, "height": 40 }
+        },
+        {
+          "component": "chart",
+          "type": "scorecard",
+          "metrics": [{ "field": "gross", "label": "Gross spend" }],
+          "data_source": "billing_raw",
+          "layout": { "x": 40, "y": 80, "width": 240, "height": 120 }
+        },
+        {
+          "component": "chart",
+          "type": "scorecard",
+          "metrics": [{ "field": "credits", "label": "Credits" }],
+          "data_source": "billing_raw",
+          "layout": { "x": 300, "y": 80, "width": 240, "height": 120 }
+        },
+        {
+          "component": "chart",
+          "type": "scorecard",
+          "metrics": [{ "field": "net", "label": "Net spend" }],
+          "data_source": "billing_raw",
+          "layout": { "x": 560, "y": 80, "width": 240, "height": 120 }
+        },
+        {
+          "component": "chart",
+          "type": "time_series",
+          "dimensions": ["usage_date"],
+          "metrics": [{ "field": "gross", "label": "Gross" }, { "field": "net", "label": "Net" }],
+          "data_source": "billing_raw",
+          "layout": { "x": 40, "y": 220, "width": 760, "height": 320 }
+        },
+        {
+          "component": "chart",
+          "type": "bar",
+          "dimensions": ["project_name"],
+          "metrics": [{ "field": "gross", "label": "Gross" }],
+          "sort_by": "gross",
+          "data_source": "billing_raw",
+          "layout": { "x": 820, "y": 220, "width": 340, "height": 320 }
+        },
+        {
+          "component": "chart",
+          "type": "bar",
+          "dimensions": ["service"],
+          "metrics": [{ "field": "gross", "label": "Gross" }],
+          "sort_by": "gross",
+          "data_source": "billing_raw",
+          "layout": { "x": 40, "y": 560, "width": 560, "height": 300 }
+        },
+        {
+          "component": "chart",
+          "type": "pivot_table",
+          "dimensions": ["project_name", "service"],
+          "metrics": [{ "field": "gross", "label": "Gross" }],
+          "data_source": "billing_raw",
+          "layout": { "x": 620, "y": 560, "width": 540, "height": 300 }
+        },
+        {
+          "component": "control",
+          "kind": "date_range",
+          "field": "usage_date",
+          "data_source": "billing_raw",
+          "layout": { "x": 820, "y": 80, "width": 340, "height": 60 }
+        }
+      ]
+    },
+    {
+      "name": "Project drill-down",
+      "settings": {
+        "data_source": "billing_raw",
+        "date_range_dimension": "usage_date",
+        "date_range": "Last 7 days"
+      },
+      "components": [
+        {
+          "component": "control",
+          "kind": "drop_down",
+          "field": "project_name",
+          "data_source": "billing_raw",
+          "layout": { "x": 40, "y": 20, "width": 300, "height": 50 }
+        },
+        {
+          "component": "chart",
+          "type": "bar",
+          "dimensions": ["service"],
+          "metrics": [{ "field": "gross", "label": "Gross" }],
+          "data_source": "billing_raw",
+          "layout": { "x": 40, "y": 90, "width": 560, "height": 320 }
+        },
+        {
+          "component": "chart",
+          "type": "table",
+          "dimensions": ["project_name", "service", "sku"],
+          "metrics": [{ "field": "gross", "label": "Gross" }, { "field": "credits", "label": "Credits" }, { "field": "net", "label": "Net" }],
+          "data_source": "billing_raw",
+          "layout": { "x": 620, "y": 90, "width": 540, "height": 320 }
+        },
+        {
+          "component": "chart",
+          "type": "time_series",
+          "dimensions": ["usage_date"],
+          "metrics": [{ "field": "gross", "label": "Gross" }],
+          "data_source": "billing_raw",
+          "layout": { "x": 40, "y": 430, "width": 1120, "height": 300 }
+        }
+      ]
+    },
+    {
+      "name": "Service drill-down",
+      "settings": {
+        "data_source": "billing_raw",
+        "date_range_dimension": "usage_date",
+        "date_range": "Last 7 days"
+      },
+      "components": [
+        {
+          "component": "control",
+          "kind": "drop_down",
+          "field": "service",
+          "data_source": "billing_raw",
+          "layout": { "x": 40, "y": 20, "width": 300, "height": 50 }
+        },
+        {
+          "component": "chart",
+          "type": "bar",
+          "dimensions": ["project_name"],
+          "metrics": [{ "field": "gross", "label": "Gross" }],
+          "data_source": "billing_raw",
+          "layout": { "x": 40, "y": 90, "width": 560, "height": 320 }
+        },
+        {
+          "component": "chart",
+          "type": "table",
+          "dimensions": ["project_name", "service", "sku"],
+          "metrics": [{ "field": "gross", "label": "Gross" }, { "field": "credits", "label": "Credits" }, { "field": "net", "label": "Net" }],
+          "data_source": "billing_raw",
+          "layout": { "x": 620, "y": 90, "width": 540, "height": 320 }
+        },
+        {
+          "component": "chart",
+          "type": "time_series",
+          "dimensions": ["usage_date"],
+          "metrics": [{ "field": "gross", "label": "Gross" }],
+          "data_source": "billing_raw",
+          "layout": { "x": 40, "y": 430, "width": 1120, "height": 300 }
+        }
+      ]
+    }
+  ]
+}
+```
+
+Need validate JSON.<|end|><|start|>start to=shell<|channel|>analysis <|constrain|>xml<|message|><rfl:parameter name="command">
+cd /opt/sandobx/looker-agent-feasibility && python3 -c "import json; d=json.load(open('docs/specs/billing-dashboard.json')); print('valid JSON; pages=', len(d['pages']))"
